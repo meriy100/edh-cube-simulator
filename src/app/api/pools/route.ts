@@ -89,13 +89,12 @@ export async function POST(req: NextRequest) {
         chunk.map((d) =>
           prisma.card.upsert({
             where: { name: d.name },
-            create: d,
+            create: { count: d.count, name: d.name, set: d.set, number: d.number, raw: d.raw },
             update: {
               // Do not overwrite scryfallJson here
               count: d.count,
               set: d.set,
               number: d.number,
-              tags: { set: d.tags },
               raw: d.raw,
             },
           }),
@@ -154,17 +153,23 @@ export async function POST(req: NextRequest) {
     });
     const idByName = new Map(cards.map((c) => [c.name, c.id] as const));
 
-    // Merge duplicates by name (sum counts)
+    // Merge duplicates by name (sum counts) and union tags per name
     const countByName = new Map<string, number>();
+    const tagsByName = new Map<string, Set<string>>();
     for (const d of data) {
       countByName.set(d.name, (countByName.get(d.name) || 0) + (d.count || 0));
+      const set = tagsByName.get(d.name) ?? new Set<string>();
+      for (const t of d.tags) set.add(t);
+      tagsByName.set(d.name, set);
     }
 
-    // Create join rows
+    // Create join rows with per-pool tags
     const joinCreates = Array.from(countByName.entries()).map(([name, count]) => {
       const cardId = idByName.get(name);
       if (!cardId) throw new Error(`Card not found after upsert: ${name}`);
-      return prisma.poolCard.create({ data: { poolId: pool.id, cardId, count } });
+      const tagSet = tagsByName.get(name) ?? new Set<string>();
+      const tags = Array.from(tagSet);
+      return prisma.poolCard.create({ data: { poolId: pool.id, cardId, count, tags } });
     });
     await prisma.$transaction(joinCreates);
 

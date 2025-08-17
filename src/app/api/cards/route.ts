@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
 
     const cards = await prisma.card.findMany({
       where: names && names.length > 0 ? { name: { in: names } } : undefined,
-      select: { name: true, scryfallJson: true, set: true, number: true, count: true, tags: true },
+      select: { name: true, scryfallJson: true, set: true, number: true, count: true },
       orderBy: { name: "asc" },
     });
 
@@ -113,13 +113,12 @@ export async function POST(req: NextRequest) {
       data.map((d) =>
         prisma.card.upsert({
           where: { name: d.name },
-          create: d, // scryfallJson remains null on create
+          create: { count: d.count, name: d.name, set: d.set, number: d.number, raw: d.raw }, // scryfallJson remains null on create
           update: {
             // Do not overwrite scryfallJson here
             count: d.count,
             set: d.set,
             number: d.number,
-            tags: d.tags,
             raw: d.raw,
           },
         }),

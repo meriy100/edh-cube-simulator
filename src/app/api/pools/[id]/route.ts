@@ -16,8 +16,9 @@ export async function GET(_req: Request, ctx: unknown) {
         poolCards: {
           select: {
             count: true,
+            tags: true,
             card: {
-              select: { id: true, name: true, set: true, number: true, tags: true, raw: true },
+              select: { id: true, name: true, set: true, number: true, raw: true },
             },
           },
           orderBy: { card: { name: "asc" } },
@@ -32,7 +33,7 @@ export async function GET(_req: Request, ctx: unknown) {
       name: pc.card.name,
       set: pc.card.set,
       number: pc.card.number,
-      tags: pc.card.tags,
+      tags: pc.tags,
       raw: pc.card.raw,
     }));
 

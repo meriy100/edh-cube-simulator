@@ -19,7 +19,6 @@ model Card {
   name         String
   set          String
   number       String
-  tags         String[]
   raw          String
   // Scryfall full card object (nullable). Do not overwrite if already present.
   scryfallJson Json?
@@ -50,6 +49,7 @@ model PoolCard {
   cardId    String
   count     Int       // how many copies of this card in the pool
   order     Int?
+  tags      String[]  @default([])
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
