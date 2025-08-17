@@ -76,23 +76,66 @@ export default async function DraftPickPage({
   }
 
   // Gather all remaining card IDs shown on this page (exclude previously picked ones)
-  const cardIdsSet = new Set<string>();
+  const remainingIdsSet = new Set<string>();
   for (const idx of packIndices) {
     const pack = packs[idx];
     if (!pack) continue;
     const removed = pickedByPack.get(pack.id);
     for (const cid of pack.cardIds ?? []) {
-      if (!removed || !removed.has(cid)) cardIdsSet.add(cid);
+      if (!removed || !removed.has(cid)) remainingIdsSet.add(cid);
     }
   }
-  const cardIds = Array.from(cardIdsSet);
 
-  // Fetch card details
+  // Collect picked-so-far card IDs per seat (up to previous pick)
+  const pickedIdsPerSeat: string[][] = Array.from({ length: seat }, (_, seatIndex) => {
+    const seatPicks = picks[seatIndex] ?? [];
+    const upto = Math.min(seatPicks.length, Math.max(0, clampedDisplayPickNumber - 1));
+    const ids: string[] = [];
+    for (let i = 0; i < upto; i++) {
+      const entry = seatPicks[i];
+      if (!entry) continue;
+      for (const cid of entry.cardIds ?? []) ids.push(cid);
+    }
+    return ids;
+  });
+
+  // Union of all needed IDs (remaining + picked-so-far)
+  const allIdsSet = new Set<string>([...remainingIdsSet]);
+  for (const ids of pickedIdsPerSeat) for (const id of ids) allIdsSet.add(id);
+  const allIds = Array.from(allIdsSet);
+
+  // Fetch card details for all needed IDs once
   const cardRows = await prisma.card.findMany({
-    where: { id: { in: cardIds } },
+    where: { id: { in: allIds } },
     select: { id: true, name: true, set: true, number: true, scryfallJson: true },
   });
   const cardMap = new Map(cardRows.map((c) => [c.id, c] as const));
+
+  function toGridCardById(cid: string): GridCard | null {
+    const c = cardMap.get(cid);
+    if (!c) return null;
+    const normalUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=normal`;
+    let largeUrl = normalUrl;
+    try {
+      const sf = c.scryfallJson as unknown as { image_uris?: { large?: string } };
+      const lu = sf?.image_uris?.large as string | undefined;
+      if (lu && typeof lu === "string") {
+        largeUrl = lu;
+      } else {
+        largeUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=large`;
+      }
+    } catch {
+      largeUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=large`;
+    }
+    return {
+      id: c.id,
+      name: c.name,
+      set: c.set,
+      number: c.number,
+      normalUrl,
+      largeUrl,
+    } satisfies GridCard;
+  }
 
   const seatPacks: SeatPack[] = Array.from({ length: seat })
     .map((_, seatIndex) => {
@@ -101,34 +144,12 @@ export default async function DraftPickPage({
       if (!pack) return null;
       const removed = pickedByPack.get(pack.id);
       const ids = (pack.cardIds || []).filter((cid) => !removed || !removed.has(cid));
-      const cards: GridCard[] = ids
-        .map((cid) => {
-          const c = cardMap.get(cid);
-          if (!c) return null;
-          const normalUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=normal`;
-          let largeUrl = normalUrl;
-          try {
-            const sf = c.scryfallJson as unknown as { image_uris?: { large?: string } };
-            const lu = sf?.image_uris?.large as string | undefined;
-            if (lu && typeof lu === "string") {
-              largeUrl = lu;
-            } else {
-              largeUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=large`;
-            }
-          } catch {
-            largeUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=large`;
-          }
-          return {
-            id: c.id,
-            name: c.name,
-            set: c.set,
-            number: c.number,
-            normalUrl,
-            largeUrl,
-          } satisfies GridCard;
-        })
+      const cards: GridCard[] = ids.map(toGridCardById).filter((x): x is GridCard => !!x);
+      const pickedIds = pickedIdsPerSeat[seatIndex] ?? [];
+      const pickedCards: GridCard[] = pickedIds
+        .map(toGridCardById)
         .filter((x): x is GridCard => !!x);
-      return { seatIndex, packId: pack.id, cards } as SeatPack;
+      return { seatIndex, packId: pack.id, cards, pickedCards } as SeatPack;
     })
     .filter((x): x is SeatPack => !!x);
 

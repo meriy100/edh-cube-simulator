@@ -7,7 +7,8 @@ import CardGridWithPreview, { type GridCard } from "./CardGridWithPreview";
 export type SeatPack = {
   seatIndex: number;
   packId: string;
-  cards: GridCard[];
+  cards: GridCard[]; // current pack remaining cards
+  pickedCards?: GridCard[]; // already picked cards up to previous pick
 };
 
 type Props = {
@@ -113,6 +114,14 @@ export default function DraftPickClient({ poolId, draftId, pickNumber, seatPacks
                 onSelectedChange={(ids) => onChangeForSeat(sp.seatIndex, ids)}
               />
             </div>
+            {sp.pickedCards && sp.pickedCards.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-base font-semibold mb-2">Picked so far</h3>
+                <div className="relative pb-24">
+                  <CardGridWithPreview cards={sp.pickedCards} perRow={6} />
+                </div>
+              </div>
+            )}
           </section>
         ))}
       </div>
