@@ -34,3 +34,22 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+---
+
+## Database (Prisma + Vercel Postgres)
+
+This project saves parsed card entries from the top page to a Postgres database via Prisma.
+
+1. Set DATABASE_URL in your environment (already present in .env.development.local for local dev).
+2. Create the database tables from the Prisma schema:
+
+```bash
+npm run prisma:push
+# or
+yarn prisma:push
+```
+
+This will create the Card table defined in prisma/schema.prisma.
+
+On submit, the app calls POST /api/cards and performs a bulk insert (createMany) for all parsed entries.

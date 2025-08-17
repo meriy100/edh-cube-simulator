@@ -50,6 +50,8 @@ export default function Home() {
   const [parseErrors, setParseErrors] = useState<ParseError[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState<string>("");
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveMessage, setSaveMessage] = useState<string>("");
 
   const welcomeSet = useMemo(() => (pool ?? []).filter((c) => c.tags.some((t) => t.startsWith('#9-welcome-set'))), [pool]);
   const commanders = useMemo(() => (pool ?? []).filter((c) => c.isCommander && !c.tags.some((t) => t.startsWith('#9-welcome-set'))), [pool]);
@@ -70,11 +72,34 @@ export default function Home() {
     return others.filter((c) => selectedTags.every((t) => c.tags.some((tag) => tag.startsWith(t))));
   }, [others, selectedTags]);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const { entries, errors } = parseMoxfieldListWithErrors(input);
     setPool(entries);
     setParseErrors(errors);
+
+    // Save to DB via API when parsing succeeds (save all entries, even if some lines had errors)
+    try {
+      setSaveStatus("saving");
+      setSaveMessage("");
+      const res = await fetch("/api/cards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entries }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSaveStatus("error");
+        setSaveMessage(data?.error || "保存に失敗しました");
+      } else {
+        setSaveStatus("saved");
+        setSaveMessage(`${data?.count ?? 0} 件を保存しました`);
+      }
+    } catch (err) {
+      console.error(err);
+      setSaveStatus("error");
+      setSaveMessage("サーバーエラーが発生しました");
+    }
   }
 
   function normalizeTag(t: string): string | null {
@@ -141,6 +166,12 @@ export default function Home() {
 
       {pool && (
         <div className="flex flex-col gap-8">
+          <div className="rounded border border-black/10 dark:border-white/15 p-3">
+            <div className="text-sm">
+              保存状態: {saveStatus === 'idle' && '未保存'}{saveStatus === 'saving' && '保存中...'}{saveStatus === 'saved' && '保存済み'}{saveStatus === 'error' && 'エラー'}
+            </div>
+            {saveMessage && <div className="mt-1 text-sm opacity-80">{saveMessage}</div>}
+          </div>
           <section className="border border-black/10 dark:border-white/15 rounded p-3">
             <h2 className="text-lg font-semibold mb-3">フィルター条件</h2>
             <form onSubmit={handleAddTagFromInput} className="flex flex-wrap items-center gap-2 mb-3">
