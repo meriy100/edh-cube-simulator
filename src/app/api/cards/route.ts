@@ -18,7 +18,7 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-async function fetchScryfallBySetAndNumber(setCode: string, collectorNumber: string) {
+async function fetchScryfallBySetAndNumber(setCode: string, collectorNumber: string): Promise<Prisma.InputJsonValue> {
   const set = encodeURIComponent(setCode.toLowerCase())
   const num = encodeURIComponent(collectorNumber)
   const url = `https://api.scryfall.com/cards/${set}/${num}`
@@ -26,7 +26,7 @@ async function fetchScryfallBySetAndNumber(setCode: string, collectorNumber: str
   if (!res.ok) {
     throw new Error(`Scryfall error ${res.status} for ${setCode} ${collectorNumber}`)
   }
-  return (await res.json()) as unknown
+  return (await res.json()) as unknown as Prisma.InputJsonValue
 }
 
 export async function GET(req: NextRequest) {
@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
           }
         })
       )
-      const updates = results.filter((r): r is { name: string; json: unknown } => !!r)
+      const updates = results.filter((r): r is { name: string; json: Prisma.InputJsonValue } => !!r)
       if (updates.length > 0) {
         await prisma.$transaction(
           updates.map((u) =>

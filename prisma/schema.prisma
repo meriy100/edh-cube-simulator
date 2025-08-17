@@ -11,9 +11,9 @@ datasource db {
 }
 
 model Card {
-  id           String   @id @default(cuid())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id           String     @id @default(cuid())
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
   // parsed fields
   count        Int
   name         String
@@ -24,6 +24,39 @@ model Card {
   // Scryfall full card object (nullable). Do not overwrite if already present.
   scryfallJson Json?
 
+  // Relations
+  poolCards    PoolCard[]
+
   @@unique([name])
   @@index([set])
+}
+
+model Pool {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  // Optional title or memo
+  title     String?
+  // Original pasted text (optional)
+  raw       String?
+
+  // Relations
+  poolCards PoolCard[]
+}
+
+model PoolCard {
+  // Composite PK to avoid duplicates of the same card in a pool
+  poolId    String
+  cardId    String
+  count     Int       // how many copies of this card in the pool
+  order     Int?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relations
+  pool      Pool      @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  card      Card      @relation(fields: [cardId], references: [id])
+
+  @@id([poolId, cardId])
+  @@index([cardId])
 }

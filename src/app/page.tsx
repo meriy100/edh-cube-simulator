@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from "react";
+import {useEffect, useMemo, useState} from "react";
+import { useRouter } from "next/navigation";
 
 type CardEntry = {
   count: number;
@@ -45,125 +46,68 @@ function parseMoxfieldListWithErrors(text: string): { entries: CardEntry[]; erro
 }
 
 export default function Home() {
+  const router = useRouter();
   const [input, setInput] = useState<string>("");
-  const [pool, setPool] = useState<CardEntry[] | null>(null);
   const [parseErrors, setParseErrors] = useState<ParseError[]>([]);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState<string>("");
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const [saveMessage, setSaveMessage] = useState<string>("");
-  const [imageMap, setImageMap] = useState<Record<string, string>>({});
-
-  const welcomeSet = useMemo(() => (pool ?? []).filter((c) => c.tags.some((t) => t.startsWith('#9-welcome-set'))), [pool]);
-  const commanders = useMemo(() => (pool ?? []).filter((c) => c.isCommander && !c.tags.some((t) => t.startsWith('#9-welcome-set'))), [pool]);
-  const others = useMemo(() => (pool ?? []).filter((c) => !c.isCommander && !c.tags.some((t) => t.startsWith('#9-welcome-set'))), [pool]);
-
-  const filteredCommanders = useMemo(() => {
-    if (selectedTags.length === 0) return commanders;
-    return commanders.filter((c) => selectedTags.every((t) => c.tags.some((tag) => tag.startsWith(t))));
-  }, [commanders, selectedTags]);
-
-  const filteredWelcome = useMemo(() => {
-    if (selectedTags.length === 0) return welcomeSet;
-    return welcomeSet.filter((c) => selectedTags.every((t) => c.tags.some((tag) => tag.startsWith(t))));
-  }, [welcomeSet, selectedTags]);
-
-  const filteredOthers = useMemo(() => {
-    if (selectedTags.length === 0) return others;
-    return others.filter((c) => selectedTags.every((t) => c.tags.some((tag) => tag.startsWith(t))));
-  }, [others, selectedTags]);
+  const [pools, setPools] = useState<Array<{ id: string; title: string | null; createdAt: string; count: number }>>([]);
+  const [loadingPools, setLoadingPools] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const { entries, errors } = parseMoxfieldListWithErrors(input);
-    setPool(entries);
     setParseErrors(errors);
-    setImageMap({});
-
-    // Save to DB via API when parsing succeeds (save all entries, even if some lines had errors)
     try {
-      setSaveStatus("saving");
-      setSaveMessage("");
-      const res = await fetch("/api/cards", {
+      setIsSaving(true);
+      const res = await fetch("/api/pools", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ entries }),
+        body: JSON.stringify({ entries, raw: input }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setSaveStatus("error");
-        setSaveMessage(data?.error || "保存に失敗しました");
-      } else {
-        setSaveStatus("saved");
-        setSaveMessage(`${data?.count ?? 0} 件を保存しました`);
+        alert(data?.error || "保存に失敗しました");
+        return;
+      }
+      if (data?.poolId) {
+        router.push(`/pools/${data.poolId}`);
       }
     } catch (err) {
       console.error(err);
-      setSaveStatus("error");
-      setSaveMessage("サーバーエラーが発生しました");
+      alert("サーバーエラーが発生しました");
+    } finally {
+      setIsSaving(false);
     }
   }
 
-  function normalizeTag(t: string): string | null {
-    const tt = t.trim();
-    if (!tt) return null;
-    return tt.startsWith('#') ? tt : `#${tt}`;
-  }
-
-  function addTag(tag: string) {
-    const n = normalizeTag(tag);
-    if (!n) return;
-    setSelectedTags((prev) => (prev.includes(n) ? prev : [...prev, n]));
-  }
-
-  function removeTag(tag: string) {
-    setSelectedTags((prev) => prev.filter((t) => t !== tag));
-  }
-
-  function clearTags() {
-    setSelectedTags([]);
-  }
-
-  // Fetch scryfall images for current pool
+  // Load pools list
   useEffect(() => {
-    const controller = new AbortController();
-    async function run() {
-      if (!pool || pool.length === 0) return;
+    let active = true;
+    (async () => {
       try {
-        const names = Array.from(new Set(pool.map((p) => p.name))).join('$');
-        const res = await fetch(`/api/cards?names=${encodeURIComponent(names)}`, {
-          signal: controller.signal,
-        });
-        if (!res.ok) return;
+        setLoadingPools(true);
+        const res = await fetch('/api/pools');
         const data = await res.json();
-        const map: Record<string, string> = {};
-        for (const c of (data?.cards ?? [] as Array<{ name: string; scryfallJson: unknown }>)) {
-          const j = c?.scryfallJson as unknown;
-          const url = (
-            j && typeof j === 'object' && (j as { image_uris?: { normal?: string } }).image_uris?.normal
-          ) || (
-            j && typeof j === 'object'
-              ? (j as { card_faces?: Array<{ image_uris?: { normal?: string } }> }).card_faces?.[0]?.image_uris?.normal
-              : undefined
-          ) || undefined;
-          if (typeof url === 'string') {
-            map[c.name] = url;
-          }
+        if (res.ok && active) {
+          const items = (data?.pools ?? []).map((p: { id: string; title: string | null; createdAt: string; _count?: { poolCards: number } }) => ({ id: p.id, title: p.title ?? null, createdAt: p.createdAt, count: p._count?.poolCards ?? 0 }));
+          setPools(items);
         }
-        setImageMap(map);
-      } catch (e) {
-        // ignore
+      } finally {
+        if (active) setLoadingPools(false);
       }
-    }
-    run();
-    return () => controller.abort();
-  }, [pool]);
+    })();
+    return () => { active = false };
+  }, []);
 
-  function handleAddTagFromInput(e: React.FormEvent) {
-    e.preventDefault();
-    if (!tagInput.trim()) return;
-    addTag(tagInput);
-    setTagInput("");
+  async function handleDeletePool(id: string) {
+    if (!confirm('この pool を削除しますか？')) return;
+    const res = await fetch(`/api/pools/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data?.error || '削除に失敗しました');
+      return;
+    }
+    setPools((prev) => prev.filter((p) => p.id !== id));
   }
 
   return (
@@ -181,10 +125,14 @@ export default function Home() {
         <div className="flex flex-col gap-2">
           <button
             type="submit"
-            className="rounded bg-foreground text-background px-4 py-2 text-sm font-semibold hover:opacity-90 w-fit"
+            disabled={isSaving}
+            className="rounded bg-foreground text-background px-4 py-2 text-sm font-semibold hover:opacity-90 w-fit disabled:opacity-60"
           >
-            Submit
+            {isSaving ? '保存中...' : 'Submit'}
           </button>
+          {isSaving && (
+            <div className="text-sm opacity-70 mt-1">保存中です。しばらくお待ちください…</div>
+          )}
         </div>
       </form>
 
@@ -201,154 +149,26 @@ export default function Home() {
         </div>
       )}
 
-      {pool && (
-        <div className="flex flex-col gap-8">
-          <div className="rounded border border-black/10 dark:border-white/15 p-3">
-            <div className="text-sm">
-              保存状態: {saveStatus === 'idle' && '未保存'}{saveStatus === 'saving' && '保存中...'}{saveStatus === 'saved' && '保存済み'}{saveStatus === 'error' && 'エラー'}
-            </div>
-            {saveMessage && <div className="mt-1 text-sm opacity-80">{saveMessage}</div>}
-          </div>
-          <section className="border border-black/10 dark:border-white/15 rounded p-3">
-            <h2 className="text-lg font-semibold mb-3">フィルター条件</h2>
-            <form onSubmit={handleAddTagFromInput} className="flex flex-wrap items-center gap-2 mb-3">
-              <input
-                type="text"
-                placeholder="#タグ名 を入力（# は省略可）"
-                value={tagInput}
-                data-1p-ignore
-                onChange={(e) => setTagInput(e.target.value)}
-                className="px-2 py-1 rounded border border-black/10 dark:border-white/20 bg-transparent text-sm"
-              />
-              <button
-                type="submit"
-                className="rounded bg-foreground text-background px-3 py-1.5 text-sm font-semibold hover:opacity-90"
-              >
-                タグを追加
-              </button>
-              {selectedTags.length > 0 && (
-                <button
-                  type="button"
-                  onClick={clearTags}
-                  className="ml-auto text-xs opacity-80 underline hover:opacity-100"
-                >すべてクリア</button>
-              )}
-            </form>
-            <div className="flex flex-wrap gap-2">
-              {selectedTags.length === 0 && (
-                <div className="text-sm opacity-70">（未指定）</div>
-              )}
-              {selectedTags.map((t) => (
-                <span key={t} className="inline-flex items-center gap-1 text-[12px] px-2 py-1 rounded bg-black/5 dark:bg-white/10">
-                  {t}
-                  <button
-                    type="button"
-                    onClick={() => removeTag(t)}
-                    aria-label={`${t} を削除`}
-                    className="rounded px-1 hover:bg-black/10 dark:hover:bg-white/20"
-                  >×</button>
-                </span>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-3">Commanders ({filteredCommanders.length})</h2>
-            <div className="flex flex-wrap gap-3">
-              {filteredCommanders.length === 0 && (
-                <div className="text-sm opacity-70">該当なし</div>
-              )}
-              {filteredCommanders.map((c, idx) => (
-                <div key={`commander-${idx}-${c.name}-${c.number}`} className="border border-black/10 dark:border-white/15 rounded p-3 w-[260px] flex-shrink-0">
-                  {imageMap[c.name] && (
-                    <img src={imageMap[c.name]} alt={c.name} className="w-full rounded mb-2" />
-                  )}
-                  <div className="text-sm opacity-70">x{c.count}</div>
-                  <div className="font-semibold">{c.name}</div>
-                  <div className="text-xs opacity-70">({c.set}) {c.number}</div>
-                  {c.tags.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {c.tags.map((t) => (
-                        <button
-                          key={t}
-                          type="button"
-                          onClick={() => addTag(t)}
-                          className="text-[11px] px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20"
-                          title={`${t} でフィルター`}
-                        >{t}</button>
-                      ))}
-                    </div>
-                  )}
+      <section className="mt-10">
+        <h2 className="text-xl font-semibold mb-3">Pools</h2>
+        {loadingPools ? (
+          <div className="opacity-70 text-sm">読み込み中...</div>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {pools.length === 0 && <li className="opacity-70 text-sm">Pool はまだありません</li>}
+            {pools.map((p) => (
+              <li key={p.id} className="flex items-center gap-3 border border-black/10 dark:border-white/15 rounded p-2">
+                <div className="flex-1">
+                  <div className="font-medium">{p.title ?? '(untitled)'} <span className="opacity-70 text-xs">{new Date(p.createdAt).toLocaleString()}</span></div>
+                  <div className="opacity-70 text-xs">cards: {p.count}</div>
                 </div>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-3">Normal Package ({filteredOthers.length})</h2>
-            <div className="flex flex-wrap gap-3">
-              {filteredOthers.length === 0 && (
-                <div className="text-sm opacity-70">該当なし</div>
-              )}
-              {filteredOthers.map((c, idx) => (
-                <div key={`other-${idx}-${c.name}-${c.number}`} className="border border-black/10 dark:border-white/15 rounded p-3 w-[260px] flex-shrink-0">
-                  {imageMap[c.name] && (
-                    <img src={imageMap[c.name]} alt={c.name} className="w-full rounded mb-2" />
-                  )}
-                  <div className="text-sm opacity-70">x{c.count}</div>
-                  <div className="font-semibold">{c.name}</div>
-                  <div className="text-xs opacity-70">({c.set}) {c.number}</div>
-                  {c.tags.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {c.tags.map((t) => (
-                        <button
-                          key={t}
-                          type="button"
-                          onClick={() => addTag(t)}
-                          className="text-[11px] px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20"
-                          title={`${t} でフィルター`}
-                        >{t}</button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-3">Welcome set ({filteredWelcome.length})</h2>
-            <div className="flex flex-wrap gap-3">
-              {filteredWelcome.length === 0 && (
-                <div className="text-sm opacity-70">該当なし</div>
-              )}
-              {filteredWelcome.map((c, idx) => (
-                <div key={`welcome-${idx}-${c.name}-${c.number}`} className="border border-black/10 dark:border-white/15 rounded p-3 w-[260px] flex-shrink-0">
-                  {imageMap[c.name] && (
-                    <img src={imageMap[c.name]} alt={c.name} className="w-full rounded mb-2" />
-                  )}
-                  <div className="text-sm opacity-70">x{c.count}</div>
-                  <div className="font-semibold">{c.name}</div>
-                  <div className="text-xs opacity-70">({c.set}) {c.number}</div>
-                  {c.tags.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {c.tags.map((t) => (
-                        <button
-                          key={t}
-                          type="button"
-                          onClick={() => addTag(t)}
-                          className="text-[11px] px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20"
-                          title={`${t} でフィルター`}
-                        >{t}</button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-        </div>
-      )}
+                <button type="button" onClick={() => router.push(`/pools/${p.id}`)} className="text-sm underline">Show</button>
+                <button type="button" onClick={() => handleDeletePool(p.id)} className="text-sm underline text-red-600">Delete</button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }
