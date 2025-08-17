@@ -78,8 +78,8 @@ export default function DraftPickClient({ poolId, draftId, pickNumber, seatPacks
 
   return (
     <div>
-      {/* Top bar with Submit */}
-      <div className="flex items-center gap-3 mb-4">
+      {/* Top bar with Submit (sticky) */}
+      <div className="sticky top-0 z-20 mb-4 -mx-2 px-2 py-2 bg-white/90 dark:bg-gray-900/80 backdrop-blur border-b border-black/10 dark:border-white/10 flex items-center gap-3">
         <div className="ml-auto">
           <button
             type="button"

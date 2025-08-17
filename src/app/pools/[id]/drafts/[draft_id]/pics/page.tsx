@@ -103,7 +103,7 @@ export default async function DraftPicsPage({
           >
             <h2 className="text-lg font-semibold mb-3">Seat{sc.seatIndex + 1}</h2>
             <div className="relative pb-24">
-              <CardGridWithPreview cards={sc.cards} perRow={8} />
+              <CardGridWithPreview cards={sc.cards} perRow={6} />
             </div>
           </section>
         ))}
