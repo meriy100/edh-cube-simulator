@@ -184,6 +184,10 @@ export default async function DraftPickPage({
         draftId={draftId}
         pickNumber={clampedDisplayPickNumber}
         seatPacks={seatPacks}
+        isPickCompleted={Array.from(
+          { length: seat },
+          (_, idx) => (picks[idx]?.length ?? 0) >= clampedDisplayPickNumber,
+        ).every(Boolean)}
       />
     </div>
   );

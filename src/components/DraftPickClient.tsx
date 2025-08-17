@@ -16,9 +16,16 @@ type Props = {
   draftId: string;
   pickNumber: number;
   seatPacks: SeatPack[]; // length === seat for current pick
+  isPickCompleted?: boolean; // when true, show Next instead of Submit
 };
 
-export default function DraftPickClient({ poolId, draftId, pickNumber, seatPacks }: Props) {
+export default function DraftPickClient({
+  poolId,
+  draftId,
+  pickNumber,
+  seatPacks,
+  isPickCompleted,
+}: Props) {
   const router = useRouter();
   const [selections, setSelections] = React.useState<Record<number, string[]>>(() => ({}));
   const [submitting, setSubmitting] = React.useState(false);
@@ -78,23 +85,56 @@ export default function DraftPickClient({ poolId, draftId, pickNumber, seatPacks
 
   return (
     <div>
-      {/* Top bar with Submit (sticky) */}
+      {/* Top bar with Prev + Submit/Next (sticky) */}
       <div className="sticky top-0 z-20 mb-4 -mx-2 px-2 py-2 bg-white/90 dark:bg-gray-900/80 backdrop-blur border-b border-black/10 dark:border-white/10 flex items-center gap-3">
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
           <button
             type="button"
-            disabled={!allSelected || submitting}
-            onClick={handleSubmit}
+            onClick={() =>
+              router.push(
+                `/pools/${encodeURIComponent(poolId)}/drafts/${encodeURIComponent(draftId)}/picks/${encodeURIComponent(String(Math.max(1, pickNumber - 1)))}`,
+              )
+            }
+            disabled={pickNumber <= 1}
             className={
               "px-4 py-2 rounded font-semibold border " +
-              (allSelected && !submitting
-                ? "bg-emerald-600 text-white border-emerald-700 hover:bg-emerald-700"
+              (pickNumber > 1
+                ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700"
                 : "bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed")
             }
-            aria-disabled={!allSelected || submitting}
+            aria-disabled={pickNumber <= 1}
           >
-            {submitting ? "Submitting..." : "Submit"}
+            Prev
           </button>
+
+          {isPickCompleted ? (
+            <button
+              type="button"
+              onClick={() =>
+                router.push(
+                  `/pools/${encodeURIComponent(poolId)}/drafts/${encodeURIComponent(draftId)}/picks/${encodeURIComponent(String(pickNumber + 1))}`,
+                )
+              }
+              className="px-4 py-2 rounded font-semibold border bg-indigo-600 text-white border-indigo-700 hover:bg-indigo-700"
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={!allSelected || submitting}
+              onClick={handleSubmit}
+              className={
+                "px-4 py-2 rounded font-semibold border " +
+                (allSelected && !submitting
+                  ? "bg-emerald-600 text-white border-emerald-700 hover:bg-emerald-700"
+                  : "bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed")
+              }
+              aria-disabled={!allSelected || submitting}
+            >
+              {submitting ? "Submitting..." : "Submit"}
+            </button>
+          )}
         </div>
       </div>
 
