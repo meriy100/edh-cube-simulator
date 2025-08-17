@@ -89,7 +89,7 @@ export default function CardGridWithPreview({
         {rows.map((row, rIdx) => (
           <div
             key={`row-${rIdx}`}
-            className={`flex flex-row flex-wrap items-start gap-2 ${rIdx === 0 ? "" : "-mt-24 sm:-mt-28"}`}
+            className={`flex flex-row flex-wrap items-start gap-2 ${rIdx === 0 ? "" : "-mt-40 sm:-mt-44"}`}
           >
             {row.map((c) => {
               const selected = selectable && isSelected(c.id);
