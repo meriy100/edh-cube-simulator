@@ -9,6 +9,7 @@ export type SeatPack = {
   packId: string;
   cards: GridCard[]; // current pack remaining cards
   pickedCards?: GridCard[]; // already picked cards up to previous pick
+  pickedThisPickIds?: string[]; // このピックで実際に選択されたカードID（完了表示用）
 };
 
 type Props = {
@@ -149,9 +150,12 @@ export default function DraftPickClient({
               <CardGridWithPreview
                 cards={sp.cards}
                 perRow={6}
-                selectable
+                selectable={!isPickCompleted}
                 maxSelected={2}
-                onSelectedChange={(ids) => onChangeForSeat(sp.seatIndex, ids)}
+                onSelectedChange={
+                  isPickCompleted ? undefined : (ids) => onChangeForSeat(sp.seatIndex, ids)
+                }
+                highlightedIds={isPickCompleted ? sp.pickedThisPickIds : undefined}
               />
             </div>
             {sp.pickedCards && sp.pickedCards.length > 0 && (

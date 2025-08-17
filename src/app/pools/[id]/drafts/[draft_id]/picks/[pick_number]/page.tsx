@@ -158,10 +158,12 @@ export default async function DraftPickPage({
       let packId: string | undefined;
       let pack: { id: string; cardIds: string[] } | undefined;
 
+      let pickedThisPickIds: string[] | undefined;
       if (isCompletedPick) {
         // Use the historical packId used at this pick for this seat
         const entry = (picks[seatIndex] ?? [])[clampedDisplayPickNumber - 1];
         packId = entry?.packId;
+        pickedThisPickIds = entry?.cardIds ?? [];
         if (packId) pack = packs.find((p) => p.id === packId);
       } else {
         // Use the current slice mapping for ongoing/future picks
@@ -179,7 +181,7 @@ export default async function DraftPickPage({
       const pickedCards: GridCard[] = pickedIds
         .map(toGridCardById)
         .filter((x): x is GridCard => !!x);
-      return { seatIndex, packId, cards, pickedCards } as SeatPack;
+      return { seatIndex, packId, cards, pickedCards, pickedThisPickIds } as SeatPack;
     })
     .filter((x): x is SeatPack => !!x);
 

@@ -19,6 +19,7 @@ type Props = {
   maxSelected?: number; // 最大選択数（シートごと）
   initialSelectedIds?: string[]; // 初期選択
   onSelectedChange?: (ids: string[]) => void; // 選択変更通知
+  highlightedIds?: string[]; // 選択不可時でも視覚的にハイライトするカードID
 };
 
 export default function CardGridWithPreview({
@@ -29,6 +30,7 @@ export default function CardGridWithPreview({
   maxSelected = 2,
   initialSelectedIds,
   onSelectedChange,
+  highlightedIds,
 }: Props) {
   const [hovered, setHovered] = React.useState<GridCard | null>(null);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(
@@ -92,7 +94,8 @@ export default function CardGridWithPreview({
             className={`flex flex-row flex-wrap items-start gap-2 ${rIdx === 0 ? "" : "-mt-40 sm:-mt-44"}`}
           >
             {row.map((c) => {
-              const selected = selectable && isSelected(c.id);
+              const isVisuallyHighlighted =
+                (highlightedIds?.includes(c.id) ?? false) || (selectable && isSelected(c.id));
               return (
                 <div key={c.id} className="relative">
                   <img
@@ -101,7 +104,7 @@ export default function CardGridWithPreview({
                     loading="lazy"
                     className={
                       "w-40 sm:w-48 h-auto rounded shadow-sm border bg-white " +
-                      (selected
+                      (isVisuallyHighlighted
                         ? "border-4 border-emerald-500 shadow-emerald-500/40"
                         : "border-black/10 dark:border-white/10")
                     }
@@ -109,9 +112,11 @@ export default function CardGridWithPreview({
                     onFocus={() => setHovered(c)}
                     onMouseLeave={() => setHovered((h) => (h?.id === c.id ? null : h))}
                     onBlur={() => setHovered((h) => (h?.id === c.id ? null : h))}
-                    onClick={() => toggleSelect(c)}
+                    onClick={() => (selectable ? toggleSelect(c) : undefined)}
                     role={selectable ? "button" : undefined}
-                    aria-pressed={selectable ? (selected ? "true" : "false") : undefined}
+                    aria-pressed={
+                      selectable ? (isVisuallyHighlighted ? "true" : "false") : undefined
+                    }
                     tabIndex={selectable ? 0 : -1}
                   />
                 </div>
