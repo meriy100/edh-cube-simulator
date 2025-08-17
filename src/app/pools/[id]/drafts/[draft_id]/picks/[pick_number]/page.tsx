@@ -17,7 +17,7 @@ export default async function DraftPickPage({
 
   const draft = await prisma.draft.findFirst({
     where: { id: draftId, poolId },
-    select: { id: true, poolId: true, seet: true, packs: true, createdAt: true },
+    select: { id: true, poolId: true, seet: true, packs: true, picks: true, createdAt: true },
   });
 
   if (!draft) {
@@ -35,22 +35,55 @@ export default async function DraftPickPage({
 
   const seet = draft.seet;
   const packs = (draft.packs as unknown as Array<{ id: string; cardIds: string[] }>) || [];
-  const totalPicks = Math.ceil(packs.length / Math.max(1, seet));
 
-  // Clamp pickNumber to valid range
-  const pickIdx = Math.min(Math.max(1, pickNumber), Math.max(1, totalPicks));
+  // Total number of pack slices (how many distinct sets of packs exist per seat)
+  const totalSlices = Math.ceil(packs.length / Math.max(1, seet));
 
-  // Compute pack indices for each seet at this pick
+  // Display total picks = picks per pack * number of packs per seat
+  // picks per pack = ceil(pack size / picksPerPick). picksPerPick is 2.
+  const picksPerPick = 2;
+  const packSize = Math.max(0, packs[0]?.cardIds?.length ?? 0);
+  const picksPerPack = Math.ceil(packSize / picksPerPick);
+  const displayTotalPicks = totalSlices * Math.max(1, picksPerPack);
+
+  // Clamp the logical pick number to the displayable total, then map to slice index
+  const clampedDisplayPickNumber = Math.min(
+    Math.max(1, pickNumber),
+    Math.max(1, displayTotalPicks),
+  );
+  const pickIdx = Math.ceil(clampedDisplayPickNumber / Math.max(1, picksPerPack));
+
+  // Compute pack indices for each seet at this pick (slice)
   const startIndex = (pickIdx - 1) * seet;
   const packIndices = Array.from({ length: seet }, (_, i) => startIndex + i).filter(
     (idx) => idx >= 0 && idx < packs.length,
   );
 
-  // Gather all card IDs shown on this page
+  // Build map of already-picked card IDs per packId up to previous picks
+  const picks =
+    (draft.picks as unknown as Array<Array<{ packId: string; cardIds: string[] }>>) || [];
+  const pickedByPack = new Map<string, Set<string>>();
+  for (let seat = 0; seat < seet; seat++) {
+    const seatPicks = picks[seat] ?? [];
+    // Use clamped logical pick number to determine how many previous picks to exclude.
+    const upto = Math.min(seatPicks.length, Math.max(0, clampedDisplayPickNumber - 1));
+    for (let i = 0; i < upto; i++) {
+      const entry = seatPicks[i];
+      if (!entry) continue;
+      const set = pickedByPack.get(entry.packId) ?? new Set<string>();
+      for (const cid of entry.cardIds ?? []) set.add(cid);
+      pickedByPack.set(entry.packId, set);
+    }
+  }
+
+  // Gather all remaining card IDs shown on this page (exclude previously picked ones)
   const cardIdsSet = new Set<string>();
   for (const idx of packIndices) {
-    for (const cid of packs[idx]?.cardIds ?? []) {
-      cardIdsSet.add(cid);
+    const pack = packs[idx];
+    if (!pack) continue;
+    const removed = pickedByPack.get(pack.id);
+    for (const cid of pack.cardIds ?? []) {
+      if (!removed || !removed.has(cid)) cardIdsSet.add(cid);
     }
   }
   const cardIds = Array.from(cardIdsSet);
@@ -67,7 +100,8 @@ export default async function DraftPickPage({
       const globalPackIndex = startIndex + seetIndex;
       const pack = packs[globalPackIndex];
       if (!pack) return null;
-      const ids = pack.cardIds || [];
+      const removed = pickedByPack.get(pack.id);
+      const ids = (pack.cardIds || []).filter((cid) => !removed || !removed.has(cid));
       const cards: GridCard[] = ids
         .map((cid) => {
           const c = cardMap.get(cid);
@@ -107,7 +141,9 @@ export default async function DraftPickPage({
         </Link>
         <h1 className="text-2xl font-bold">Draft Picks</h1>
         <div className="ml-auto text-sm opacity-70">
-          Pick {pickIdx} / {totalPicks}
+          {(() => {
+            return `Pick ${clampedDisplayPickNumber} / ${displayTotalPicks}`;
+          })()}
         </div>
       </div>
 
@@ -116,8 +152,7 @@ export default async function DraftPickPage({
       <DraftPickClient
         poolId={poolId}
         draftId={draftId}
-        pickNumber={pickIdx}
-        totalPicks={totalPicks}
+        pickNumber={clampedDisplayPickNumber}
         seatPacks={seatPacks}
       />
     </div>

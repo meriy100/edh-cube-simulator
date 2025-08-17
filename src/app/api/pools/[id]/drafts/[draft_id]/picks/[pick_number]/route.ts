@@ -37,9 +37,16 @@ export async function POST(req: NextRequest, ctx: unknown) {
       (_, i) => picks[i] ?? [],
     );
 
-    // Validate that we are within range
-    const totalPicks = Math.ceil(packs.length / Math.max(1, seet));
-    const pickIdx = Math.min(Math.max(1, pickNumber), Math.max(1, totalPicks));
+    // Compute totals similar to the frontend logic
+    const totalSlices = Math.ceil(packs.length / Math.max(1, seet));
+    const picksPerPick = 2; // number of cards picked at once
+    const packSize = Math.max(0, packs[0]?.cardIds?.length ?? 0);
+    const picksPerPack = Math.ceil(packSize / picksPerPick);
+    const totalPicks = totalSlices * Math.max(1, picksPerPack);
+
+    // Map the incoming pickNumber to the slice index used for pack rotation
+    const clampedPickNumber = Math.min(Math.max(1, pickNumber), Math.max(0, totalPicks));
+    const pickIdx = Math.ceil(clampedPickNumber / Math.max(1, picksPerPack)); // 1..totalSlices
     const startIndex = (pickIdx - 1) * seet;
 
     // Build current slice of packs for this pick
@@ -83,17 +90,19 @@ export async function POST(req: NextRequest, ctx: unknown) {
     }
 
     // Prepare next pick rotation: shift packs for next pick by one seat
-    const nextPickIdx = pickIdx + 1;
+    // Determine the slice index for the next pick number (advances slice after finishing a pack)
+    const nextPickNumber = pickNumber + 1;
+    const nextClampedPickNumber = Math.min(Math.max(1, nextPickNumber), Math.max(0, totalPicks));
+    const nextPickIdx = Math.ceil(nextClampedPickNumber / Math.max(1, picksPerPack)); // 1..totalSlices
     const nextStart = (nextPickIdx - 1) * seet;
     const nextWithinRange = nextStart + seet <= packs.length; // can place into next slice
 
     const updatedPacks = packs.slice();
-    if (nextWithinRange) {
-      // rotate currentSlice by +1 (pack for seat i goes to seat (i+1) % seet)
-      const rotated = currentSlice.map((_, i, arr) => arr[(i - 1 + arr.length) % arr.length]);
-      for (let i = 0; i < rotated.length; i++) {
-        updatedPacks[nextStart + i] = rotated[i]!;
-      }
+    // Rotate packs either into the next slice (if it exists) or within the current slice to continue drafting
+    const rotated = currentSlice.map((_, i, arr) => arr[(i - 1 + arr.length) % arr.length]);
+    const targetStart = nextWithinRange ? nextStart : startIndex;
+    for (let i = 0; i < rotated.length; i++) {
+      updatedPacks[targetStart + i] = rotated[i]!;
     }
 
     await prisma.draft.update({
@@ -105,7 +114,8 @@ export async function POST(req: NextRequest, ctx: unknown) {
       select: { id: true },
     });
 
-    return NextResponse.json({ ok: true, nextPickNumber: pickIdx + 1 });
+    // Return the logical next pick number (not the slice index)
+    return NextResponse.json({ ok: true, nextPickNumber });
   } catch (err: unknown) {
     console.error("POST submit picks error", err);
     const message = err instanceof Error ? err.message : "Internal error";

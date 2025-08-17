@@ -14,17 +14,10 @@ type Props = {
   poolId: string;
   draftId: string;
   pickNumber: number;
-  totalPicks: number;
   seatPacks: SeatPack[]; // length === seet for current pick
 };
 
-export default function DraftPickClient({
-  poolId,
-  draftId,
-  pickNumber,
-  totalPicks,
-  seatPacks,
-}: Props) {
+export default function DraftPickClient({ poolId, draftId, pickNumber, seatPacks }: Props) {
   const router = useRouter();
   const [selections, setSelections] = React.useState<Record<number, string[]>>(() => ({}));
   const [submitting, setSubmitting] = React.useState(false);
@@ -64,14 +57,10 @@ export default function DraftPickClient({
       }
       const data = (await res.json()) as { nextPickNumber: number };
       const next = data?.nextPickNumber ?? pickNumber + 1;
-      if (next > totalPicks) {
-        // finished; go back to pool or draft top
-        router.push(`/pools/${encodeURIComponent(poolId)}`);
-      } else {
-        router.push(
-          `/pools/${encodeURIComponent(poolId)}/drafts/${encodeURIComponent(draftId)}/picks/${encodeURIComponent(String(next))}`,
-        );
-      }
+      // Always go to the next pick; the server/page will clamp the visible slice as needed
+      router.push(
+        `/pools/${encodeURIComponent(poolId)}/drafts/${encodeURIComponent(draftId)}/picks/${encodeURIComponent(String(next))}`,
+      );
     } catch (e) {
       console.error(e);
       alert((e as Error).message);
