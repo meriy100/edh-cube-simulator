@@ -95,20 +95,32 @@ export async function POST(req: NextRequest, ctx: unknown) {
       ];
     }
 
-    // Prepare next pick rotation: shift packs for next pick by one seat
+    // Prepare next pick state
     // Determine the slice index for the next pick number (advances slice after finishing a pack)
     const nextPickNumber = pickNumber + 1;
     const nextClampedPickNumber = Math.min(Math.max(1, nextPickNumber), Math.max(0, totalPicks));
     const nextPickIdx = Math.ceil(nextClampedPickNumber / Math.max(1, picksPerPack)); // 1..totalSlices
-    const nextStart = (nextPickIdx - 1) * seat;
-    const nextWithinRange = nextStart + seat <= packs.length; // can place into next slice
 
     const updatedPacks = packs.slice();
-    // Rotate packs either into the next slice (if it exists) or within the current slice to continue drafting
-    const rotated = currentSlice.map((_, i, arr) => arr[(i - 1 + arr.length) % arr.length]);
-    const targetStart = nextWithinRange ? nextStart : startIndex;
-    for (let i = 0; i < rotated.length; i++) {
-      updatedPacks[targetStart + i] = rotated[i]!;
+
+    // Rotation policy:
+    // - Rotate packs within the SAME slice between picks.
+    // - Do NOT carry rotation into the next slice; next slice starts unmodified.
+    // - Passing direction:
+    //   * Slice 1: base direction (left) -> shift -1
+    //   * Slice 2: reverse direction (right) -> shift +1
+    //   * Slice 3: same as slice 1 (left)
+    //   * And so on alternating if more slices exist.
+    if (nextPickIdx === pickIdx) {
+      // We are continuing within the same slice; apply rotation according to slice direction.
+      const shift = pickIdx % 2 === 1 ? -1 : 1; // odd slices left, even slices right
+      const rotated = currentSlice.map((_, i, arr) => arr[(i + shift + arr.length) % arr.length]);
+      for (let i = 0; i < rotated.length; i++) {
+        updatedPacks[startIndex + i] = rotated[i]!;
+      }
+    } else {
+      // Moving to the next slice; leave next slice packs as-is.
+      // No changes needed to packs layout here.
     }
 
     await prisma.draft.update({

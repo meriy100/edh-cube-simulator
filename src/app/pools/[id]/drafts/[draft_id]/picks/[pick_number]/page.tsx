@@ -5,7 +5,11 @@ import DraftPickClient, { type SeatPack } from "@/components/DraftPickClient";
 
 // Server component page to show current pick's packs distributed to each Seat
 // Route: /pools/[id]/drafts/[draft_id]/picks/[pick_number]
-export default async function DraftPickPage({ params }: { params: Promise<{ id: string; draft_id: string; pick_number: string }> }) {
+export default async function DraftPickPage({
+  params,
+}: {
+  params: Promise<{ id: string; draft_id: string; pick_number: string }>;
+}) {
   const { id: poolId, draft_id: draftId, pick_number } = await params;
   const pickNumberRaw = Number(pick_number);
   const pickNumber = Number.isFinite(pickNumberRaw) ? pickNumberRaw : 1;
