@@ -44,6 +44,9 @@ export default function PoolPage() {
   const [tagInput, setTagInput] = useState<string>("");
   const [imageMap, setImageMap] = useState<Record<string, string>>({});
   const [loadingEntries, setLoadingEntries] = useState<boolean>(true);
+  // Draft modal state
+  const [isDraftOpen, setIsDraftOpen] = useState<boolean>(false);
+  const [draftSheet, setDraftSheet] = useState<number>(8);
 
   useEffect(() => {
     if (!id) return;
@@ -169,7 +172,14 @@ export default function PoolPage() {
           ← Back
         </button>
         <h1 className="text-2xl font-bold">Pool Detail</h1>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsDraftOpen(true)}
+            className="rounded border border-foreground/50 text-foreground px-3 py-1.5 text-sm font-semibold hover:bg-foreground/5"
+          >
+            Draft
+          </button>
           <button
             type="button"
             onClick={() => router.push(`/pools/${id}/sample_pack`)}
@@ -359,6 +369,99 @@ export default function PoolPage() {
           ))}
         </div>
       </section>
+
+      {isDraftOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="draft-modal-title"
+        >
+          {/* backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setIsDraftOpen(false)}
+            aria-hidden="true"
+          />
+          {/* dialog */}
+          <div className="relative z-10 w-full max-w-md rounded-lg border border-black/10 dark:border-white/15 bg-background p-4 shadow-xl">
+            <div className="flex items-center justify-between mb-3">
+              <h3 id="draft-modal-title" className="text-lg font-semibold">
+                Draft
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsDraftOpen(false)}
+                aria-label="Close"
+                className="rounded px-2 py-1 text-sm hover:bg-black/10 dark:hover:bg-white/10"
+              >
+                ×
+              </button>
+            </div>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  const res = await fetch(`/api/pools/${id}/drafts`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ seet: draftSheet }),
+                  });
+                  if (!res.ok) {
+                    const j = (await res.json().catch(() => ({}) as unknown)) as Record<
+                      string,
+                      unknown
+                    >;
+                    alert(`Draft 作成に失敗しました: ${j?.error ?? res.status}`);
+                  } else {
+                    // Optionally we could navigate to a draft page in the future
+                    // For now, just close the modal and notify success
+                    setIsDraftOpen(false);
+                  }
+                } catch (err) {
+                  console.error(err);
+                  alert("Draft 作成中にエラーが発生しました");
+                }
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label htmlFor="draft-sheet" className="block text-sm font-medium mb-1">
+                  Sheet
+                </label>
+                <input
+                  id="draft-sheet"
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={Number.isFinite(draftSheet) ? draftSheet : 8}
+                  onChange={(e) => {
+                    const v = parseInt(e.target.value, 10);
+                    setDraftSheet(Number.isNaN(v) ? 8 : v);
+                  }}
+                  className="w-full px-2 py-1 rounded border border-black/10 dark:border-white/20 bg-transparent"
+                />
+                <p className="mt-1 text-xs opacity-70">デフォルト 8</p>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsDraftOpen(false)}
+                  className="rounded px-3 py-1.5 text-sm hover:bg-black/10 dark:hover:bg-white/10"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded bg-foreground text-background px-3 py-1.5 text-sm font-semibold hover:opacity-90"
+                >
+                  Confirm
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

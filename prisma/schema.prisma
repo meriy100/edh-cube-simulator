@@ -41,6 +41,7 @@ model Pool {
 
   // Relations
   poolCards PoolCard[]
+  drafts    Draft[]
 }
 
 model PoolCard {
@@ -59,4 +60,20 @@ model PoolCard {
 
   @@id([poolId, cardId])
   @@index([cardId])
+}
+
+model Draft {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  poolId String
+  pool   Pool     @relation(fields: [poolId], references: [id], onDelete: Cascade)
+
+  // NOTE: spec says "seet" number
+  seet  Int
+  packs Json
+  picks Json
+
+  @@index([poolId])
 }

@@ -1,0 +1,135 @@
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+export async function POST(req: NextRequest, ctx: unknown) {
+  const { params } = ctx as { params: { id: string } };
+  try {
+    const poolId = params.id;
+    const body = (await req.json().catch(() => ({}))) as { seet?: number };
+    const seetRaw = body?.seet;
+    const seet = Number.isFinite(seetRaw as unknown as number) ? (seetRaw as unknown as number) : 8;
+
+    if (seet <= 0) {
+      return NextResponse.json({ error: "seet must be positive" }, { status: 400 });
+    }
+
+    // Load pool with tags and card ids
+    const pool = await prisma.pool.findUnique({
+      where: { id: poolId },
+      select: {
+        id: true,
+        poolCards: {
+          select: {
+            count: true,
+            tags: true,
+            card: { select: { id: true } },
+          },
+        },
+      },
+    });
+    if (!pool) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    // Build candidate lists (exclude welcome set for others)
+    const commanderCandidates: string[] = [];
+    const otherCandidates: string[] = [];
+
+    for (const pc of pool.poolCards) {
+      const isCommander = (pc.tags || []).some((t) => t.startsWith("#0-commander"));
+      const isWelcome = (pc.tags || []).some((t) => t.startsWith("#9-welcome-set"));
+      if (isCommander) {
+        // Each unique card only once (do not multiply by count to avoid duplicates across packs)
+        // If we ever want to account for count, push multiple times.
+        commanderCandidates.push(pc.card.id);
+      } else if (!isWelcome) {
+        otherCandidates.push(pc.card.id);
+      }
+    }
+
+    const NEED_COMMANDERS = 2;
+    const NEED_TOTAL = 20;
+    const NEED_OTHERS = NEED_TOTAL - NEED_COMMANDERS; // 18
+
+    const totalPacks = seet * 3;
+
+    // We cannot reuse cards across packs by spec
+    if (commanderCandidates.length < NEED_COMMANDERS * totalPacks) {
+      return NextResponse.json(
+        {
+          error: `指揮官カードが不足しています（必要: ${NEED_COMMANDERS * totalPacks}、存在: ${commanderCandidates.length}）`,
+        },
+        { status: 400 },
+      );
+    }
+    if (otherCandidates.length < NEED_OTHERS * totalPacks) {
+      return NextResponse.json(
+        {
+          error: `その他カードが不足しています（必要: ${NEED_OTHERS * totalPacks}、存在: ${otherCandidates.length}）`,
+        },
+        { status: 400 },
+      );
+    }
+
+    const packs: Array<{ id: string; cardIds: string[] }> = [];
+    const used = new Set<string>();
+
+    let remainingCommanders = shuffle(commanderCandidates);
+    let remainingOthers = shuffle(otherCandidates);
+
+    function takeUnique(source: string[], n: number): string[] {
+      const res: string[] = [];
+      let i = 0;
+      while (res.length < n && i < source.length) {
+        const cid = source[i++];
+        if (used.has(cid)) continue;
+        used.add(cid);
+        res.push(cid);
+      }
+      return res;
+    }
+
+    for (let p = 0; p < totalPacks; p++) {
+      if (remainingCommanders.length < NEED_COMMANDERS || remainingOthers.length < NEED_OTHERS) {
+        // Re-shuffle remaining pool to continue fair randomization
+        remainingCommanders = shuffle(remainingCommanders.filter((id) => !used.has(id)));
+        remainingOthers = shuffle(remainingOthers.filter((id) => !used.has(id)));
+      }
+
+      const commanders = takeUnique(remainingCommanders, NEED_COMMANDERS);
+      const others = takeUnique(remainingOthers, NEED_OTHERS);
+
+      if (commanders.length < NEED_COMMANDERS || others.length < NEED_OTHERS) {
+        return NextResponse.json({ error: "カードが不足しています" }, { status: 400 });
+      }
+
+      const packId = `pack_${p + 1}`;
+      packs.push({ id: packId, cardIds: [...commanders, ...others] });
+    }
+
+    // Create Draft with seet-length empty picks arrays
+    const draft = await prisma.draft.create({
+      data: {
+        poolId,
+        seet,
+        packs: packs as unknown as Prisma.InputJsonValue,
+        picks: Array.from({ length: seet }, () => []) as unknown as Prisma.InputJsonValue,
+      },
+      select: { id: true, poolId: true, seet: true, createdAt: true },
+    });
+
+    return NextResponse.json({ draft, packsCount: packs.length });
+  } catch (err: unknown) {
+    console.error("POST /api/pools/[id]/drafts error", err);
+    const message = err instanceof Error ? err.message : "Internal error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
