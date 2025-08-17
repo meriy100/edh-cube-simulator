@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
+import CardGridWithPreview, { type GridCard } from "@/components/CardGridWithPreview";
 
 // Server component page to show current pick's packs distributed to each Seet
 // Route: /pools/[id]/drafts/[draft_id]/picks/[pick_number]
@@ -56,7 +57,7 @@ export default async function DraftPickPage({
   // Fetch card details
   const cardRows = await prisma.card.findMany({
     where: { id: { in: cardIds } },
-    select: { id: true, name: true, set: true, number: true },
+    select: { id: true, name: true, set: true, number: true, scryfallJson: true },
   });
   const cardMap = new Map(cardRows.map((c) => [c.id, c] as const));
 
@@ -91,41 +92,38 @@ export default async function DraftPickPage({
                   {(() => {
                     const perRow = 6;
                     const ids = pack.cardIds || [];
-                    const rows = Array.from({ length: Math.ceil(ids.length / perRow) }, (_, r) =>
-                      ids.slice(r * perRow, (r + 1) * perRow),
-                    );
-                    return (
-                      <div className="flex flex-col">
-                        {rows.map((row, rIdx) => (
-                          <div
-                            key={`row-${rIdx}`}
-                            className={`flex flex-row flex-wrap items-start gap-2 ${rIdx === 0 ? "" : "-mt-24 sm:-mt-28"}`}
-                          >
-                            {row.map((cid) => {
-                              const c = cardMap.get(cid);
-                              if (!c) {
-                                return (
-                                  <div key={cid} className="text-xs opacity-70 p-2 border rounded">
-                                    {cid}
-                                  </div>
-                                );
-                              }
-                              const imgUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=normal`;
-                              return (
-                                <div key={cid} className="relative">
-                                  <img
-                                    src={imgUrl}
-                                    alt={`${c.name} (${c.set}) #${c.number}`}
-                                    loading="lazy"
-                                    className="w-40 sm:w-48 h-auto rounded shadow-sm border border-black/10 dark:border-white/10 bg-white"
-                                  />
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ))}
-                      </div>
-                    );
+                    const cards: GridCard[] = ids
+                      .map((cid) => {
+                        const c = cardMap.get(cid);
+                        if (!c) return null;
+                        const normalUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=normal`;
+                        let largeUrl = normalUrl;
+                        try {
+                          const sf = c.scryfallJson as unknown as {
+                            image_uris?: { large?: string };
+                          };
+                          const lu = sf?.image_uris?.large as string | undefined;
+                          if (lu && typeof lu === "string") {
+                            largeUrl = lu;
+                          } else {
+                            // fallback to image endpoint with version=large
+                            largeUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=large`;
+                          }
+                        } catch {
+                          largeUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=large`;
+                        }
+                        return {
+                          id: c.id,
+                          name: c.name,
+                          set: c.set,
+                          number: c.number,
+                          normalUrl,
+                          largeUrl,
+                        } satisfies GridCard;
+                      })
+                      .filter((x): x is GridCard => !!x);
+
+                    return <CardGridWithPreview cards={cards} perRow={perRow} />;
                   })()}
                 </div>
               )}
