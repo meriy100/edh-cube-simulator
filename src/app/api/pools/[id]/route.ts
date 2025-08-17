@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, ctx: unknown) {
+  const { params } = ctx as { params: { id: string } }
   try {
     const id = params.id
     const pool = await prisma.pool.findUnique({
@@ -41,7 +42,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, ctx: unknown) {
+  const { params } = ctx as { params: { id: string } }
   try {
     const id = params.id
     await prisma.pool.delete({ where: { id } })
