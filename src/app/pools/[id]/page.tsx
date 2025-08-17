@@ -58,7 +58,7 @@ export default function PoolPage() {
           isCommander: Array.isArray(e.tags) && e.tags.some((t) => t.startsWith("#0-commander")),
         }));
         setEntries(list);
-      } catch (_) {}
+      } catch {}
     })();
     return () => controller.abort();
   }, [id]);
@@ -130,7 +130,7 @@ export default function PoolPage() {
           }
         }
         setImageMap(map);
-      } catch (_) {}
+      } catch {}
     })();
     return () => controller.abort();
   }, [entries]);
@@ -164,6 +164,15 @@ export default function PoolPage() {
           ← Back
         </button>
         <h1 className="text-2xl font-bold">Pool Detail</h1>
+        <div className="ml-auto">
+          <button
+            type="button"
+            onClick={() => router.push(`/pools/${id}/sample_pack`)}
+            className="rounded bg-foreground text-background px-3 py-1.5 text-sm font-semibold hover:opacity-90"
+          >
+            Sample pack
+          </button>
+        </div>
       </div>
       {poolMeta?.title && <div className="mb-2 opacity-80">{poolMeta.title}</div>}
 
