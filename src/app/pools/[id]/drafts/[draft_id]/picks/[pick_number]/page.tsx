@@ -147,19 +147,39 @@ export default async function DraftPickPage({
     } satisfies GridCard;
   }
 
+  // Determine if this pick is completed (all seats have a pick recorded for this pick number)
+  const isCompletedPick = Array.from(
+    { length: seat },
+    (_, idx) => (picks[idx]?.length ?? 0) >= clampedDisplayPickNumber,
+  ).every(Boolean);
+
   const seatPacks: SeatPack[] = Array.from({ length: seat })
     .map((_, seatIndex) => {
-      const globalPackIndex = startIndex + seatIndex;
-      const pack = packs[globalPackIndex];
-      if (!pack) return null;
-      const removed = pickedByPack.get(pack.id);
+      let packId: string | undefined;
+      let pack: { id: string; cardIds: string[] } | undefined;
+
+      if (isCompletedPick) {
+        // Use the historical packId used at this pick for this seat
+        const entry = (picks[seatIndex] ?? [])[clampedDisplayPickNumber - 1];
+        packId = entry?.packId;
+        if (packId) pack = packs.find((p) => p.id === packId);
+      } else {
+        // Use the current slice mapping for ongoing/future picks
+        const globalPackIndex = startIndex + seatIndex;
+        pack = packs[globalPackIndex];
+        packId = pack?.id;
+      }
+
+      if (!pack || !packId) return null;
+
+      const removed = pickedByPack.get(packId);
       const ids = (pack.cardIds || []).filter((cid) => !removed || !removed.has(cid));
       const cards: GridCard[] = ids.map(toGridCardById).filter((x): x is GridCard => !!x);
       const pickedIds = pickedIdsPerSeat[seatIndex] ?? [];
       const pickedCards: GridCard[] = pickedIds
         .map(toGridCardById)
         .filter((x): x is GridCard => !!x);
-      return { seatIndex, packId: pack.id, cards, pickedCards } as SeatPack;
+      return { seatIndex, packId, cards, pickedCards } as SeatPack;
     })
     .filter((x): x is SeatPack => !!x);
 
