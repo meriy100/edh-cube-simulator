@@ -43,12 +43,14 @@ export default function PoolPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState<string>("");
   const [imageMap, setImageMap] = useState<Record<string, string>>({});
+  const [loadingEntries, setLoadingEntries] = useState<boolean>(true);
 
   useEffect(() => {
     if (!id) return;
     const controller = new AbortController();
     (async () => {
       try {
+        setLoadingEntries(true);
         const res = await fetch(`/api/pools/${id}`, { signal: controller.signal });
         if (!res.ok) return;
         const data: ApiResponse = await res.json();
@@ -58,7 +60,10 @@ export default function PoolPage() {
           isCommander: Array.isArray(e.tags) && e.tags.some((t) => t.startsWith("#0-commander")),
         }));
         setEntries(list);
-      } catch {}
+      } catch {
+      } finally {
+        setLoadingEntries(false);
+      }
     })();
     return () => controller.abort();
   }, [id]);
@@ -235,7 +240,11 @@ export default function PoolPage() {
       <section>
         <h2 className="text-xl font-semibold mb-3">Commanders ({filteredCommanders.length})</h2>
         <div className="flex flex-wrap gap-3">
-          {filteredCommanders.length === 0 && <div className="text-sm opacity-70">該当なし</div>}
+          {loadingEntries ? (
+            <div className="text-sm opacity-70">読み込み中...</div>
+          ) : (
+            filteredCommanders.length === 0 && <div className="text-sm opacity-70">該当なし</div>
+          )}
           {filteredCommanders.map((c, idx) => (
             <div
               key={`commander-${idx}-${c.name}-${c.number}`}
@@ -272,7 +281,11 @@ export default function PoolPage() {
       <section>
         <h2 className="text-xl font-semibold mb-3">Normal Package ({filteredOthers.length})</h2>
         <div className="flex flex-wrap gap-3">
-          {filteredOthers.length === 0 && <div className="text-sm opacity-70">該当なし</div>}
+          {loadingEntries ? (
+            <div className="text-sm opacity-70">読み込み中...</div>
+          ) : (
+            filteredOthers.length === 0 && <div className="text-sm opacity-70">該当なし</div>
+          )}
           {filteredOthers.map((c, idx) => (
             <div
               key={`other-${idx}-${c.name}-${c.number}`}
@@ -309,7 +322,11 @@ export default function PoolPage() {
       <section>
         <h2 className="text-xl font-semibold mb-3">Welcome set ({filteredWelcome.length})</h2>
         <div className="flex flex-wrap gap-3">
-          {filteredWelcome.length === 0 && <div className="text-sm opacity-70">該当なし</div>}
+          {loadingEntries ? (
+            <div className="text-sm opacity-70">読み込み中...</div>
+          ) : (
+            filteredWelcome.length === 0 && <div className="text-sm opacity-70">該当なし</div>
+          )}
           {filteredWelcome.map((c, idx) => (
             <div
               key={`welcome-${idx}-${c.name}-${c.number}`}
