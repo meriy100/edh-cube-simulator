@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type CardEntry = {
   count: number;
@@ -52,6 +52,7 @@ export default function Home() {
   const [tagInput, setTagInput] = useState<string>("");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveMessage, setSaveMessage] = useState<string>("");
+  const [imageMap, setImageMap] = useState<Record<string, string>>({});
 
   const welcomeSet = useMemo(() => (pool ?? []).filter((c) => c.tags.some((t) => t.startsWith('#9-welcome-set'))), [pool]);
   const commanders = useMemo(() => (pool ?? []).filter((c) => c.isCommander && !c.tags.some((t) => t.startsWith('#9-welcome-set'))), [pool]);
@@ -77,6 +78,7 @@ export default function Home() {
     const { entries, errors } = parseMoxfieldListWithErrors(input);
     setPool(entries);
     setParseErrors(errors);
+    setImageMap({});
 
     // Save to DB via API when parsing succeeds (save all entries, even if some lines had errors)
     try {
@@ -121,6 +123,41 @@ export default function Home() {
   function clearTags() {
     setSelectedTags([]);
   }
+
+  // Fetch scryfall images for current pool
+  useEffect(() => {
+    const controller = new AbortController();
+    async function run() {
+      if (!pool || pool.length === 0) return;
+      try {
+        const names = Array.from(new Set(pool.map((p) => p.name))).join('$');
+        const res = await fetch(`/api/cards?names=${encodeURIComponent(names)}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const map: Record<string, string> = {};
+        for (const c of (data?.cards ?? [] as Array<{ name: string; scryfallJson: unknown }>)) {
+          const j = c?.scryfallJson as unknown;
+          const url = (
+            j && typeof j === 'object' && (j as { image_uris?: { normal?: string } }).image_uris?.normal
+          ) || (
+            j && typeof j === 'object'
+              ? (j as { card_faces?: Array<{ image_uris?: { normal?: string } }> }).card_faces?.[0]?.image_uris?.normal
+              : undefined
+          ) || undefined;
+          if (typeof url === 'string') {
+            map[c.name] = url;
+          }
+        }
+        setImageMap(map);
+      } catch (e) {
+        // ignore
+      }
+    }
+    run();
+    return () => controller.abort();
+  }, [pool]);
 
   function handleAddTagFromInput(e: React.FormEvent) {
     e.preventDefault();
@@ -223,6 +260,9 @@ export default function Home() {
               )}
               {filteredCommanders.map((c, idx) => (
                 <div key={`commander-${idx}-${c.name}-${c.number}`} className="border border-black/10 dark:border-white/15 rounded p-3 w-[260px] flex-shrink-0">
+                  {imageMap[c.name] && (
+                    <img src={imageMap[c.name]} alt={c.name} className="w-full rounded mb-2" />
+                  )}
                   <div className="text-sm opacity-70">x{c.count}</div>
                   <div className="font-semibold">{c.name}</div>
                   <div className="text-xs opacity-70">({c.set}) {c.number}</div>
@@ -252,6 +292,9 @@ export default function Home() {
               )}
               {filteredOthers.map((c, idx) => (
                 <div key={`other-${idx}-${c.name}-${c.number}`} className="border border-black/10 dark:border-white/15 rounded p-3 w-[260px] flex-shrink-0">
+                  {imageMap[c.name] && (
+                    <img src={imageMap[c.name]} alt={c.name} className="w-full rounded mb-2" />
+                  )}
                   <div className="text-sm opacity-70">x{c.count}</div>
                   <div className="font-semibold">{c.name}</div>
                   <div className="text-xs opacity-70">({c.set}) {c.number}</div>
@@ -281,6 +324,9 @@ export default function Home() {
               )}
               {filteredWelcome.map((c, idx) => (
                 <div key={`welcome-${idx}-${c.name}-${c.number}`} className="border border-black/10 dark:border-white/15 rounded p-3 w-[260px] flex-shrink-0">
+                  {imageMap[c.name] && (
+                    <img src={imageMap[c.name]} alt={c.name} className="w-full rounded mb-2" />
+                  )}
                   <div className="text-sm opacity-70">x{c.count}</div>
                   <div className="font-semibold">{c.name}</div>
                   <div className="text-xs opacity-70">({c.set}) {c.number}</div>

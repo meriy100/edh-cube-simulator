@@ -21,6 +21,8 @@ model Card {
   number       String
   tags         String[]
   raw          String
+  // Scryfall full card object (nullable). Do not overwrite if already present.
+  scryfallJson Json?
 
   @@unique([name])
   @@index([set])
