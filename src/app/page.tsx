@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import {useEffect, useMemo, useState} from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type CardEntry = {
@@ -28,7 +28,9 @@ function parseMoxfieldListWithErrors(text: string): { entries: CardEntry[]; erro
     const trimmed = line.trim();
     if (!trimmed) continue;
     // Match: count name (SET) number [tags]
-    const m = trimmed.match(/^(\d+)\s+(.+?)\s+\(([A-Za-z0-9]+)\)\s+([A-Za-z0-9\-\/]+)(?:\s+(.*))?$/);
+    const m = trimmed.match(
+      /^(\d+)\s+(.+?)\s+\(([A-Za-z0-9]+)\)\s+([A-Za-z0-9\-\/]+)(?:\s+(.*))?$/,
+    );
     if (!m) {
       errors.push({ lineNumber: i + 1, content: raw });
       continue;
@@ -49,7 +51,9 @@ export default function Home() {
   const router = useRouter();
   const [input, setInput] = useState<string>("");
   const [parseErrors, setParseErrors] = useState<ParseError[]>([]);
-  const [pools, setPools] = useState<Array<{ id: string; title: string | null; createdAt: string; count: number }>>([]);
+  const [pools, setPools] = useState<
+    Array<{ id: string; title: string | null; createdAt: string; count: number }>
+  >([]);
   const [loadingPools, setLoadingPools] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
@@ -86,25 +90,39 @@ export default function Home() {
     (async () => {
       try {
         setLoadingPools(true);
-        const res = await fetch('/api/pools');
+        const res = await fetch("/api/pools");
         const data = await res.json();
         if (res.ok && active) {
-          const items = (data?.pools ?? []).map((p: { id: string; title: string | null; createdAt: string; _count?: { poolCards: number } }) => ({ id: p.id, title: p.title ?? null, createdAt: p.createdAt, count: p._count?.poolCards ?? 0 }));
+          const items = (data?.pools ?? []).map(
+            (p: {
+              id: string;
+              title: string | null;
+              createdAt: string;
+              _count?: { poolCards: number };
+            }) => ({
+              id: p.id,
+              title: p.title ?? null,
+              createdAt: p.createdAt,
+              count: p._count?.poolCards ?? 0,
+            }),
+          );
           setPools(items);
         }
       } finally {
         if (active) setLoadingPools(false);
       }
     })();
-    return () => { active = false };
+    return () => {
+      active = false;
+    };
   }, []);
 
   async function handleDeletePool(id: string) {
-    if (!confirm('この pool を削除しますか？')) return;
-    const res = await fetch(`/api/pools/${id}`, { method: 'DELETE' });
+    if (!confirm("この pool を削除しますか？")) return;
+    const res = await fetch(`/api/pools/${id}`, { method: "DELETE" });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      alert(data?.error || '削除に失敗しました');
+      alert(data?.error || "削除に失敗しました");
       return;
     }
     setPools((prev) => prev.filter((p) => p.id !== id));
@@ -114,11 +132,15 @@ export default function Home() {
     <div className="min-h-screen p-6 sm:p-10">
       <h1 className="text-2xl font-bold mb-4">EDH Cube Draft Simulator</h1>
       <form onSubmit={handleSubmit} className="mb-6 flex flex-col gap-3">
-        <label htmlFor="cube-text" className="font-medium">Cube プールを貼り付けてください（Moxfield 形式）</label>
+        <label htmlFor="cube-text" className="font-medium">
+          Cube プールを貼り付けてください（Moxfield 形式）
+        </label>
         <textarea
           id="cube-text"
           className="w-full min-h-48 h-60 p-3 rounded border border-black/10 dark:border-white/20 bg-transparent font-mono text-sm"
-          placeholder={'1 Abrade (TDC) 203 #2-targeted-disruption #9-1-R\n1 Abrupt Decay (MB2) 78 #2-targeted-disruption #9-2-BG\n1 Accursed Marauder (MH3) 80 #2-mass-disruption #9-1-B'}
+          placeholder={
+            "1 Abrade (TDC) 203 #2-targeted-disruption #9-1-R\n1 Abrupt Decay (MB2) 78 #2-targeted-disruption #9-2-BG\n1 Accursed Marauder (MH3) 80 #2-mass-disruption #9-1-B"
+          }
           value={input}
           onChange={(e) => setInput(e.target.value)}
         />
@@ -128,7 +150,7 @@ export default function Home() {
             disabled={isSaving}
             className="rounded bg-foreground text-background px-4 py-2 text-sm font-semibold hover:opacity-90 w-fit disabled:opacity-60"
           >
-            {isSaving ? '保存中...' : 'Submit'}
+            {isSaving ? "保存中..." : "Submit"}
           </button>
           {isSaving && (
             <div className="text-sm opacity-70 mt-1">保存中です。しばらくお待ちください…</div>
@@ -157,13 +179,33 @@ export default function Home() {
           <ul className="flex flex-col gap-2">
             {pools.length === 0 && <li className="opacity-70 text-sm">Pool はまだありません</li>}
             {pools.map((p) => (
-              <li key={p.id} className="flex items-center gap-3 border border-black/10 dark:border-white/15 rounded p-2">
+              <li
+                key={p.id}
+                className="flex items-center gap-3 border border-black/10 dark:border-white/15 rounded p-2"
+              >
                 <div className="flex-1">
-                  <div className="font-medium">{p.title ?? '(untitled)'} <span className="opacity-70 text-xs">{new Date(p.createdAt).toLocaleString()}</span></div>
+                  <div className="font-medium">
+                    {p.title ?? "(untitled)"}{" "}
+                    <span className="opacity-70 text-xs">
+                      {new Date(p.createdAt).toLocaleString()}
+                    </span>
+                  </div>
                   <div className="opacity-70 text-xs">cards: {p.count}</div>
                 </div>
-                <button type="button" onClick={() => router.push(`/pools/${p.id}`)} className="text-sm underline">Show</button>
-                <button type="button" onClick={() => handleDeletePool(p.id)} className="text-sm underline text-red-600">Delete</button>
+                <button
+                  type="button"
+                  onClick={() => router.push(`/pools/${p.id}`)}
+                  className="text-sm underline"
+                >
+                  Show
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeletePool(p.id)}
+                  className="text-sm underline text-red-600"
+                >
+                  Delete
+                </button>
               </li>
             ))}
           </ul>

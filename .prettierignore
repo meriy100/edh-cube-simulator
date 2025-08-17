@@ -1,0 +1,22 @@
+# dependencies and build outputs
+node_modules
+.next
+out
+dist
+build
+coverage
+
+# prisma artifacts (generated at node_modules/@prisma/...)
+.prisma
+.prisma/**
+
+# lockfiles
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# misc
+*.snap
+*.min.*
+public/**/*.min.*
+tsconfig.tsbuildinfo

@@ -53,3 +53,23 @@ yarn prisma:push
 This will create the Card table defined in prisma/schema.prisma.
 
 On submit, the app calls POST /api/cards and performs a bulk insert (createMany) for all parsed entries.
+
+## Code Formatting (Prettier)
+
+This project uses [Prettier](https://prettier.io/) for code formatting.
+
+- Format all files:
+
+```bash
+npm run format
+# or
+yarn format
+```
+
+- Check formatting without writing changes:
+
+```bash
+npm run format:check
+# or
+yarn format:check
+```
