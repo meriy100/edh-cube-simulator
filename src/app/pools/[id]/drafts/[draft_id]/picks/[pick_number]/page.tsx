@@ -87,25 +87,47 @@ export default async function DraftPickPage({
               {!pack ? (
                 <div className="text-sm opacity-70">パックなし</div>
               ) : (
-                <ul className="list-disc pl-6 space-y-1">
-                  {(pack.cardIds || []).map((cid) => {
-                    const c = cardMap.get(cid);
-                    return (
-                      <li key={cid} className="text-sm">
-                        {c ? (
-                          <span>
-                            {c.name}{" "}
-                            <span className="opacity-60">
-                              ({c.set}) {c.number}
-                            </span>
-                          </span>
-                        ) : (
-                          <span className="opacity-70">{cid}</span>
-                        )}
-                      </li>
+                <div className="relative pb-24">
+                  {(() => {
+                    const perRow = 6;
+                    const ids = pack.cardIds || [];
+                    const rows = Array.from({ length: Math.ceil(ids.length / perRow) }, (_, r) =>
+                      ids.slice(r * perRow, (r + 1) * perRow),
                     );
-                  })}
-                </ul>
+                    return (
+                      <div className="flex flex-col">
+                        {rows.map((row, rIdx) => (
+                          <div
+                            key={`row-${rIdx}`}
+                            className={`flex flex-row flex-wrap items-start gap-2 ${rIdx === 0 ? "" : "-mt-24 sm:-mt-28"}`}
+                          >
+                            {row.map((cid) => {
+                              const c = cardMap.get(cid);
+                              if (!c) {
+                                return (
+                                  <div key={cid} className="text-xs opacity-70 p-2 border rounded">
+                                    {cid}
+                                  </div>
+                                );
+                              }
+                              const imgUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=normal`;
+                              return (
+                                <div key={cid} className="relative">
+                                  <img
+                                    src={imgUrl}
+                                    alt={`${c.name} (${c.set}) #${c.number}`}
+                                    loading="lazy"
+                                    className="w-40 sm:w-48 h-auto rounded shadow-sm border border-black/10 dark:border-white/10 bg-white"
+                                  />
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
               )}
             </section>
           );
