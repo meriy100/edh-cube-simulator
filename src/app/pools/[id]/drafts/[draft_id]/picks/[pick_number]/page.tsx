@@ -3,7 +3,7 @@ import Link from "next/link";
 import { type GridCard } from "@/components/CardGridWithPreview";
 import DraftPickClient, { type SeatPack } from "@/components/DraftPickClient";
 
-// Server component page to show current pick's packs distributed to each Seet
+// Server component page to show current pick's packs distributed to each Seat
 // Route: /pools/[id]/drafts/[draft_id]/picks/[pick_number]
 export default async function DraftPickPage({
   params,
@@ -17,7 +17,7 @@ export default async function DraftPickPage({
 
   const draft = await prisma.draft.findFirst({
     where: { id: draftId, poolId },
-    select: { id: true, poolId: true, seet: true, packs: true, picks: true, createdAt: true },
+    select: { id: true, poolId: true, seat: true, packs: true, picks: true, createdAt: true },
   });
 
   if (!draft) {
@@ -33,11 +33,11 @@ export default async function DraftPickPage({
     );
   }
 
-  const seet = draft.seet;
+  const seat = draft.seat;
   const packs = (draft.packs as unknown as Array<{ id: string; cardIds: string[] }>) || [];
 
   // Total number of pack slices (how many distinct sets of packs exist per seat)
-  const totalSlices = Math.ceil(packs.length / Math.max(1, seet));
+  const totalSlices = Math.ceil(packs.length / Math.max(1, seat));
 
   // Display total picks = picks per pack * number of packs per seat
   // picks per pack = ceil(pack size / picksPerPick). picksPerPick is 2.
@@ -53,9 +53,9 @@ export default async function DraftPickPage({
   );
   const pickIdx = Math.ceil(clampedDisplayPickNumber / Math.max(1, picksPerPack));
 
-  // Compute pack indices for each seet at this pick (slice)
-  const startIndex = (pickIdx - 1) * seet;
-  const packIndices = Array.from({ length: seet }, (_, i) => startIndex + i).filter(
+  // Compute pack indices for each seat at this pick (slice)
+  const startIndex = (pickIdx - 1) * seat;
+  const packIndices = Array.from({ length: seat }, (_, i) => startIndex + i).filter(
     (idx) => idx >= 0 && idx < packs.length,
   );
 
@@ -63,8 +63,8 @@ export default async function DraftPickPage({
   const picks =
     (draft.picks as unknown as Array<Array<{ packId: string; cardIds: string[] }>>) || [];
   const pickedByPack = new Map<string, Set<string>>();
-  for (let seat = 0; seat < seet; seat++) {
-    const seatPicks = picks[seat] ?? [];
+  for (let seatIndex = 0; seatIndex < seat; seatIndex++) {
+    const seatPicks = picks[seatIndex] ?? [];
     // Use clamped logical pick number to determine how many previous picks to exclude.
     const upto = Math.min(seatPicks.length, Math.max(0, clampedDisplayPickNumber - 1));
     for (let i = 0; i < upto; i++) {
@@ -95,9 +95,9 @@ export default async function DraftPickPage({
   });
   const cardMap = new Map(cardRows.map((c) => [c.id, c] as const));
 
-  const seatPacks: SeatPack[] = Array.from({ length: seet })
-    .map((_, seetIndex) => {
-      const globalPackIndex = startIndex + seetIndex;
+  const seatPacks: SeatPack[] = Array.from({ length: seat })
+    .map((_, seatIndex) => {
+      const globalPackIndex = startIndex + seatIndex;
       const pack = packs[globalPackIndex];
       if (!pack) return null;
       const removed = pickedByPack.get(pack.id);
@@ -129,7 +129,7 @@ export default async function DraftPickPage({
           } satisfies GridCard;
         })
         .filter((x): x is GridCard => !!x);
-      return { seetIndex, packId: pack.id, cards } as SeatPack;
+      return { seatIndex, packId: pack.id, cards } as SeatPack;
     })
     .filter((x): x is SeatPack => !!x);
 

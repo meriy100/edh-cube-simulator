@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import CardGridWithPreview, { type GridCard } from "./CardGridWithPreview";
 
 export type SeatPack = {
-  seetIndex: number;
+  seatIndex: number;
   packId: string;
   cards: GridCard[];
 };
@@ -14,7 +14,7 @@ type Props = {
   poolId: string;
   draftId: string;
   pickNumber: number;
-  seatPacks: SeatPack[]; // length === seet for current pick
+  seatPacks: SeatPack[]; // length === seat for current pick
 };
 
 export default function DraftPickClient({ poolId, draftId, pickNumber, seatPacks }: Props) {
@@ -24,12 +24,12 @@ export default function DraftPickClient({ poolId, draftId, pickNumber, seatPacks
   const allSelected = React.useMemo(() => {
     // must have exactly 2 selections for each seat index present in seatPacks
     if (!seatPacks || seatPacks.length === 0) return false;
-    const ok = seatPacks.every((sp) => (selections[sp.seetIndex]?.length ?? 0) === 2);
+    const ok = seatPacks.every((sp) => (selections[sp.seatIndex]?.length ?? 0) === 2);
     return ok;
   }, [seatPacks, selections]);
 
-  const onChangeForSeat = React.useCallback((seetIndex: number, ids: string[]) => {
-    setSelections((prev) => ({ ...prev, [seetIndex]: ids.slice(0, 2) }));
+  const onChangeForSeat = React.useCallback((seatIndex: number, ids: string[]) => {
+    setSelections((prev) => ({ ...prev, [seatIndex]: ids.slice(0, 2) }));
   }, []);
 
   const handleSubmit = async () => {
@@ -38,9 +38,9 @@ export default function DraftPickClient({ poolId, draftId, pickNumber, seatPacks
     try {
       const payload = {
         picks: seatPacks.map((sp) => ({
-          seetIndex: sp.seetIndex,
+          seatIndex: sp.seatIndex,
           packId: sp.packId,
-          cardIds: (selections[sp.seetIndex] ?? []).slice(0, 2),
+          cardIds: (selections[sp.seatIndex] ?? []).slice(0, 2),
         })),
       };
       const res = await fetch(
@@ -94,17 +94,17 @@ export default function DraftPickClient({ poolId, draftId, pickNumber, seatPacks
       <div className="space-y-6">
         {seatPacks.map((sp) => (
           <section
-            key={`seet-${sp.seetIndex}`}
+            key={`seat-${sp.seatIndex}`}
             className="border border-black/10 dark:border-white/15 rounded p-3"
           >
-            <h2 className="text-lg font-semibold mb-3">Seet{sp.seetIndex + 1}</h2>
+            <h2 className="text-lg font-semibold mb-3">Seat{sp.seatIndex + 1}</h2>
             <div className="relative pb-24">
               <CardGridWithPreview
                 cards={sp.cards}
                 perRow={6}
                 selectable
                 maxSelected={2}
-                onSelectedChange={(ids) => onChangeForSeat(sp.seetIndex, ids)}
+                onSelectedChange={(ids) => onChangeForSeat(sp.seatIndex, ids)}
               />
             </div>
           </section>

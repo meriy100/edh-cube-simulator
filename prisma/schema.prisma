@@ -70,8 +70,8 @@ model Draft {
   poolId String
   pool   Pool     @relation(fields: [poolId], references: [id], onDelete: Cascade)
 
-  // NOTE: spec says "seet" number
-  seet  Int
+  // NOTE: spec had a typo "seet"; correct field is seat
+  seat  Int
   packs Json
   picks Json
 

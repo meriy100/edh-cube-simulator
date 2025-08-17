@@ -46,7 +46,7 @@ export default function PoolPage() {
   const [loadingEntries, setLoadingEntries] = useState<boolean>(true);
   // Draft modal state
   const [isDraftOpen, setIsDraftOpen] = useState<boolean>(false);
-  const [draftSheet, setDraftSheet] = useState<number>(8);
+  const [draftSeat, setDraftSeat] = useState<number>(8);
 
   useEffect(() => {
     if (!id) return;
@@ -405,7 +405,7 @@ export default function PoolPage() {
                   const res = await fetch(`/api/pools/${id}/drafts`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ seet: draftSheet }),
+                    body: JSON.stringify({ seat: draftSeat }),
                   });
                   if (!res.ok) {
                     const j = (await res.json().catch(() => ({}) as unknown)) as Record<
@@ -433,18 +433,18 @@ export default function PoolPage() {
               className="space-y-4"
             >
               <div>
-                <label htmlFor="draft-sheet" className="block text-sm font-medium mb-1">
-                  Sheet
+                <label htmlFor="draft-seat" className="block text-sm font-medium mb-1">
+                  Seat
                 </label>
                 <input
-                  id="draft-sheet"
+                  id="draft-seat"
                   type="number"
                   min={1}
                   step={1}
-                  value={Number.isFinite(draftSheet) ? draftSheet : 8}
+                  value={Number.isFinite(draftSeat) ? draftSeat : 8}
                   onChange={(e) => {
                     const v = parseInt(e.target.value, 10);
-                    setDraftSheet(Number.isNaN(v) ? 8 : v);
+                    setDraftSeat(Number.isNaN(v) ? 8 : v);
                   }}
                   className="w-full px-2 py-1 rounded border border-black/10 dark:border-white/20 bg-transparent"
                 />

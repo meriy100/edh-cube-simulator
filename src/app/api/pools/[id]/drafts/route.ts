@@ -15,12 +15,12 @@ export async function POST(req: NextRequest, ctx: unknown) {
   const { params } = ctx as { params: { id: string } };
   try {
     const poolId = params.id;
-    const body = (await req.json().catch(() => ({}))) as { seet?: number };
-    const seetRaw = body?.seet;
-    const seet = Number.isFinite(seetRaw as unknown as number) ? (seetRaw as unknown as number) : 8;
+    const body = (await req.json().catch(() => ({}))) as { seat?: number };
+    const seatRaw = body?.seat;
+    const seat = Number.isFinite(seatRaw as unknown as number) ? (seatRaw as unknown as number) : 8;
 
-    if (seet <= 0) {
-      return NextResponse.json({ error: "seet must be positive" }, { status: 400 });
+    if (seat <= 0) {
+      return NextResponse.json({ error: "seat must be positive" }, { status: 400 });
     }
 
     // Load pool with tags and card ids
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest, ctx: unknown) {
     const NEED_TOTAL = 20;
     const NEED_OTHERS = NEED_TOTAL - NEED_COMMANDERS; // 18
 
-    const totalPacks = seet * 3;
+    const totalPacks = seat * 3;
 
     // We cannot reuse cards across packs by spec
     if (commanderCandidates.length < NEED_COMMANDERS * totalPacks) {
@@ -115,15 +115,15 @@ export async function POST(req: NextRequest, ctx: unknown) {
       packs.push({ id: packId, cardIds: [...commanders, ...others] });
     }
 
-    // Create Draft with seet-length empty picks arrays
+    // Create Draft with seat-length empty picks arrays
     const draft = await prisma.draft.create({
       data: {
         poolId,
-        seet,
+        seat,
         packs: packs as unknown as Prisma.InputJsonValue,
-        picks: Array.from({ length: seet }, () => []) as unknown as Prisma.InputJsonValue,
+        picks: Array.from({ length: seat }, () => []) as unknown as Prisma.InputJsonValue,
       },
-      select: { id: true, poolId: true, seet: true, createdAt: true },
+      select: { id: true, poolId: true, seat: true, createdAt: true },
     });
 
     return NextResponse.json({ draft, packsCount: packs.length });
