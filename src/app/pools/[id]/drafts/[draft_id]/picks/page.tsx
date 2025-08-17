@@ -3,8 +3,8 @@ import Link from "next/link";
 import CardGridWithPreview, { type GridCard } from "@/components/CardGridWithPreview";
 
 // Server component page to show picked cards per seat
-// Route: /pools/[id]/drafts/[draft_id]/pics
-export default async function DraftPicsPage({
+// Route: /pools/[id]/drafts/[draft_id]/picks
+export default async function DraftPicksPage({
   params,
 }: {
   params: Promise<{ id: string; draft_id: string }>;

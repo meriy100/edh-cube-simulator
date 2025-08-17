@@ -68,7 +68,7 @@ export default function DraftPickClient({
       const next = data?.nextPickNumber ?? pickNumber + 1;
       if (data?.isComplete) {
         router.push(
-          `/pools/${encodeURIComponent(poolId)}/drafts/${encodeURIComponent(draftId)}/pics`,
+          `/pools/${encodeURIComponent(poolId)}/drafts/${encodeURIComponent(draftId)}/picks`,
         );
       } else {
         // Go to the next pick; the server/page will clamp the visible slice as needed
