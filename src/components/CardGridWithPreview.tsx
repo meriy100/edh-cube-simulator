@@ -15,10 +15,41 @@ type Props = {
   cards: GridCard[];
   perRow?: number;
   className?: string;
+  selectable?: boolean;
+  maxSelected?: number; // 最大選択数（シートごと）
+  initialSelectedIds?: string[]; // 初期選択
+  onSelectedChange?: (ids: string[]) => void; // 選択変更通知
 };
 
-export default function CardGridWithPreview({ cards, perRow = 6, className }: Props) {
+export default function CardGridWithPreview({
+  cards,
+  perRow = 6,
+  className,
+  selectable = false,
+  maxSelected = 2,
+  initialSelectedIds,
+  onSelectedChange,
+}: Props) {
   const [hovered, setHovered] = React.useState<GridCard | null>(null);
+  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(
+    new Set(initialSelectedIds ?? []),
+  );
+
+  // notify parent when selection changes (avoid effect loops on callback identity changes)
+  const onChangeRef = React.useRef<typeof onSelectedChange>(onSelectedChange);
+  React.useEffect(() => {
+    onChangeRef.current = onSelectedChange;
+  }, [onSelectedChange]);
+  React.useEffect(() => {
+    onChangeRef.current?.(Array.from(selectedIds));
+  }, [selectedIds]);
+
+  // if initialSelectedIds changes, sync once
+  React.useEffect(() => {
+    if (initialSelectedIds) {
+      setSelectedIds(new Set(initialSelectedIds));
+    }
+  }, [initialSelectedIds]);
 
   const rows: GridCard[][] = React.useMemo(() => {
     const res: GridCard[][] = [];
@@ -27,6 +58,28 @@ export default function CardGridWithPreview({ cards, perRow = 6, className }: Pr
     }
     return res;
   }, [cards, perRow]);
+
+  const toggleSelect = React.useCallback(
+    (card: GridCard) => {
+      if (!selectable) return;
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(card.id)) {
+          next.delete(card.id);
+          return next;
+        }
+        if (next.size >= maxSelected) {
+          // 最大選択数に達している場合はそれ以上選択しない
+          return next;
+        }
+        next.add(card.id);
+        return next;
+      });
+    },
+    [selectable, maxSelected],
+  );
+
+  const isSelected = React.useCallback((id: string) => selectedIds.has(id), [selectedIds]);
 
   return (
     <div className={"relative pr-64 sm:pr-72 " + (className ?? "")}>
@@ -38,20 +91,32 @@ export default function CardGridWithPreview({ cards, perRow = 6, className }: Pr
             key={`row-${rIdx}`}
             className={`flex flex-row flex-wrap items-start gap-2 ${rIdx === 0 ? "" : "-mt-24 sm:-mt-28"}`}
           >
-            {row.map((c) => (
-              <div key={c.id} className="relative">
-                <img
-                  src={c.normalUrl}
-                  alt={`${c.name} (${c.set}) #${c.number}`}
-                  loading="lazy"
-                  className="w-40 sm:w-48 h-auto rounded shadow-sm border border-black/10 dark:border-white/10 bg-white"
-                  onMouseEnter={() => setHovered(c)}
-                  onFocus={() => setHovered(c)}
-                  onMouseLeave={() => setHovered((h) => (h?.id === c.id ? null : h))}
-                  onBlur={() => setHovered((h) => (h?.id === c.id ? null : h))}
-                />
-              </div>
-            ))}
+            {row.map((c) => {
+              const selected = selectable && isSelected(c.id);
+              return (
+                <div key={c.id} className="relative">
+                  <img
+                    src={c.normalUrl}
+                    alt={`${c.name} (${c.set}) #${c.number}`}
+                    loading="lazy"
+                    className={
+                      "w-40 sm:w-48 h-auto rounded shadow-sm border bg-white " +
+                      (selected
+                        ? "border-4 border-emerald-500 shadow-emerald-500/40"
+                        : "border-black/10 dark:border-white/10")
+                    }
+                    onMouseEnter={() => setHovered(c)}
+                    onFocus={() => setHovered(c)}
+                    onMouseLeave={() => setHovered((h) => (h?.id === c.id ? null : h))}
+                    onBlur={() => setHovered((h) => (h?.id === c.id ? null : h))}
+                    onClick={() => toggleSelect(c)}
+                    role={selectable ? "button" : undefined}
+                    aria-pressed={selectable ? (selected ? "true" : "false") : undefined}
+                    tabIndex={selectable ? 0 : -1}
+                  />
+                </div>
+              );
+            })}
           </div>
         ))}
       </div>

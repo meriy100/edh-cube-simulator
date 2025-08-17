@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import CardGridWithPreview, { type GridCard } from "@/components/CardGridWithPreview";
+import { type GridCard } from "@/components/CardGridWithPreview";
+import DraftPickClient, { type SeatPack } from "@/components/DraftPickClient";
 
 // Server component page to show current pick's packs distributed to each Seet
 // Route: /pools/[id]/drafts/[draft_id]/picks/[pick_number]
@@ -61,6 +62,43 @@ export default async function DraftPickPage({
   });
   const cardMap = new Map(cardRows.map((c) => [c.id, c] as const));
 
+  const seatPacks: SeatPack[] = Array.from({ length: seet })
+    .map((_, seetIndex) => {
+      const globalPackIndex = startIndex + seetIndex;
+      const pack = packs[globalPackIndex];
+      if (!pack) return null;
+      const ids = pack.cardIds || [];
+      const cards: GridCard[] = ids
+        .map((cid) => {
+          const c = cardMap.get(cid);
+          if (!c) return null;
+          const normalUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=normal`;
+          let largeUrl = normalUrl;
+          try {
+            const sf = c.scryfallJson as unknown as { image_uris?: { large?: string } };
+            const lu = sf?.image_uris?.large as string | undefined;
+            if (lu && typeof lu === "string") {
+              largeUrl = lu;
+            } else {
+              largeUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=large`;
+            }
+          } catch {
+            largeUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=large`;
+          }
+          return {
+            id: c.id,
+            name: c.name,
+            set: c.set,
+            number: c.number,
+            normalUrl,
+            largeUrl,
+          } satisfies GridCard;
+        })
+        .filter((x): x is GridCard => !!x);
+      return { seetIndex, packId: pack.id, cards } as SeatPack;
+    })
+    .filter((x): x is SeatPack => !!x);
+
   return (
     <div className="min-h-screen p-6 sm:p-10">
       <div className="flex items-center gap-3 mb-4">
@@ -75,62 +113,13 @@ export default async function DraftPickPage({
 
       <div className="mb-4 text-sm opacity-70">Draft ID: {draft.id}</div>
 
-      <div className="space-y-6">
-        {Array.from({ length: seet }).map((_, seetIndex) => {
-          const globalPackIndex = startIndex + seetIndex;
-          const pack = packs[globalPackIndex];
-          return (
-            <section
-              key={`seet-${seetIndex}`}
-              className="border border-black/10 dark:border-white/15 rounded p-3"
-            >
-              <h2 className="text-lg font-semibold mb-3">Seet{seetIndex + 1}</h2>
-              {!pack ? (
-                <div className="text-sm opacity-70">パックなし</div>
-              ) : (
-                <div className="relative pb-24">
-                  {(() => {
-                    const perRow = 6;
-                    const ids = pack.cardIds || [];
-                    const cards: GridCard[] = ids
-                      .map((cid) => {
-                        const c = cardMap.get(cid);
-                        if (!c) return null;
-                        const normalUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=normal`;
-                        let largeUrl = normalUrl;
-                        try {
-                          const sf = c.scryfallJson as unknown as {
-                            image_uris?: { large?: string };
-                          };
-                          const lu = sf?.image_uris?.large as string | undefined;
-                          if (lu && typeof lu === "string") {
-                            largeUrl = lu;
-                          } else {
-                            // fallback to image endpoint with version=large
-                            largeUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=large`;
-                          }
-                        } catch {
-                          largeUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=large`;
-                        }
-                        return {
-                          id: c.id,
-                          name: c.name,
-                          set: c.set,
-                          number: c.number,
-                          normalUrl,
-                          largeUrl,
-                        } satisfies GridCard;
-                      })
-                      .filter((x): x is GridCard => !!x);
-
-                    return <CardGridWithPreview cards={cards} perRow={perRow} />;
-                  })()}
-                </div>
-              )}
-            </section>
-          );
-        })}
-      </div>
+      <DraftPickClient
+        poolId={poolId}
+        draftId={draftId}
+        pickNumber={pickIdx}
+        totalPicks={totalPicks}
+        seatPacks={seatPacks}
+      />
     </div>
   );
 }
