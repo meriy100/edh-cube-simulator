@@ -414,9 +414,16 @@ export default function PoolPage() {
                     >;
                     alert(`Draft 作成に失敗しました: ${j?.error ?? res.status}`);
                   } else {
-                    // Optionally we could navigate to a draft page in the future
-                    // For now, just close the modal and notify success
-                    setIsDraftOpen(false);
+                    const data = (await res.json().catch(() => ({}))) as {
+                      draft?: { id: string };
+                    };
+                    if (data?.draft?.id) {
+                      // Navigate to first pick page for this draft
+                      router.push(`/pools/${id}/drafts/${data.draft.id}/picks/1`);
+                    } else {
+                      // Fallback: close modal if response unexpected
+                      setIsDraftOpen(false);
+                    }
                   }
                 } catch (err) {
                   console.error(err);
