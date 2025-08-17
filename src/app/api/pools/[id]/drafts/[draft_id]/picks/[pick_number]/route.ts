@@ -132,8 +132,11 @@ export async function POST(req: NextRequest, ctx: unknown) {
       select: { id: true },
     });
 
-    // Return the logical next pick number (not the slice index)
-    return NextResponse.json({ ok: true, nextPickNumber });
+    // Determine completion: if the next logical pick exceeds total picks, drafting is complete.
+    const isComplete = nextPickNumber > totalPicks;
+
+    // Return the logical next pick number (not the slice index) and completion flag
+    return NextResponse.json({ ok: true, nextPickNumber, isComplete });
   } catch (err: unknown) {
     console.error("POST submit picks error", err);
     const message = err instanceof Error ? err.message : "Internal error";

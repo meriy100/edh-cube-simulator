@@ -55,12 +55,18 @@ export default function DraftPickClient({ poolId, draftId, pickNumber, seatPacks
         const err = await res.json().catch(() => ({}));
         throw new Error(err?.error || `Failed to submit picks: ${res.status}`);
       }
-      const data = (await res.json()) as { nextPickNumber: number };
+      const data = (await res.json()) as { nextPickNumber: number; isComplete?: boolean };
       const next = data?.nextPickNumber ?? pickNumber + 1;
-      // Always go to the next pick; the server/page will clamp the visible slice as needed
-      router.push(
-        `/pools/${encodeURIComponent(poolId)}/drafts/${encodeURIComponent(draftId)}/picks/${encodeURIComponent(String(next))}`,
-      );
+      if (data?.isComplete) {
+        router.push(
+          `/pools/${encodeURIComponent(poolId)}/drafts/${encodeURIComponent(draftId)}/pics`,
+        );
+      } else {
+        // Go to the next pick; the server/page will clamp the visible slice as needed
+        router.push(
+          `/pools/${encodeURIComponent(poolId)}/drafts/${encodeURIComponent(draftId)}/picks/${encodeURIComponent(String(next))}`,
+        );
+      }
     } catch (e) {
       console.error(e);
       alert((e as Error).message);
