@@ -54,19 +54,29 @@ export default async function DraftPicksPage({
   function toGridCard(cid: string): GridCard | null {
     const c = cardMap.get(cid);
     if (!c) return null;
-    const normalUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=normal`;
-    let largeUrl = normalUrl;
+    // Extract image URLs from stored scryfallJson (avoid using Scryfall API endpoints)
+    let normalUrl = "";
+    let largeUrl = "";
     try {
-      const sf = c.scryfallJson as unknown as { image_uris?: { large?: string } };
-      const lu = sf?.image_uris?.large as string | undefined;
-      if (lu && typeof lu === "string") {
-        largeUrl = lu;
-      } else {
-        largeUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=large`;
-      }
+      const j = c.scryfallJson as unknown;
+      const get = (obj: unknown, key: "normal" | "large"): string | undefined => {
+        if (!obj || typeof obj !== "object") return undefined;
+        const o = obj as {
+          image_uris?: { normal?: string; large?: string };
+          card_faces?: Array<{ image_uris?: { normal?: string; large?: string } }>;
+        };
+        return (
+          o.image_uris?.[key] ||
+          (Array.isArray(o.card_faces) ? o.card_faces[0]?.image_uris?.[key] : undefined)
+        );
+      };
+      normalUrl = get(j, "normal") ?? "";
+      largeUrl = get(j, "large") ?? normalUrl;
     } catch {
-      largeUrl = `https://api.scryfall.com/cards/${encodeURIComponent(c.set)}/${encodeURIComponent(c.number)}?format=image&version=large`;
+      normalUrl = "";
+      largeUrl = "";
     }
+    if (!normalUrl) return null;
     return {
       id: c.id,
       name: c.name,
