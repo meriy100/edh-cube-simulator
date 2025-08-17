@@ -12,17 +12,24 @@ type CardEntry = {
   raw: string; // original line for reference
 };
 
-function parseMoxfieldList(text: string): CardEntry[] {
+type ParseError = {
+  lineNumber: number;
+  content: string;
+};
+
+function parseMoxfieldListWithErrors(text: string): { entries: CardEntry[]; errors: ParseError[] } {
   const lines = text.split(/\r?\n/);
   const entries: CardEntry[] = [];
-  for (const line of lines) {
+  const errors: ParseError[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     const raw = line;
     const trimmed = line.trim();
     if (!trimmed) continue;
     // Match: count name (SET) number [tags]
-    const m = trimmed.match(/^(\d+)\s+(.+?)\s+\(([A-Za-z0-9]+)\)\s+([A-Za-z0-9]+)(?:\s+(.*))?$/);
+    const m = trimmed.match(/^(\d+)\s+(.+?)\s+\(([A-Za-z0-9]+)\)\s+([A-Za-z0-9\-\/]+)(?:\s+(.*))?$/);
     if (!m) {
-      // If it doesn't match, skip but we could still record as raw
+      errors.push({ lineNumber: i + 1, content: raw });
       continue;
     }
     const [, countStr, name, set, num, tail] = m;
@@ -34,22 +41,29 @@ function parseMoxfieldList(text: string): CardEntry[] {
     const isCommander = tags.some((t) => t.startsWith("#0-commander"));
     entries.push({ count, name, set, number: num, tags, isCommander, raw });
   }
-  return entries;
+  return { entries, errors };
 }
 
 export default function Home() {
   const [input, setInput] = useState<string>("");
   const [pool, setPool] = useState<CardEntry[] | null>(null);
+  const [parseErrors, setParseErrors] = useState<ParseError[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState<string>("");
 
-  const commanders = useMemo(() => (pool ?? []).filter((c) => c.isCommander), [pool]);
-  const others = useMemo(() => (pool ?? []).filter((c) => !c.isCommander), [pool]);
+  const welcomeSet = useMemo(() => (pool ?? []).filter((c) => c.tags.some((t) => t.startsWith('#9-welcome-set'))), [pool]);
+  const commanders = useMemo(() => (pool ?? []).filter((c) => c.isCommander && !c.tags.some((t) => t.startsWith('#9-welcome-set'))), [pool]);
+  const others = useMemo(() => (pool ?? []).filter((c) => !c.isCommander && !c.tags.some((t) => t.startsWith('#9-welcome-set'))), [pool]);
 
   const filteredCommanders = useMemo(() => {
     if (selectedTags.length === 0) return commanders;
     return commanders.filter((c) => selectedTags.every((t) => c.tags.some((tag) => tag.startsWith(t))));
   }, [commanders, selectedTags]);
+
+  const filteredWelcome = useMemo(() => {
+    if (selectedTags.length === 0) return welcomeSet;
+    return welcomeSet.filter((c) => selectedTags.every((t) => c.tags.some((tag) => tag.startsWith(t))));
+  }, [welcomeSet, selectedTags]);
 
   const filteredOthers = useMemo(() => {
     if (selectedTags.length === 0) return others;
@@ -58,8 +72,9 @@ export default function Home() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = parseMoxfieldList(input);
-    setPool(parsed);
+    const { entries, errors } = parseMoxfieldListWithErrors(input);
+    setPool(entries);
+    setParseErrors(errors);
   }
 
   function normalizeTag(t: string): string | null {
@@ -110,6 +125,19 @@ export default function Home() {
           </button>
         </div>
       </form>
+
+      {parseErrors.length > 0 && (
+        <div className="mb-6 border border-red-300 dark:border-red-700 bg-red-50/60 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded p-3">
+          <div className="font-semibold mb-2">パースに失敗した行（{parseErrors.length} 行）</div>
+          <ul className="list-disc pl-5 space-y-1">
+            {parseErrors.map((err, idx) => (
+              <li key={`err-${idx}-${err.lineNumber}`} className="break-all">
+                行 {err.lineNumber}: {err.content || "(空行)"}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {pool && (
         <div className="flex flex-col gap-8">
@@ -186,13 +214,42 @@ export default function Home() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">Others ({filteredOthers.length})</h2>
+            <h2 className="text-xl font-semibold mb-3">Normal Package ({filteredOthers.length})</h2>
             <div className="flex flex-wrap gap-3">
               {filteredOthers.length === 0 && (
                 <div className="text-sm opacity-70">該当なし</div>
               )}
               {filteredOthers.map((c, idx) => (
                 <div key={`other-${idx}-${c.name}-${c.number}`} className="border border-black/10 dark:border-white/15 rounded p-3 w-[260px] flex-shrink-0">
+                  <div className="text-sm opacity-70">x{c.count}</div>
+                  <div className="font-semibold">{c.name}</div>
+                  <div className="text-xs opacity-70">({c.set}) {c.number}</div>
+                  {c.tags.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {c.tags.map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => addTag(t)}
+                          className="text-[11px] px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20"
+                          title={`${t} でフィルター`}
+                        >{t}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-3">Welcome set ({filteredWelcome.length})</h2>
+            <div className="flex flex-wrap gap-3">
+              {filteredWelcome.length === 0 && (
+                <div className="text-sm opacity-70">該当なし</div>
+              )}
+              {filteredWelcome.map((c, idx) => (
+                <div key={`welcome-${idx}-${c.name}-${c.number}`} className="border border-black/10 dark:border-white/15 rounded p-3 w-[260px] flex-shrink-0">
                   <div className="text-sm opacity-70">x{c.count}</div>
                   <div className="font-semibold">{c.name}</div>
                   <div className="text-xs opacity-70">({c.set}) {c.number}</div>
