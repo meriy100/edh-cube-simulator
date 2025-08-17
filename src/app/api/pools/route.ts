@@ -164,14 +164,20 @@ export async function POST(req: NextRequest) {
     }
 
     // Create join rows with per-pool tags
-    const joinCreates = Array.from(countByName.entries()).map(([name, count]) => {
+    const joinData = Array.from(countByName.entries()).map(([name, count]) => {
       const cardId = idByName.get(name);
       if (!cardId) throw new Error(`Card not found after upsert: ${name}`);
       const tagSet = tagsByName.get(name) ?? new Set<string>();
       const tags = Array.from(tagSet);
-      return prisma.poolCard.create({ data: { poolId: pool.id, cardId, count, tags } });
+      return { poolId: pool.id, cardId, count, tags };
     });
-    await prisma.$transaction(joinCreates);
+
+    // Insert in chunks to avoid large single transactions that can trigger P1017
+    const JOIN_CHUNK = 100;
+    for (let i = 0; i < joinData.length; i += JOIN_CHUNK) {
+      const chunk = joinData.slice(i, i + JOIN_CHUNK);
+      await prisma.poolCard.createMany({ data: chunk, skipDuplicates: true });
+    }
 
     return NextResponse.json({ poolId: pool.id, count: data.length, fetched });
   } catch (err: unknown) {
