@@ -402,10 +402,10 @@ export default function PoolPage() {
               onSubmit={async (e) => {
                 e.preventDefault();
                 try {
-                  const res = await fetch(`/api/pools/${id}/drafts`, {
+                  const res = await fetch(`/api/drafts`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ seat: draftSeat }),
+                    body: JSON.stringify({ seat: draftSeat, pool_id: id }),
                   });
                   if (!res.ok) {
                     const j = (await res.json().catch(() => ({}) as unknown)) as Record<
@@ -419,7 +419,7 @@ export default function PoolPage() {
                     };
                     if (data?.draft?.id) {
                       // Navigate to first pick page for this draft
-                      router.push(`/pools/${id}/drafts/${data.draft.id}/picks/1`);
+                      router.push(`/drafts/${data.draft.id}/picks/1`);
                     } else {
                       // Fallback: close modal if response unexpected
                       setIsDraftOpen(false);

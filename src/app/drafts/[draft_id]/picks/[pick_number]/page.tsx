@@ -4,34 +4,30 @@ import { type GridCard } from "@/components/CardGridWithPreview";
 import DraftPickClient, { type SeatPack } from "@/components/DraftPickClient";
 
 // Server component page to show current pick's packs distributed to each Seat
-// Route: /pools/[id]/drafts/[draft_id]/picks/[pick_number]
+// New Route: /drafts/[draft_id]/picks/[pick_number]
 export default async function DraftPickPage({
   params,
 }: {
-  params: Promise<{ id: string; draft_id: string; pick_number: string }>;
+  params: Promise<{ draft_id: string; pick_number: string }>;
 }) {
-  const { id: poolId, draft_id: draftId, pick_number } = await params;
+  const { draft_id: draftId, pick_number } = await params;
   const pickNumberRaw = Number(pick_number);
   const pickNumber = Number.isFinite(pickNumberRaw) ? pickNumberRaw : 1;
 
   const draft = await prisma.draft.findFirst({
-    where: { id: draftId, poolId },
+    where: { id: draftId },
     select: { id: true, poolId: true, seat: true, packs: true, picks: true, createdAt: true },
   });
 
   if (!draft) {
     return (
       <div className="p-6">
-        <div className="mb-3 text-sm opacity-70">
-          <Link href={`/pools/${poolId}`} className="underline">
-            ← Back to pool
-          </Link>
-        </div>
         <h1 className="text-xl font-semibold">Draft not found</h1>
       </div>
     );
   }
 
+  const poolId = draft.poolId;
   const seat = draft.seat;
   const packs = (draft.packs as unknown as Array<{ id: string; cardIds: string[] }>) || [];
 

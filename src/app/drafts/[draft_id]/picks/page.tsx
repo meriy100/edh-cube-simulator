@@ -3,32 +3,28 @@ import Link from "next/link";
 import CardGridWithPreview, { type GridCard } from "@/components/CardGridWithPreview";
 
 // Server component page to show picked cards per seat
-// Route: /pools/[id]/drafts/[draft_id]/picks
+// New Route: /drafts/[draft_id]/picks
 export default async function DraftPicksPage({
   params,
 }: {
-  params: Promise<{ id: string; draft_id: string }>;
+  params: Promise<{ draft_id: string }>;
 }) {
-  const { id: poolId, draft_id: draftId } = await params;
+  const { draft_id: draftId } = await params;
 
   const draft = await prisma.draft.findFirst({
-    where: { id: draftId, poolId },
-    select: { id: true, seat: true, picks: true },
+    where: { id: draftId },
+    select: { id: true, poolId: true, seat: true, picks: true },
   });
 
   if (!draft) {
     return (
       <div className="p-6">
-        <div className="mb-3 text-sm opacity-70">
-          <Link href={`/pools/${poolId}`} className="underline">
-            ← Back to pool
-          </Link>
-        </div>
         <h1 className="text-xl font-semibold">Draft not found</h1>
       </div>
     );
   }
 
+  const poolId = draft.poolId;
   const seat = draft.seat;
   const picks =
     (draft.picks as unknown as Array<Array<{ packId: string; cardIds: string[] }>>) || [];

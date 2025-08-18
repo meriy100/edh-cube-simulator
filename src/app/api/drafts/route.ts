@@ -11,14 +11,22 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-export async function POST(req: NextRequest, ctx: unknown) {
-  const { params } = ctx as { params: { id: string } };
+// POST /api/drafts
+// body: { pool_id: string; seat?: number }
+export async function POST(req: NextRequest) {
   try {
-    const poolId = params.id;
-    const body = (await req.json().catch(() => ({}))) as { seat?: number };
+    const body = (await req.json().catch(() => ({}))) as {
+      pool_id?: string;
+      poolId?: string;
+      seat?: number;
+    };
+    const poolId = (body.pool_id || body.poolId || "").trim();
     const seatRaw = body?.seat;
     const seat = Number.isFinite(seatRaw as unknown as number) ? (seatRaw as unknown as number) : 8;
 
+    if (!poolId) {
+      return NextResponse.json({ error: "pool_id is required" }, { status: 400 });
+    }
     if (seat <= 0) {
       return NextResponse.json({ error: "seat must be positive" }, { status: 400 });
     }
@@ -47,8 +55,6 @@ export async function POST(req: NextRequest, ctx: unknown) {
       const isCommander = (pc.tags || []).some((t) => t.startsWith("#0-commander"));
       const isWelcome = (pc.tags || []).some((t) => t.startsWith("#9-welcome-set"));
       if (isCommander) {
-        // Each unique card only once (do not multiply by count to avoid duplicates across packs)
-        // If we ever want to account for count, push multiple times.
         commanderCandidates.push(pc.card.id);
       } else if (!isWelcome) {
         otherCandidates.push(pc.card.id);
@@ -128,7 +134,7 @@ export async function POST(req: NextRequest, ctx: unknown) {
 
     return NextResponse.json({ draft, packsCount: packs.length });
   } catch (err: unknown) {
-    console.error("POST /api/pools/[id]/drafts error", err);
+    console.error("POST /api/drafts error", err);
     const message = err instanceof Error ? err.message : "Internal error";
     return NextResponse.json({ error: message }, { status: 500 });
   }

@@ -13,7 +13,7 @@ export type SeatPack = {
 };
 
 type Props = {
-  poolId: string;
+  poolId: string; // kept for potential future use
   draftId: string;
   pickNumber: number;
   seatPacks: SeatPack[]; // length === seat for current pick
@@ -21,7 +21,6 @@ type Props = {
 };
 
 export default function DraftPickClient({
-  poolId,
   draftId,
   pickNumber,
   seatPacks,
@@ -53,7 +52,7 @@ export default function DraftPickClient({
         })),
       };
       const res = await fetch(
-        `/api/pools/${encodeURIComponent(poolId)}/drafts/${encodeURIComponent(draftId)}/picks/${encodeURIComponent(String(pickNumber))}`,
+        `/api/drafts/${encodeURIComponent(draftId)}/picks/${encodeURIComponent(String(pickNumber))}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -67,13 +66,11 @@ export default function DraftPickClient({
       const data = (await res.json()) as { nextPickNumber: number; isComplete?: boolean };
       const next = data?.nextPickNumber ?? pickNumber + 1;
       if (data?.isComplete) {
-        router.push(
-          `/pools/${encodeURIComponent(poolId)}/drafts/${encodeURIComponent(draftId)}/picks`,
-        );
+        router.push(`/drafts/${encodeURIComponent(draftId)}/picks`);
       } else {
         // Go to the next pick; the server/page will clamp the visible slice as needed
         router.push(
-          `/pools/${encodeURIComponent(poolId)}/drafts/${encodeURIComponent(draftId)}/picks/${encodeURIComponent(String(next))}`,
+          `/drafts/${encodeURIComponent(draftId)}/picks/${encodeURIComponent(String(next))}`,
         );
       }
     } catch (e) {
@@ -93,7 +90,7 @@ export default function DraftPickClient({
             type="button"
             onClick={() =>
               router.push(
-                `/pools/${encodeURIComponent(poolId)}/drafts/${encodeURIComponent(draftId)}/picks/${encodeURIComponent(String(Math.max(1, pickNumber - 1)))}`,
+                `/drafts/${encodeURIComponent(draftId)}/picks/${encodeURIComponent(String(Math.max(1, pickNumber - 1)))}`,
               )
             }
             disabled={pickNumber <= 1}
@@ -113,7 +110,7 @@ export default function DraftPickClient({
               type="button"
               onClick={() =>
                 router.push(
-                  `/pools/${encodeURIComponent(poolId)}/drafts/${encodeURIComponent(draftId)}/picks/${encodeURIComponent(String(pickNumber + 1))}`,
+                  `/drafts/${encodeURIComponent(draftId)}/picks/${encodeURIComponent(String(pickNumber + 1))}`,
                 )
               }
               className="px-4 py-2 rounded font-semibold border bg-indigo-600 text-white border-indigo-700 hover:bg-indigo-700"
