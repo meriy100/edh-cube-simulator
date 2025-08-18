@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import CardGridWithPreview, { type GridCard } from "@/components/CardGridWithPreview";
+import ExportPickedList from "@/components/ExportPickedList";
 
 // Server component page to show picked cards per seat
 // New Route: /drafts/[draft_id]/picks
@@ -107,7 +108,12 @@ export default async function DraftPicksPage({
             key={`seat-${sc.seatIndex}`}
             className="border border-black/10 dark:border-white/15 rounded p-3"
           >
-            <h2 className="text-lg font-semibold mb-3">Seat{sc.seatIndex + 1}</h2>
+            <div className="flex items-center mb-3">
+              <h2 className="text-lg font-semibold">Seat{sc.seatIndex + 1}</h2>
+              <div className="ml-auto">
+                <ExportPickedList cards={sc.cards} seatIndex={sc.seatIndex} />
+              </div>
+            </div>
             <div className="relative pb-24">
               <CardGridWithPreview cards={sc.cards} perRow={6} />
             </div>
