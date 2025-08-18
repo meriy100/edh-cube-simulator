@@ -168,7 +168,7 @@ export default function SamplePackPage() {
         <button
           type="button"
           onClick={() => router.push(`/pools/${id}`)}
-          className="text-sm underline"
+          className="text-sm underline cursor-pointer"
         >
           ← Back
         </button>

@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
           try {
             const json = await fetchScryfallBySetAndNumber(n.set, n.number);
             return { name: n.name, json };
-          } catch (e) {
+          } catch {
             console.warn("Scryfall fetch failed for", n);
             return null;
           }

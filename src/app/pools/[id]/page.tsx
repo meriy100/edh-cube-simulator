@@ -168,7 +168,11 @@ export default function PoolPage() {
   return (
     <div className="min-h-screen p-6 sm:p-10">
       <div className="flex items-center gap-3 mb-4">
-        <button type="button" onClick={() => router.push("/")} className="text-sm underline">
+        <button
+          type="button"
+          onClick={() => router.push("/")}
+          className="text-sm underline cursor-pointer"
+        >
           ← Back
         </button>
         <h1 className="text-2xl font-bold">Pool Detail</h1>
@@ -176,14 +180,14 @@ export default function PoolPage() {
           <button
             type="button"
             onClick={() => setIsDraftOpen(true)}
-            className="rounded border border-foreground/50 text-foreground px-3 py-1.5 text-sm font-semibold hover:bg-foreground/5"
+            className="rounded border border-foreground/50 text-foreground px-3 py-1.5 text-sm font-semibold hover:bg-foreground/5 cursor-pointer"
           >
             Draft
           </button>
           <button
             type="button"
             onClick={() => router.push(`/pools/${id}/sample_pack`)}
-            className="rounded bg-foreground text-background px-3 py-1.5 text-sm font-semibold hover:opacity-90"
+            className="rounded bg-foreground text-background px-3 py-1.5 text-sm font-semibold hover:opacity-90 cursor-pointer"
           >
             Sample pack
           </button>
@@ -212,7 +216,7 @@ export default function PoolPage() {
           />
           <button
             type="submit"
-            className="rounded bg-foreground text-background px-3 py-1.5 text-sm font-semibold hover:opacity-90"
+            className="rounded bg-foreground text-background px-3 py-1.5 text-sm font-semibold hover:opacity-90 cursor-pointer"
           >
             タグを追加
           </button>
@@ -220,7 +224,7 @@ export default function PoolPage() {
             <button
               type="button"
               onClick={clearTags}
-              className="ml-auto text-xs opacity-80 underline hover:opacity-100"
+              className="ml-auto text-xs opacity-80 underline hover:opacity-100 cursor-pointer"
             >
               すべてクリア
             </button>
@@ -238,7 +242,7 @@ export default function PoolPage() {
                 type="button"
                 onClick={() => removeTag(t)}
                 aria-label={`${t} を削除`}
-                className="rounded px-1 hover:bg-black/10 dark:hover:bg-white/20"
+                className="rounded px-1 hover:bg-black/10 dark:hover:bg-white/20 cursor-pointer"
               >
                 ×
               </button>
@@ -379,7 +383,7 @@ export default function PoolPage() {
         >
           {/* backdrop */}
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/50 cursor-pointer"
             onClick={() => setIsDraftOpen(false)}
             aria-hidden="true"
           />
@@ -393,7 +397,7 @@ export default function PoolPage() {
                 type="button"
                 onClick={() => setIsDraftOpen(false)}
                 aria-label="Close"
-                className="rounded px-2 py-1 text-sm hover:bg-black/10 dark:hover:bg-white/10"
+                className="rounded px-2 py-1 text-sm hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer"
               >
                 ×
               </button>
@@ -454,7 +458,7 @@ export default function PoolPage() {
                 <button
                   type="button"
                   onClick={() => setIsDraftOpen(false)}
-                  className="rounded px-3 py-1.5 text-sm hover:bg-black/10 dark:hover:bg-white/10"
+                  className="rounded px-3 py-1.5 text-sm hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer"
                 >
                   Cancel
                 </button>

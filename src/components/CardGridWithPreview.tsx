@@ -106,7 +106,8 @@ export default function CardGridWithPreview({
                       "w-40 sm:w-48 h-auto rounded shadow-sm border bg-white " +
                       (isVisuallyHighlighted
                         ? "border-4 border-emerald-500 shadow-emerald-500/40"
-                        : "border-black/10 dark:border-white/10")
+                        : "border-black/10 dark:border-white/10") +
+                      (selectable ? " cursor-pointer" : "")
                     }
                     onMouseEnter={() => setHovered(c)}
                     onFocus={() => setHovered(c)}

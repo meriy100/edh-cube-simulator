@@ -201,7 +201,7 @@ export default function Home() {
           <button
             type="submit"
             disabled={isSaving}
-            className="rounded bg-foreground text-background px-4 py-2 text-sm font-semibold hover:opacity-90 w-fit disabled:opacity-60"
+            className="rounded bg-foreground text-background px-4 py-2 text-sm font-semibold hover:opacity-90 w-fit cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isSaving ? "保存中..." : "Submit"}
           </button>
@@ -248,14 +248,14 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => router.push(`/pools/${p.id}`)}
-                  className="text-sm underline"
+                  className="text-sm underline cursor-pointer"
                 >
                   Show
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDeletePool(p.id)}
-                  className="text-sm underline text-red-600"
+                  className="text-sm underline text-red-600 cursor-pointer"
                 >
                   Delete
                 </button>
@@ -288,14 +288,14 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => router.push(`/drafts/${d.id}/picks`)}
-                  className="text-sm underline"
+                  className="text-sm underline cursor-pointer"
                 >
                   Open
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDeleteDraft(d.id)}
-                  className="text-sm underline text-red-600"
+                  className="text-sm underline text-red-600 cursor-pointer"
                 >
                   Delete
                 </button>

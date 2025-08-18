@@ -97,7 +97,7 @@ export default function DraftPickClient({
             className={
               "px-4 py-2 rounded font-semibold border " +
               (pickNumber > 1
-                ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700"
+                ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 cursor-pointer"
                 : "bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed")
             }
             aria-disabled={pickNumber <= 1}
@@ -113,7 +113,7 @@ export default function DraftPickClient({
                   `/drafts/${encodeURIComponent(draftId)}/picks/${encodeURIComponent(String(pickNumber + 1))}`,
                 )
               }
-              className="px-4 py-2 rounded font-semibold border bg-indigo-600 text-white border-indigo-700 hover:bg-indigo-700"
+              className="px-4 py-2 rounded font-semibold border bg-indigo-600 text-white border-indigo-700 hover:bg-indigo-700 cursor-pointer"
             >
               Next
             </button>
@@ -125,7 +125,7 @@ export default function DraftPickClient({
               className={
                 "px-4 py-2 rounded font-semibold border " +
                 (allSelected && !submitting
-                  ? "bg-emerald-600 text-white border-emerald-700 hover:bg-emerald-700"
+                  ? "bg-emerald-600 text-white border-emerald-700 hover:bg-emerald-700 cursor-pointer"
                   : "bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed")
               }
               aria-disabled={!allSelected || submitting}
