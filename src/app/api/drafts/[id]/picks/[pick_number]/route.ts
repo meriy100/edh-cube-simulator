@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
-// Canonical route for submitting picks and rotating packs (moved)
-// POST /api/drafts/:draft_id/picks/:pick_number
+// Canonical route for submitting picks and rotating packs
+// POST /api/drafts/:id/picks/:pick_number
 // body: { picks: Array<{ seatIndex: number; packId: string; cardIds: string[] }> }
 export async function POST(req: NextRequest, ctx: unknown) {
-  const { params } = ctx as { params: { draft_id: string; pick_number: string } };
-  const draftId = params.draft_id;
+  const { params } = ctx as { params: { id: string; pick_number: string } };
+  const draftId = params.id;
   const pickNumberRaw = Number(params.pick_number);
   const pickNumber = Number.isFinite(pickNumberRaw) ? pickNumberRaw : 1;
 

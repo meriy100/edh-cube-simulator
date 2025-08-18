@@ -11,6 +11,28 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+// GET /api/drafts
+// Returns latest 15 drafts with pool info
+export async function GET() {
+  try {
+    const drafts = await prisma.draft.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 15,
+      select: {
+        id: true,
+        createdAt: true,
+        seat: true,
+        pool: { select: { id: true, title: true } },
+      },
+    });
+    return NextResponse.json({ drafts });
+  } catch (err: unknown) {
+    console.error("GET /api/drafts error", err);
+    const message = err instanceof Error ? err.message : "Internal error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
 // POST /api/drafts
 // body: { pool_id: string; seat?: number }
 export async function POST(req: NextRequest) {

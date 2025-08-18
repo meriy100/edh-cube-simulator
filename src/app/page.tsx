@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type CardEntry = {
@@ -55,6 +55,15 @@ export default function Home() {
     Array<{ id: string; title: string | null; createdAt: string; count: number }>
   >([]);
   const [loadingPools, setLoadingPools] = useState<boolean>(false);
+  const [drafts, setDrafts] = useState<
+    Array<{
+      id: string;
+      createdAt: string;
+      seat: number;
+      pool: { id: string; title: string | null };
+    }>
+  >([]);
+  const [loadingDrafts, setLoadingDrafts] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -117,6 +126,39 @@ export default function Home() {
     };
   }, []);
 
+  // Load drafts list (latest 15)
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        setLoadingDrafts(true);
+        const res = await fetch("/api/drafts");
+        const data = await res.json();
+        if (res.ok && active) {
+          const items = (data?.drafts ?? []).map(
+            (d: {
+              id: string;
+              createdAt: string;
+              seat: number;
+              pool: { id: string; title: string | null };
+            }) => ({
+              id: d.id,
+              createdAt: d.createdAt,
+              seat: d.seat,
+              pool: { id: d.pool.id, title: d.pool.title ?? null },
+            }),
+          );
+          setDrafts(items);
+        }
+      } finally {
+        if (active) setLoadingDrafts(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   async function handleDeletePool(id: string) {
     if (!confirm("この pool を削除しますか？")) return;
     const res = await fetch(`/api/pools/${id}`, { method: "DELETE" });
@@ -126,6 +168,17 @@ export default function Home() {
       return;
     }
     setPools((prev) => prev.filter((p) => p.id !== id));
+  }
+
+  async function handleDeleteDraft(id: string) {
+    if (!confirm("この draft を削除しますか？")) return;
+    const res = await fetch(`/api/drafts/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data?.error || "削除に失敗しました");
+      return;
+    }
+    setDrafts((prev) => prev.filter((d) => d.id !== id));
   }
 
   return (
@@ -202,6 +255,46 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => handleDeletePool(p.id)}
+                  className="text-sm underline text-red-600"
+                >
+                  Delete
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-xl font-semibold mb-3">Drafts</h2>
+        {loadingDrafts ? (
+          <div className="opacity-70 text-sm">読み込み中...</div>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {drafts.length === 0 && <li className="opacity-70 text-sm">Draft はまだありません</li>}
+            {drafts.map((d) => (
+              <li
+                key={d.id}
+                className="flex items-center gap-3 border border-black/10 dark:border-white/15 rounded p-2"
+              >
+                <div className="flex-1">
+                  <div className="font-medium">
+                    {d.pool.title ?? "(untitled)"}{" "}
+                    <span className="opacity-70 text-xs">
+                      {new Date(d.createdAt).toLocaleString()} / seat {d.seat}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => router.push(`/drafts/${d.id}/picks`)}
+                  className="text-sm underline"
+                >
+                  Open
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteDraft(d.id)}
                   className="text-sm underline text-red-600"
                 >
                   Delete
