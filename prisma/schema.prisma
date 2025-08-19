@@ -22,6 +22,8 @@ model Card {
   raw          String
   // Scryfall full card object (nullable). Do not overwrite if already present.
   scryfallJson Json?
+  // CubeCobra CSV row JSON (nullable). Overwritten when importing from CubeCobra.
+  cubeCobra    Json?
 
   // Relations
   poolCards    PoolCard[]

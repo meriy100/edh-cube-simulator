@@ -51,6 +51,7 @@ export default function Home() {
   const router = useRouter();
   const [input, setInput] = useState<string>("");
   const [parseErrors, setParseErrors] = useState<ParseError[]>([]);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
   const [pools, setPools] = useState<
     Array<{ id: string; title: string | null; createdAt: string; count: number }>
   >([]);
@@ -68,15 +69,24 @@ export default function Home() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const { entries, errors } = parseMoxfieldListWithErrors(input);
-    setParseErrors(errors);
     try {
       setIsSaving(true);
-      const res = await fetch("/api/pools", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ entries, raw: input }),
-      });
+      let res: Response;
+      if (csvFile) {
+        const fd = new FormData();
+        fd.append("cubecobra", csvFile);
+        // also send textarea just in case
+        if (input) fd.append("raw", input);
+        res = await fetch("/api/pools", { method: "POST", body: fd });
+      } else {
+        const { entries, errors } = parseMoxfieldListWithErrors(input);
+        setParseErrors(errors);
+        res = await fetch("/api/pools", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ entries, raw: input }),
+        });
+      }
       const data = await res.json();
       if (!res.ok) {
         alert(data?.error || "保存に失敗しました");
@@ -197,6 +207,21 @@ export default function Home() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
         />
+        <div className="flex flex-col gap-1">
+          <label htmlFor="cube-csv" className="font-medium mt-2">
+            または CubeCobra の CSV をアップロード
+          </label>
+          <input
+            id="cube-csv"
+            type="file"
+            accept=".csv,text/csv"
+            onChange={(e) => setCsvFile(e.currentTarget.files?.[0] ?? null)}
+            className="block pointer-events-auto cursor-pointer"
+          />
+          <div className="text-xs opacity-70">
+            Moxfield テキストか CSV のどちらか入力されている方が使用されます。
+          </div>
+        </div>
         <div className="flex flex-col gap-2">
           <button
             type="submit"

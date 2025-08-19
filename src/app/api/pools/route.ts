@@ -52,20 +52,109 @@ export async function GET() {
   }
 }
 
+function parseCsvLine(line: string): string[] {
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i++; // skip escaped quote
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (ch === "," && !inQuotes) {
+      result.push(current);
+      current = "";
+    } else {
+      current += ch;
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+function parseCubeCobraCsv(text: string): { entries: CardEntry[]; rows: Record<string, string>[] } {
+  const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+  if (lines.length === 0) return { entries: [], rows: [] };
+  const header = parseCsvLine(lines[0]).map((h) => h.trim());
+  const rows: Record<string, string>[] = [];
+  const entries: CardEntry[] = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = parseCsvLine(lines[i]);
+    const row: Record<string, string> = {};
+    for (let j = 0; j < header.length; j++) {
+      row[header[j]] = (cols[j] ?? "").trim();
+    }
+    // Map to CardEntry
+    const name = row["name"] || row["Name"] || "";
+    const set = row["Set"] || row["set"] || "";
+    const number = row["Collector Number"] || row["collector number"] || row["number"] || "";
+    // tags are semicolon separated
+    const rawTags = row["tags"] || row["Tags"] || "";
+    const tags = rawTags
+      .split(";")
+      .map((t) => t.trim())
+      .filter(Boolean)
+      .map((t) => (t.startsWith("#") ? t : `#${t}`));
+    const entry: CardEntry = {
+      count: 1,
+      name,
+      set,
+      number,
+      tags,
+      raw: lines[i],
+    };
+    if (name && set && number) {
+      entries.push(entry);
+      rows.push(row);
+    }
+  }
+  return { entries, rows };
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as PostBody;
-    if (!body || !Array.isArray(body.entries)) {
+    const contentType = req.headers.get("content-type") || "";
+
+    let entries: CardEntry[] = [];
+    let rawText: string | null = null;
+    let cubeRows: Array<Record<string, string>> = [];
+
+    if (contentType.includes("multipart/form-data")) {
+      // Handle CubeCobra CSV upload
+      const form = await req.formData();
+      const file = form.get("cubecobra");
+      const maybeText = form.get("raw");
+      if (typeof maybeText === "string") rawText = maybeText;
+      if (file && typeof file === "object" && "text" in file) {
+        const csvText = await (file as File).text();
+        const parsed = parseCubeCobraCsv(csvText);
+        entries = parsed.entries;
+        cubeRows = parsed.rows;
+        rawText = rawText ?? csvText;
+      }
+    } else if (contentType.includes("application/json")) {
+      const body = (await req.json()) as PostBody;
+      if (body && Array.isArray(body.entries)) {
+        entries = body.entries;
+        rawText = body.raw ?? null;
+      }
+    }
+
+    if (!Array.isArray(entries)) {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
+
     // Pool title should be creation datetime (JST)
     const now = new Date();
     const title = now.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo", hour12: false });
 
-    const entries = body.entries;
     if (entries.length === 0) {
       // Create empty pool if desired
-      const pool = await prisma.pool.create({ data: { title, raw: body.raw ?? null } });
+      const pool = await prisma.pool.create({ data: { title, raw: rawText } });
       return NextResponse.json({ poolId: pool.id, count: 0, fetched: 0 });
     }
 
@@ -82,23 +171,45 @@ export async function POST(req: NextRequest) {
     // Upsert Cards first (do not overwrite scryfallJson)
     // Large single-transaction batches can cause Postgres to close the connection (P1017).
     // Process in chunks to keep transactions small and stable.
-    const UPSERT_CHUNK = 50;
-    for (let i = 0; i < data.length; i += UPSERT_CHUNK) {
-      const chunk = data.slice(i, i + UPSERT_CHUNK);
-      await prisma.$transaction(
-        chunk.map((d) =>
-          prisma.card.upsert({
+    // Avoid wrapping many upserts into a single DB transaction to prevent transaction timeouts.
+    // Use small parallelism without a transaction to keep each statement short.
+    // Build CubeCobra row map by name (last wins)
+    const cubeByName = new Map<string, Prisma.InputJsonValue>();
+    if (cubeRows.length) {
+      for (let i = 0; i < cubeRows.length; i++) {
+        const row = cubeRows[i];
+        const nm = (row["name"] || row["Name"] || "").toString();
+        if (nm) cubeByName.set(nm, row as unknown as Prisma.InputJsonValue);
+      }
+    }
+
+    const UPSERT_CONCURRENCY = 5;
+    for (let i = 0; i < data.length; i += UPSERT_CONCURRENCY) {
+      const chunk = data.slice(i, i + UPSERT_CONCURRENCY);
+      await Promise.all(
+        chunk.map((d) => {
+          const cube = cubeByName.get(d.name);
+          return prisma.card.upsert({
             where: { name: d.name },
-            create: { count: d.count, name: d.name, set: d.set, number: d.number, raw: d.raw },
+            create: {
+              count: d.count,
+              name: d.name,
+              set: d.set,
+              number: d.number,
+              raw: d.raw,
+              cubeCobra: cube ?? undefined,
+            },
             update: {
               // Do not overwrite scryfallJson here
               count: d.count,
               set: d.set,
               number: d.number,
               raw: d.raw,
+              // Overwrite cubeCobra only when importing from CubeCobra
+              ...(cube ? { cubeCobra: cube } : {}),
             },
-          }),
-        ),
+          });
+        }),
       );
     }
 
@@ -144,7 +255,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create Pool
-    const pool = await prisma.pool.create({ data: { title, raw: body.raw ?? null } });
+    const pool = await prisma.pool.create({ data: { title, raw: rawText } });
 
     // Build a map from card name to id
     const cards = await prisma.card.findMany({
