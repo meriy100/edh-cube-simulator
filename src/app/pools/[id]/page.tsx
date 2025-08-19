@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 type CardEntry = {
@@ -47,6 +47,9 @@ export default function PoolPage() {
   // Draft modal state
   const [isDraftOpen, setIsDraftOpen] = useState<boolean>(false);
   const [draftSeat, setDraftSeat] = useState<number>(8);
+  // Export modal state
+  const [isExportOpen, setIsExportOpen] = useState<boolean>(false);
+  const [copied, setCopied] = useState<boolean>(false);
 
   useEffect(() => {
     if (!id) return;
@@ -108,6 +111,41 @@ export default function PoolPage() {
     if (selectedTags.length === 0) return others;
     return others.filter((c) => selectedTags.every((t) => c.tags.some((tag) => tag.startsWith(t))));
   }, [others, selectedTags]);
+
+  // Build export text in Moxfield (tagged) format matching root page input
+  const exportText = useMemo(() => {
+    const list = entries ?? [];
+    return list
+      .map((e) => {
+        const base = `${e.count} ${e.name} (${e.set}) ${e.number}`;
+        const tags = (e.tags ?? []).filter(Boolean).join(" ");
+        return tags ? `${base} ${tags}` : base;
+      })
+      .join("\n");
+  }, [entries]);
+
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  async function handleCopy() {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(exportText);
+      } else {
+        const ta = textareaRef.current;
+        if (ta) {
+          ta.focus();
+          ta.select();
+          document.execCommand("copy");
+          ta.setSelectionRange(0, 0);
+        }
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch (e) {
+      console.error("copy failed", e);
+      alert("コピーに失敗しました");
+    }
+  }
 
   // Fetch images for current entries using /api/cards
   useEffect(() => {
@@ -183,6 +221,13 @@ export default function PoolPage() {
             className="rounded border border-foreground/50 text-foreground px-3 py-1.5 text-sm font-semibold hover:bg-foreground/5 cursor-pointer"
           >
             Draft
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsExportOpen(true)}
+            className="rounded border border-foreground/50 text-foreground px-3 py-1.5 text-sm font-semibold hover:bg-foreground/5 cursor-pointer"
+          >
+            Export
           </button>
           <button
             type="button"
@@ -470,6 +515,54 @@ export default function PoolPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {isExportOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="export-modal-title"
+        >
+          {/* backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 cursor-pointer"
+            onClick={() => setIsExportOpen(false)}
+            aria-hidden="true"
+          />
+          {/* dialog */}
+          <div className="relative z-10 w-full max-w-2xl rounded-lg border border-black/10 dark:border-white/15 bg-background p-4 shadow-xl">
+            <div className="flex items-center justify-between mb-3">
+              <h3 id="export-modal-title" className="text-lg font-semibold">
+                Export Pool (Moxfield タグ付き)
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsExportOpen(false)}
+                aria-label="Close"
+                className="rounded px-2 py-1 text-sm hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer"
+              >
+                ×
+              </button>
+            </div>
+            <textarea
+              ref={textareaRef}
+              className="w-full h-72 p-2 rounded border border-black/10 dark:border-white/20 bg-transparent font-mono text-sm"
+              readOnly
+              value={exportText}
+            />
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="rounded bg-foreground text-background px-3 py-1.5 text-sm font-semibold hover:opacity-90 cursor-pointer"
+              >
+                {copied ? "Copied!" : "Copy Moxfield"}
+              </button>
+              <div className="opacity-70 text-xs">Moxfield 形式: 1 Name (SET) NUMBER #tag...</div>
+            </div>
           </div>
         </div>
       )}
