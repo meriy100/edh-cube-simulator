@@ -87,7 +87,13 @@ function reconcileState(
   return { main: flatten(cells), side: [], mainGrid: cells };
 }
 
-function PickedSummary({ pickedIds, pickedCards }: { pickedIds: string[]; pickedCards: GridCard[] }) {
+function PickedSummary({
+  pickedIds,
+  pickedCards,
+}: {
+  pickedIds: string[];
+  pickedCards: GridCard[];
+}) {
   const text = React.useMemo(() => {
     const total = pickedIds.length;
     let creatures = 0;
@@ -101,7 +107,7 @@ function PickedSummary({ pickedIds, pickedCards }: { pickedIds: string[]; picked
       if (hasCreature) creatures += 1;
       if (isLandOnly) lands += 1;
     }
-    const nonCreatures = total - creatures;
+    const nonCreatures = total - creatures - lands;
     return `total: ${total} / creatures: ${creatures}, none creatures: ${nonCreatures}, lands: ${lands}`;
   }, [pickedIds.join("|"), pickedCards]);
   return <span className="ml-3 text-sm opacity-70">{text}</span>;
