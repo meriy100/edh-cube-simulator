@@ -108,46 +108,62 @@ export default function PickedBoard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ids.join("|")]);
 
-  // Persist
-  React.useEffect(() => {
-    try {
-      localStorage.setItem(storageKey(draftId, seatIndex), JSON.stringify(board));
-    } catch {}
-  }, [board, draftId, seatIndex]);
-
-  const moveCardToCell = React.useCallback((cardId: string, cellIndex: number) => {
-    setBoard((prev) => {
-      const cells = normalizeCells(prev.mainGrid || emptyCells()).map((cell) =>
-        cell.filter((id) => id !== cardId),
-      );
-      const side = prev.side.filter((id) => id !== cardId);
-      if (!cells[cellIndex]) return prev;
-      if (!cells[cellIndex].includes(cardId)) cells[cellIndex] = [...cells[cellIndex], cardId];
-      return { main: flatten(cells), side, mainGrid: cells };
-    });
-  }, []);
-
-  const moveTo = React.useCallback((cardId: string, dest: "main" | "side") => {
-    setBoard((prev) => {
-      if (dest === "side") {
+  const moveCardToCell = React.useCallback(
+    (cardId: string, cellIndex: number) => {
+      setBoard((prev) => {
         const cells = normalizeCells(prev.mainGrid || emptyCells()).map((cell) =>
           cell.filter((id) => id !== cardId),
         );
-        if (prev.side.includes(cardId))
-          return { main: flatten(cells), side: prev.side, mainGrid: cells };
-        const side = [...prev.side, cardId];
-        return { main: flatten(cells), side, mainGrid: cells };
-      } else {
-        // default main drop -> put into cell 0
-        const cells = normalizeCells(prev.mainGrid || emptyCells()).map((cell) =>
-          cell.filter((id) => id !== cardId),
-        );
-        cells[0] = [...cells[0], cardId];
         const side = prev.side.filter((id) => id !== cardId);
-        return { main: flatten(cells), side, mainGrid: cells };
-      }
-    });
-  }, []);
+        if (!cells[cellIndex]) return prev;
+        if (!cells[cellIndex].includes(cardId)) cells[cellIndex] = [...cells[cellIndex], cardId];
+        const next = { main: flatten(cells), side, mainGrid: cells } as BoardState;
+        try {
+          localStorage.setItem(storageKey(draftId, seatIndex), JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+    },
+    [draftId, seatIndex],
+  );
+
+  const moveTo = React.useCallback(
+    (cardId: string, dest: "main" | "side") => {
+      setBoard((prev) => {
+        if (dest === "side") {
+          const cells = normalizeCells(prev.mainGrid || emptyCells()).map((cell) =>
+            cell.filter((id) => id !== cardId),
+          );
+          if (prev.side.includes(cardId)) {
+            const next = { main: flatten(cells), side: prev.side, mainGrid: cells } as BoardState;
+            try {
+              localStorage.setItem(storageKey(draftId, seatIndex), JSON.stringify(next));
+            } catch {}
+            return next;
+          }
+          const side = [...prev.side, cardId];
+          const next = { main: flatten(cells), side, mainGrid: cells } as BoardState;
+          try {
+            localStorage.setItem(storageKey(draftId, seatIndex), JSON.stringify(next));
+          } catch {}
+          return next;
+        } else {
+          // default main drop -> put into cell 0
+          const cells = normalizeCells(prev.mainGrid || emptyCells()).map((cell) =>
+            cell.filter((id) => id !== cardId),
+          );
+          cells[0] = [...cells[0], cardId];
+          const side = prev.side.filter((id) => id !== cardId);
+          const next = { main: flatten(cells), side, mainGrid: cells } as BoardState;
+          try {
+            localStorage.setItem(storageKey(draftId, seatIndex), JSON.stringify(next));
+          } catch {}
+          return next;
+        }
+      });
+    },
+    [draftId, seatIndex],
+  );
 
   const onDragStart = (
     e: React.DragEvent<HTMLImageElement>,
