@@ -87,6 +87,26 @@ function reconcileState(
   return { main: flatten(cells), side: [], mainGrid: cells };
 }
 
+function PickedSummary({ pickedIds, pickedCards }: { pickedIds: string[]; pickedCards: GridCard[] }) {
+  const text = React.useMemo(() => {
+    const total = pickedIds.length;
+    let creatures = 0;
+    let lands = 0;
+    for (const id of pickedIds) {
+      const c = pickedCards.find((x) => x.id === id);
+      if (!c) continue;
+      const types = c.types ?? [];
+      const hasCreature = types.includes("Creature");
+      const isLandOnly = types.includes("Land") && types.length === 1;
+      if (hasCreature) creatures += 1;
+      if (isLandOnly) lands += 1;
+    }
+    const nonCreatures = total - creatures;
+    return `total: ${total} / creatures: ${creatures}, none creatures: ${nonCreatures}, lands: ${lands}`;
+  }, [pickedIds.join("|"), pickedCards]);
+  return <span className="ml-3 text-sm opacity-70">{text}</span>;
+}
+
 export default function PickedBoard({
   draftId,
   seatIndex,
@@ -317,6 +337,7 @@ export default function PickedBoard({
           <div className="flex items-center mb-2">
             <div className="font-semibold">Mainboard</div>
             <div className="ml-2 text-sm opacity-70">{board.main.length}</div>
+            <PickedSummary pickedIds={board.main} pickedCards={pickedCards} />
           </div>
           <div className="relative pb-8">{renderMainGrid(board.mainGrid || emptyCells())}</div>
         </div>

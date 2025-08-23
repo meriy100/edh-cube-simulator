@@ -109,22 +109,6 @@ export default async function DraftPickPage({
   });
   const cardMap = new Map(cardRows.map((c) => [c.id, c] as const));
 
-  function summarizePicked(ids: string[]): string {
-    const total = ids.length;
-    let creatures = 0;
-    let lands = 0;
-    for (const id of ids) {
-      const c = cardMap.get(id);
-      if (!c) continue;
-      const types = getCardTypes(c as unknown as { scryfallJson?: unknown | null });
-      const hasCreature = types.includes("Creature");
-      const isLandOnly = types.includes("Land") && types.length === 1; // Land + other types should NOT count as Land
-      if (hasCreature) creatures += 1; // Creature + other type should count as Creature
-      if (isLandOnly) lands += 1;
-    }
-    const nonCreatures = total - creatures;
-    return `total: ${total} / creatures: ${creatures}, none creatures: ${nonCreatures}, lands: ${lands}`;
-  }
 
   function getManaValueFromScryfall(json: unknown): number {
     try {
@@ -196,14 +180,12 @@ export default async function DraftPickPage({
       const pickedCards: GridCard[] = pickedIds
         .map(toGridCardById)
         .filter((x): x is GridCard => !!x);
-      const pickedSummaryText = summarizePicked(pickedIds);
       return {
         seatIndex,
         packId,
         cards,
         pickedCards,
         pickedThisPickIds,
-        pickedSummaryText,
       } as SeatPack;
     })
     .filter((x): x is SeatPack => !!x);
