@@ -43,6 +43,7 @@ export default function PoolPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState<string>("");
   const [imageMap, setImageMap] = useState<Record<string, string>>({});
+  const [typeMap, setTypeMap] = useState<Record<string, string[]>>({});
   const [loadingEntries, setLoadingEntries] = useState<boolean>(true);
   // Draft modal state
   const [isDraftOpen, setIsDraftOpen] = useState<boolean>(false);
@@ -159,17 +160,26 @@ export default function PoolPage() {
         });
         if (!res.ok) return;
         const data = await res.json();
-        const map: Record<string, string> = {};
-        // Consolidated card image URL extraction
-        const { getCardImageUrl } = await import("@/lib/cardImage");
+        const imgMap: Record<string, string> = {};
+        const typMap: Record<string, string[]> = {};
+        // Consolidated card image URL and type extraction
+        const [{ getCardImageUrl }, { getCardTypes }] = await Promise.all([
+          import("@/lib/cardImage"),
+          import("@/lib/cardTypes"),
+        ]);
         for (const c of data?.cards ??
           ([] as Array<{ name: string; scryfallJson: unknown; cubeCobra?: unknown }>)) {
           const url = getCardImageUrl(c as { scryfallJson?: unknown; cubeCobra?: unknown });
           if (typeof url === "string" && url) {
-            map[c.name] = url;
+            imgMap[c.name] = url;
+          }
+          const types = getCardTypes(c as { scryfallJson?: unknown });
+          if (Array.isArray(types) && types.length > 0) {
+            typMap[c.name] = types;
           }
         }
-        setImageMap(map);
+        setImageMap(imgMap);
+        setTypeMap(typMap);
       } catch {}
     })();
     return () => controller.abort();
@@ -310,6 +320,9 @@ export default function PoolPage() {
               <div className="font-semibold">{c.name}</div>
               <div className="text-xs opacity-70">
                 ({c.set}) {c.number}
+                {Array.isArray(typeMap[c.name]) && typeMap[c.name].length > 0 && (
+                  <> · {typeMap[c.name].join(" / ")}</>
+                )}
               </div>
               {c.tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
@@ -351,6 +364,9 @@ export default function PoolPage() {
               <div className="font-semibold">{c.name}</div>
               <div className="text-xs opacity-70">
                 ({c.set}) {c.number}
+                {Array.isArray(typeMap[c.name]) && typeMap[c.name].length > 0 && (
+                  <> · {typeMap[c.name].join(" / ")}</>
+                )}
               </div>
               {c.tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
@@ -392,6 +408,9 @@ export default function PoolPage() {
               <div className="font-semibold">{c.name}</div>
               <div className="text-xs opacity-70">
                 ({c.set}) {c.number}
+                {Array.isArray(typeMap[c.name]) && typeMap[c.name].length > 0 && (
+                  <> · {typeMap[c.name].join(" / ")}</>
+                )}
               </div>
               {c.tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
