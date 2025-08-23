@@ -6,7 +6,7 @@ import type { GridCard } from "./CardGridWithPreview";
 export type BoardState = {
   main: string[]; // flat list kept for backward-compatibility and count
   side: string[]; // card ids in sideboard
-  mainGrid?: string[][]; // 6x2 (12 cells) grid of card ids
+  mainGrid?: string[][]; // 7x2 (14 cells) grid of card ids
 };
 
 type Props = {
@@ -21,7 +21,7 @@ function storageKey(draftId: string, seatIndex: number) {
   return `draft:${draftId}:seat:${seatIndex}:board`;
 }
 
-const MAIN_COLS = 6;
+const MAIN_COLS = 7;
 const MAIN_ROWS = 2;
 const MAIN_CELLS = MAIN_COLS * MAIN_ROWS;
 
@@ -33,6 +33,12 @@ function emptyCells(): string[][] {
   return Array.from({ length: MAIN_CELLS }, () => [] as string[]);
 }
 
+function normalizeCells(cells: string[][]): string[][] {
+  const base = emptyCells();
+  for (let i = 0; i < Math.min(cells.length, MAIN_CELLS); i++) base[i] = cells[i];
+  return base;
+}
+
 function reconcileState(ids: string[], current: BoardState | null): BoardState {
   const unique = Array.from(new Set(ids));
   const seen = new Set(unique);
@@ -41,7 +47,7 @@ function reconcileState(ids: string[], current: BoardState | null): BoardState {
   if (current) {
     // Start from existing grid if present, otherwise rebuild from main flat array
     const cells = current.mainGrid
-      ? current.mainGrid.map((cell) => cell.filter((id) => seen.has(id)))
+      ? normalizeCells(current.mainGrid.map((cell) => cell.filter((id) => seen.has(id))))
       : (() => {
           const cs = emptyCells();
           const filteredMain = (current.main || []).filter((id) => seen.has(id));
@@ -111,7 +117,7 @@ export default function PickedBoard({
 
   const moveCardToCell = React.useCallback((cardId: string, cellIndex: number) => {
     setBoard((prev) => {
-      const cells = (prev.mainGrid || emptyCells()).map((cell) =>
+      const cells = normalizeCells(prev.mainGrid || emptyCells()).map((cell) =>
         cell.filter((id) => id !== cardId),
       );
       const side = prev.side.filter((id) => id !== cardId);
@@ -124,7 +130,7 @@ export default function PickedBoard({
   const moveTo = React.useCallback((cardId: string, dest: "main" | "side") => {
     setBoard((prev) => {
       if (dest === "side") {
-        const cells = (prev.mainGrid || emptyCells()).map((cell) =>
+        const cells = normalizeCells(prev.mainGrid || emptyCells()).map((cell) =>
           cell.filter((id) => id !== cardId),
         );
         if (prev.side.includes(cardId))
@@ -133,7 +139,7 @@ export default function PickedBoard({
         return { main: flatten(cells), side, mainGrid: cells };
       } else {
         // default main drop -> put into cell 0
-        const cells = (prev.mainGrid || emptyCells()).map((cell) =>
+        const cells = normalizeCells(prev.mainGrid || emptyCells()).map((cell) =>
           cell.filter((id) => id !== cardId),
         );
         cells[0] = [...cells[0], cardId];
@@ -209,7 +215,7 @@ export default function PickedBoard({
 
   const renderMainGrid = (cells: string[][]) => {
     return (
-      <div className="grid grid-cols-6 grid-rows-2 gap-2">
+      <div className="grid grid-cols-7 grid-rows-2 gap-2">
         {Array.from({ length: MAIN_CELLS }).map((_, idx) => {
           const idsInCell = cells[idx] || [];
           return (
