@@ -42,6 +42,7 @@ export default function PickedBoard({
   const ids = React.useMemo(() => pickedCards.map((c) => c.id), [pickedCards]);
   // Initialize with SSR-safe default to avoid hydration mismatch.
   const [board, setBoard] = React.useState<BoardState>({ main: ids, side: [] });
+  const [hovered, setHovered] = React.useState<GridCard | null>(null);
 
   // After mount, load from localStorage and reconcile with current ids.
   React.useEffect(() => {
@@ -118,6 +119,10 @@ export default function PickedBoard({
                     onDragStart={(e) =>
                       onDragStart(e, id, board.main.includes(id) ? "main" : "side")
                     }
+                    onMouseEnter={() => setHovered(c)}
+                    onFocus={() => setHovered(c)}
+                    onMouseLeave={() => setHovered((h) => (h?.id === c.id ? null : h))}
+                    onBlur={() => setHovered((h) => (h?.id === c.id ? null : h))}
                   />
                 </div>
               );
@@ -129,7 +134,7 @@ export default function PickedBoard({
   };
 
   return (
-    <div className={className}>
+    <div className={(className ? className + " " : "") + "relative pr-64 sm:pr-72"}>
       <div className="space-y-4">
         <div
           className="border border-dashed border-black/20 dark:border-white/20 rounded p-2"
@@ -157,6 +162,22 @@ export default function PickedBoard({
           </div>
           <div className="relative pb-24">{renderGrid(board.side)}</div>
         </div>
+      </div>
+      {/* Right-side preview area */}
+      <div
+        className="pointer-events-none absolute top-0 right-0 h-full w-60 sm:w-72 flex items-start justify-center"
+        aria-hidden={hovered ? "false" : "true"}
+      >
+        {hovered && (
+          <div className="sticky top-2">
+            <img
+              src={hovered.largeUrl || hovered.normalUrl}
+              alt={`${hovered.name} preview`}
+              loading="eager"
+              className="w-60 sm:w-72 h-auto rounded-lg shadow-lg border border-black/20 dark:border-white/20 bg-white"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
