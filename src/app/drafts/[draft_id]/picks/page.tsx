@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import CardGridWithPreview, { type GridCard } from "@/components/CardGridWithPreview";
 import ExportPickedList from "@/components/ExportPickedList";
+import { getCardImageUrls } from "@/lib/cardImage";
 
 // Server component page to show picked cards per seat
 // New Route: /drafts/[draft_id]/picks
@@ -51,28 +52,9 @@ export default async function DraftPicksPage({
   function toGridCard(cid: string): GridCard | null {
     const c = cardMap.get(cid);
     if (!c) return null;
-    // Extract image URLs from stored scryfallJson (avoid using Scryfall API endpoints)
-    let normalUrl = "";
-    let largeUrl = "";
-    try {
-      const j = c.scryfallJson as unknown;
-      const get = (obj: unknown, key: "normal" | "large"): string | undefined => {
-        if (!obj || typeof obj !== "object") return undefined;
-        const o = obj as {
-          image_uris?: { normal?: string; large?: string };
-          card_faces?: Array<{ image_uris?: { normal?: string; large?: string } }>;
-        };
-        return (
-          o.image_uris?.[key] ||
-          (Array.isArray(o.card_faces) ? o.card_faces[0]?.image_uris?.[key] : undefined)
-        );
-      };
-      normalUrl = get(j, "normal") ?? "";
-      largeUrl = get(j, "large") ?? normalUrl;
-    } catch {
-      normalUrl = "";
-      largeUrl = "";
-    }
+    const { normal, large } = getCardImageUrls(c.scryfallJson as unknown);
+    const normalUrl = normal ?? "";
+    const largeUrl = large ?? normalUrl;
     if (!normalUrl) return null;
     return {
       id: c.id,
