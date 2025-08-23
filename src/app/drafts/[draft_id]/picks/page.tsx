@@ -45,14 +45,14 @@ export default async function DraftPicksPage({
   const allIds = Array.from(new Set(pickedIdsPerSeat.flat()));
   const cardRows = await prisma.card.findMany({
     where: { id: { in: allIds } },
-    select: { id: true, name: true, set: true, number: true, scryfallJson: true },
+    select: { id: true, name: true, set: true, number: true, scryfallJson: true, cubeCobra: true },
   });
   const cardMap = new Map(cardRows.map((c) => [c.id, c] as const));
 
   function toGridCard(cid: string): GridCard | null {
     const c = cardMap.get(cid);
     if (!c) return null;
-    const { normal, large } = getCardImageUrls(c.scryfallJson as unknown);
+    const { normal, large } = getCardImageUrls(c.scryfallJson as unknown, c.cubeCobra as unknown);
     const normalUrl = normal ?? "";
     const largeUrl = large ?? normalUrl;
     if (!normalUrl) return null;

@@ -140,8 +140,9 @@ export default function SamplePackPage() {
         const data = await res.json();
         const map: Record<string, string> = {};
         const { getCardImageUrl } = await import("@/lib/cardImage");
-        for (const c of data?.cards ?? ([] as Array<{ name: string; scryfallJson: unknown }>)) {
-          const url = getCardImageUrl(c?.scryfallJson, "normal");
+        for (const c of data?.cards ??
+          ([] as Array<{ name: string; scryfallJson: unknown; cubeCobra?: unknown }>)) {
+          const url = getCardImageUrl(c as { scryfallJson?: unknown; cubeCobra?: unknown });
           if (typeof url === "string" && url) {
             map[c.name] = url;
           }

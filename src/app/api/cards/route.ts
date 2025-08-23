@@ -66,7 +66,14 @@ export async function GET(req: NextRequest) {
 
     const cards = await prisma.card.findMany({
       where: names && names.length > 0 ? { name: { in: names } } : undefined,
-      select: { name: true, scryfallJson: true, set: true, number: true, count: true },
+      select: {
+        name: true,
+        scryfallJson: true,
+        cubeCobra: true,
+        set: true,
+        number: true,
+        count: true,
+      },
       orderBy: { name: "asc" },
     });
 

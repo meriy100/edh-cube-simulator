@@ -162,8 +162,9 @@ export default function PoolPage() {
         const map: Record<string, string> = {};
         // Consolidated card image URL extraction
         const { getCardImageUrl } = await import("@/lib/cardImage");
-        for (const c of data?.cards ?? ([] as Array<{ name: string; scryfallJson: unknown }>)) {
-          const url = getCardImageUrl(c?.scryfallJson, "normal");
+        for (const c of data?.cards ??
+          ([] as Array<{ name: string; scryfallJson: unknown; cubeCobra?: unknown }>)) {
+          const url = getCardImageUrl(c as { scryfallJson?: unknown; cubeCobra?: unknown });
           if (typeof url === "string" && url) {
             map[c.name] = url;
           }
