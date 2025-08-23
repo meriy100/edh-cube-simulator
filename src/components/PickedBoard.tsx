@@ -4,8 +4,9 @@ import React from "react";
 import type { GridCard } from "./CardGridWithPreview";
 
 export type BoardState = {
-  main: string[]; // card ids
-  side: string[]; // card ids
+  main: string[]; // flat list kept for backward-compatibility and count
+  side: string[]; // card ids in sideboard
+  mainGrid?: string[][]; // 6x2 (12 cells) grid of card ids
 };
 
 type Props = {
@@ -20,16 +21,51 @@ function storageKey(draftId: string, seatIndex: number) {
   return `draft:${draftId}:seat:${seatIndex}:board`;
 }
 
+const MAIN_COLS = 6;
+const MAIN_ROWS = 2;
+const MAIN_CELLS = MAIN_COLS * MAIN_ROWS;
+
+function flatten(cells: string[][]): string[] {
+  return cells.flat();
+}
+
+function emptyCells(): string[][] {
+  return Array.from({ length: MAIN_CELLS }, () => [] as string[]);
+}
+
 function reconcileState(ids: string[], current: BoardState | null): BoardState {
   const unique = Array.from(new Set(ids));
-  if (!current) return { main: unique, side: [] };
-  // keep only existing ids; preserve order; append any new to main
   const seen = new Set(unique);
-  const main = current.main.filter((id) => seen.has(id));
-  const side = current.side.filter((id) => seen.has(id));
-  const placed = new Set([...main, ...side]);
-  const rest = unique.filter((id) => !placed.has(id));
-  return { main: [...main, ...rest], side };
+
+  // Build from current if exists
+  if (current) {
+    // Start from existing grid if present, otherwise rebuild from main flat array
+    const cells = current.mainGrid
+      ? current.mainGrid.map((cell) => cell.filter((id) => seen.has(id)))
+      : (() => {
+          const cs = emptyCells();
+          const filteredMain = (current.main || []).filter((id) => seen.has(id));
+          // Put all into cell 0 by default for migration; user can rearrange
+          cs[0] = [...filteredMain];
+          return cs;
+        })();
+
+    const side = (current.side || []).filter((id) => seen.has(id));
+
+    // Place any new ids (not in cells/side) into cell 0
+    const placed = new Set([...flatten(cells), ...side]);
+    const rest = unique.filter((id) => !placed.has(id));
+    if (rest.length) {
+      cells[0] = [...cells[0], ...rest];
+    }
+
+    return { main: flatten(cells), side, mainGrid: cells };
+  }
+
+  // No current persisted state
+  const cells = emptyCells();
+  cells[0] = [...unique];
+  return { main: [...unique], side: [], mainGrid: cells };
 }
 
 export default function PickedBoard({
@@ -41,7 +77,11 @@ export default function PickedBoard({
 }: Props) {
   const ids = React.useMemo(() => pickedCards.map((c) => c.id), [pickedCards]);
   // Initialize with SSR-safe default to avoid hydration mismatch.
-  const [board, setBoard] = React.useState<BoardState>({ main: ids, side: [] });
+  const [board, setBoard] = React.useState<BoardState>({
+    main: ids,
+    side: [],
+    mainGrid: emptyCells(),
+  });
   const [hovered, setHovered] = React.useState<GridCard | null>(null);
 
   // After mount, load from localStorage and reconcile with current ids.
@@ -69,24 +109,60 @@ export default function PickedBoard({
     } catch {}
   }, [board, draftId, seatIndex]);
 
+  const moveCardToCell = React.useCallback((cardId: string, cellIndex: number) => {
+    setBoard((prev) => {
+      const cells = (prev.mainGrid || emptyCells()).map((cell) =>
+        cell.filter((id) => id !== cardId),
+      );
+      const side = prev.side.filter((id) => id !== cardId);
+      if (!cells[cellIndex]) return prev;
+      if (!cells[cellIndex].includes(cardId)) cells[cellIndex] = [...cells[cellIndex], cardId];
+      return { main: flatten(cells), side, mainGrid: cells };
+    });
+  }, []);
+
   const moveTo = React.useCallback((cardId: string, dest: "main" | "side") => {
     setBoard((prev) => {
-      if (prev[dest].includes(cardId)) return prev;
-      return {
-        main: dest === "main" ? [...prev.main, cardId] : prev.main.filter((id) => id !== cardId),
-        side: dest === "side" ? [...prev.side, cardId] : prev.side.filter((id) => id !== cardId),
-      };
+      if (dest === "side") {
+        const cells = (prev.mainGrid || emptyCells()).map((cell) =>
+          cell.filter((id) => id !== cardId),
+        );
+        if (prev.side.includes(cardId))
+          return { main: flatten(cells), side: prev.side, mainGrid: cells };
+        const side = [...prev.side, cardId];
+        return { main: flatten(cells), side, mainGrid: cells };
+      } else {
+        // default main drop -> put into cell 0
+        const cells = (prev.mainGrid || emptyCells()).map((cell) =>
+          cell.filter((id) => id !== cardId),
+        );
+        cells[0] = [...cells[0], cardId];
+        const side = prev.side.filter((id) => id !== cardId);
+        return { main: flatten(cells), side, mainGrid: cells };
+      }
     });
   }, []);
 
   const onDragStart = (
     e: React.DragEvent<HTMLImageElement>,
     cardId: string,
-    from: "main" | "side",
+    from: "mainCell" | "side",
+    cellIndex?: number,
   ) => {
     e.dataTransfer.setData("text/plain", cardId);
     e.dataTransfer.setData("application/x-from", from);
+    if (from === "mainCell" && typeof cellIndex === "number") {
+      e.dataTransfer.setData("application/x-cell-index", String(cellIndex));
+    }
     e.dataTransfer.effectAllowed = "move";
+  };
+
+  const onDropToCell = (e: React.DragEvent<HTMLDivElement>, cellIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const cardId = e.dataTransfer.getData("text/plain");
+    if (!cardId) return;
+    moveCardToCell(cardId, cellIndex);
   };
 
   const onDropTo = (e: React.DragEvent<HTMLDivElement>, dest: "main" | "side") => {
@@ -95,7 +171,7 @@ export default function PickedBoard({
     if (cardId) moveTo(cardId, dest);
   };
 
-  const renderGrid = (ids: string[]) => {
+  const renderSideGrid = (ids: string[]) => {
     const rows: string[][] = [];
     for (let i = 0; i < ids.length; i += perRow) rows.push(ids.slice(i, i + perRow));
     return (
@@ -116,9 +192,7 @@ export default function PickedBoard({
                     loading="lazy"
                     className="w-40 sm:w-48 h-auto rounded shadow-sm border bg-white border-black/10 dark:border-white/10 cursor-move"
                     draggable
-                    onDragStart={(e) =>
-                      onDragStart(e, id, board.main.includes(id) ? "main" : "side")
-                    }
+                    onDragStart={(e) => onDragStart(e, id, "side")}
                     onMouseEnter={() => setHovered(c)}
                     onFocus={() => setHovered(c)}
                     onMouseLeave={() => setHovered((h) => (h?.id === c.id ? null : h))}
@@ -129,6 +203,51 @@ export default function PickedBoard({
             })}
           </div>
         ))}
+      </div>
+    );
+  };
+
+  const renderMainGrid = (cells: string[][]) => {
+    return (
+      <div className="grid grid-cols-6 grid-rows-2 gap-2">
+        {Array.from({ length: MAIN_CELLS }).map((_, idx) => {
+          const idsInCell = cells[idx] || [];
+          return (
+            <div
+              key={idx}
+              className="relative min-h-[6rem] sm:min-h-[8rem] border border-dashed border-black/20 dark:border-white/20 rounded p-1"
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={(e) => onDropToCell(e, idx)}
+              aria-label={`Mainboard cell ${idx + 1}`}
+            >
+              <div className="flex flex-col">
+                {idsInCell.map((id, i) => {
+                  const c = pickedCards.find((x) => x.id === id);
+                  if (!c) return null;
+                  return (
+                    <div key={id} className={`${i === 0 ? "" : "-mt-24 sm:-mt-28"} relative`}>
+                      <img
+                        src={c.normalUrl}
+                        alt={`${c.name} (${c.set}) #${c.number}`}
+                        loading="lazy"
+                        className="w-32 sm:w-40 h-auto rounded shadow-sm border bg-white border-black/10 dark:border-white/10 cursor-move"
+                        draggable
+                        onDragStart={(e) => onDragStart(e, id, "mainCell", idx)}
+                        onMouseEnter={() => setHovered(c)}
+                        onFocus={() => setHovered(c)}
+                        onMouseLeave={() => setHovered((h) => (h?.id === c.id ? null : h))}
+                        onBlur={() => setHovered((h) => (h?.id === c.id ? null : h))}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -147,7 +266,7 @@ export default function PickedBoard({
             <div className="font-semibold">Mainboard</div>
             <div className="ml-2 text-sm opacity-70">{board.main.length}</div>
           </div>
-          <div className="relative pb-24">{renderGrid(board.main)}</div>
+          <div className="relative pb-24">{renderMainGrid(board.mainGrid || emptyCells())}</div>
         </div>
         <div
           className="border border-dashed border-black/20 dark:border-white/20 rounded p-2"
@@ -160,7 +279,7 @@ export default function PickedBoard({
             <div className="font-semibold">Sideboard</div>
             <div className="ml-2 text-sm opacity-70">{board.side.length}</div>
           </div>
-          <div className="relative pb-24">{renderGrid(board.side)}</div>
+          <div className="relative pb-24">{renderSideGrid(board.side)}</div>
         </div>
       </div>
       {/* Right-side preview area */}
