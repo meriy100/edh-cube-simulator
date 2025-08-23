@@ -88,6 +88,19 @@ function parseCubeCobraCsv(text: string): { entries: CardEntry[]; rows: Record<s
     for (let j = 0; j < header.length; j++) {
       row[header[j]] = (cols[j] ?? "").trim();
     }
+
+    // Skip Maybeboard rows (CubeCobra exports a "Maybeboard" boolean column)
+    const maybeboardValue =
+      row["Maybeboard"] ?? row["maybeboard"] ?? row["Maybe"] ?? row["maybe"] ?? "";
+    const isTruthy = (val: string) => {
+      const v = val.trim().toLowerCase();
+      return v === "true" || v === "1" || v === "yes" || v === "y";
+    };
+    if (isTruthy(String(maybeboardValue))) {
+      // Ignore this line entirely
+      continue;
+    }
+
     // Map to CardEntry
     const name = row["name"] || row["Name"] || "";
     const set = row["Set"] || row["set"] || "";
