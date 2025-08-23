@@ -39,7 +39,11 @@ function normalizeCells(cells: string[][]): string[][] {
   return base;
 }
 
-function reconcileState(ids: string[], current: BoardState | null): BoardState {
+function reconcileState(
+  ids: string[],
+  current: BoardState | null,
+  defaultCellIndexForId: (id: string) => number,
+): BoardState {
   const unique = Array.from(new Set(ids));
   const seen = new Set(unique);
 
@@ -51,27 +55,36 @@ function reconcileState(ids: string[], current: BoardState | null): BoardState {
       : (() => {
           const cs = emptyCells();
           const filteredMain = (current.main || []).filter((id) => seen.has(id));
-          // Put all into cell 0 by default for migration; user can rearrange
-          cs[0] = [...filteredMain];
+          // Place filteredMain into their default cells for migration
+          for (const id of filteredMain) {
+            const idx = defaultCellIndexForId(id);
+            if (cs[idx]) cs[idx].push(id);
+          }
           return cs;
         })();
 
     const side = (current.side || []).filter((id) => seen.has(id));
 
-    // Place any new ids (not in cells/side) into cell 0
+    // Place any new ids (not in cells/side) into their default cells
     const placed = new Set([...flatten(cells), ...side]);
     const rest = unique.filter((id) => !placed.has(id));
     if (rest.length) {
-      cells[0] = [...cells[0], ...rest];
+      for (const id of rest) {
+        const idx = defaultCellIndexForId(id);
+        if (cells[idx]) cells[idx].push(id);
+      }
     }
 
     return { main: flatten(cells), side, mainGrid: cells };
   }
 
-  // No current persisted state
+  // No current persisted state -> place into default cells
   const cells = emptyCells();
-  cells[0] = [...unique];
-  return { main: [...unique], side: [], mainGrid: cells };
+  for (const id of unique) {
+    const idx = defaultCellIndexForId(id);
+    if (cells[idx]) cells[idx].push(id);
+  }
+  return { main: flatten(cells), side: [], mainGrid: cells };
 }
 
 export default function PickedBoard({
@@ -90,12 +103,28 @@ export default function PickedBoard({
   });
   const [hovered, setHovered] = React.useState<GridCard | null>(null);
 
+  // Compute default cell index based on types and mana value
+  const defaultCellIndexForId = React.useCallback(
+    (id: string) => {
+      const c = pickedCards.find((x) => x.id === id);
+      const mv = Number.isFinite(c?.manaValue as number)
+        ? Math.max(0, Math.floor((c?.manaValue as number) || 0))
+        : 0;
+      const col = Math.min(MAIN_COLS - 1, mv);
+      const types = c?.types ?? [];
+      const hasCreature = Array.isArray(types) ? types.includes("Creature") : false;
+      const row = hasCreature ? 0 : 1; // 1st row for creatures; 2nd row for non-creatures and lands
+      return row * MAIN_COLS + col;
+    },
+    [pickedCards],
+  );
+
   // After mount, load from localStorage and reconcile with current ids.
   React.useEffect(() => {
     try {
       const raw = localStorage.getItem(storageKey(draftId, seatIndex));
       const parsed = raw ? (JSON.parse(raw) as BoardState) : null;
-      setBoard((prev) => reconcileState(ids, parsed ?? prev));
+      setBoard((prev) => reconcileState(ids, parsed ?? prev, defaultCellIndexForId));
     } catch {
       // ignore
     }
@@ -104,9 +133,9 @@ export default function PickedBoard({
 
   // Reconcile when pickedCards change (e.g., after new pick)
   React.useEffect(() => {
-    setBoard((prev) => reconcileState(ids, prev));
+    setBoard((prev) => reconcileState(ids, prev, defaultCellIndexForId));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ids.join("|")]);
+  }, [ids.join("|"), defaultCellIndexForId]);
 
   const moveCardToCell = React.useCallback(
     (cardId: string, cellIndex: number) => {
@@ -148,11 +177,12 @@ export default function PickedBoard({
           } catch {}
           return next;
         } else {
-          // default main drop -> put into cell 0
+          // default main drop -> put into default cell based on type/mana
           const cells = normalizeCells(prev.mainGrid || emptyCells()).map((cell) =>
             cell.filter((id) => id !== cardId),
           );
-          cells[0] = [...cells[0], cardId];
+          const idx = defaultCellIndexForId(cardId);
+          cells[idx] = [...(cells[idx] || []), cardId];
           const side = prev.side.filter((id) => id !== cardId);
           const next = { main: flatten(cells), side, mainGrid: cells } as BoardState;
           try {
@@ -162,7 +192,7 @@ export default function PickedBoard({
         }
       });
     },
-    [draftId, seatIndex],
+    [draftId, seatIndex, defaultCellIndexForId],
   );
 
   const onDragStart = (

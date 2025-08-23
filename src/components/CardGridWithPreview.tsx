@@ -9,6 +9,9 @@ export type GridCard = {
   number: string;
   normalUrl: string;
   largeUrl: string;
+  // Optional metadata to help board layout and exports
+  types?: string[]; // e.g., ["Creature"], ["Artifact"], ["Land"]
+  manaValue?: number; // Scryfall cmc/mana_value rounded down to integer >= 0
 };
 
 type Props = {

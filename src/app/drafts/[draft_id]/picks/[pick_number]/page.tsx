@@ -126,6 +126,20 @@ export default async function DraftPickPage({
     return `total: ${total} / creatures: ${creatures}, none creatures: ${nonCreatures}, lands: ${lands}`;
   }
 
+  function getManaValueFromScryfall(json: unknown): number {
+    try {
+      if (json && typeof json === "object") {
+        const obj = json as Record<string, unknown>;
+        const mvRaw = (obj.mana_value as unknown) ?? (obj.cmc as unknown);
+        if (typeof mvRaw === "number" && Number.isFinite(mvRaw)) {
+          const mv = Math.floor(Math.max(0, mvRaw));
+          return mv;
+        }
+      }
+    } catch {}
+    return 0;
+  }
+
   function toGridCardById(cid: string): GridCard | null {
     const c = cardMap.get(cid);
     if (!c) return null;
@@ -134,6 +148,8 @@ export default async function DraftPickPage({
     const normalUrl = normal ?? "";
     const largeUrl = large ?? normalUrl;
     if (!normalUrl) return null;
+    const types = getCardTypes(c as unknown as { scryfallJson?: unknown | null });
+    const manaValue = getManaValueFromScryfall(c.scryfallJson as unknown);
     return {
       id: c.id,
       name: c.name,
@@ -141,6 +157,8 @@ export default async function DraftPickPage({
       number: c.number,
       normalUrl,
       largeUrl,
+      types,
+      manaValue,
     } satisfies GridCard;
   }
 
