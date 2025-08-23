@@ -3,6 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import CardGridWithPreview, { type GridCard } from "./CardGridWithPreview";
+import PickedBoard from "./PickedBoard";
 
 export type SeatPack = {
   seatIndex: number;
@@ -164,9 +165,11 @@ export default function DraftPickClient({
                     <span className="ml-3 text-sm opacity-70">{sp.pickedSummaryText}</span>
                   ) : null}
                 </div>
-                <div className="relative pb-24">
-                  <CardGridWithPreview cards={sp.pickedCards} perRow={6} />
-                </div>
+                <PickedBoard
+                  draftId={draftId}
+                  seatIndex={sp.seatIndex}
+                  pickedCards={sp.pickedCards}
+                />
               </div>
             )}
           </section>

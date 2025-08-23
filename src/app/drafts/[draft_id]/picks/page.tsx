@@ -1,7 +1,8 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import CardGridWithPreview, { type GridCard } from "@/components/CardGridWithPreview";
+import { type GridCard } from "@/components/CardGridWithPreview";
 import ExportPickedList from "@/components/ExportPickedList";
+import PickedBoard from "@/components/PickedBoard";
 import { getCardImageUrls } from "@/lib/cardImage";
 import { getCardTypes } from "@/lib/cardTypes";
 
@@ -115,9 +116,7 @@ export default async function DraftPicksPage({
                 <ExportPickedList cards={sc.cards} seatIndex={sc.seatIndex} />
               </div>
             </div>
-            <div className="relative pb-24">
-              <CardGridWithPreview cards={sc.cards} perRow={6} />
-            </div>
+            <PickedBoard draftId={draftId} seatIndex={sc.seatIndex} pickedCards={sc.cards} />
           </section>
         ))}
       </div>
