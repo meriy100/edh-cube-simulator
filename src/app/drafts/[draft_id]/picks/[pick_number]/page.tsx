@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { type GridCard } from "@/components/CardGridWithPreview";
 import DraftPickClient, { type SeatPack } from "@/components/DraftPickClient";
+import { getCardTypes } from "@/lib/cardTypes";
 
 // Server component page to show current pick's packs distributed to each Seat
 // New Route: /drafts/[draft_id]/picks/[pick_number]
@@ -107,6 +108,23 @@ export default async function DraftPickPage({
   });
   const cardMap = new Map(cardRows.map((c) => [c.id, c] as const));
 
+  function summarizePicked(ids: string[]): string {
+    const total = ids.length;
+    let creatures = 0;
+    let lands = 0;
+    for (const id of ids) {
+      const c = cardMap.get(id);
+      if (!c) continue;
+      const types = getCardTypes(c as unknown as { scryfallJson?: unknown | null });
+      const hasCreature = types.includes("Creature");
+      const isLandOnly = types.includes("Land") && types.length === 1; // Land + other types should NOT count as Land
+      if (hasCreature) creatures += 1; // Creature + other type should count as Creature
+      if (isLandOnly) lands += 1;
+    }
+    const nonCreatures = total - creatures;
+    return `total: ${total} / creatures: ${creatures}, none creatures: ${nonCreatures}, lands: ${lands}`;
+  }
+
   function toGridCardById(cid: string): GridCard | null {
     const c = cardMap.get(cid);
     if (!c) return null;
@@ -177,7 +195,15 @@ export default async function DraftPickPage({
       const pickedCards: GridCard[] = pickedIds
         .map(toGridCardById)
         .filter((x): x is GridCard => !!x);
-      return { seatIndex, packId, cards, pickedCards, pickedThisPickIds } as SeatPack;
+      const pickedSummaryText = summarizePicked(pickedIds);
+      return {
+        seatIndex,
+        packId,
+        cards,
+        pickedCards,
+        pickedThisPickIds,
+        pickedSummaryText,
+      } as SeatPack;
     })
     .filter((x): x is SeatPack => !!x);
 

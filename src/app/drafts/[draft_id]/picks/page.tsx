@@ -3,6 +3,7 @@ import Link from "next/link";
 import CardGridWithPreview, { type GridCard } from "@/components/CardGridWithPreview";
 import ExportPickedList from "@/components/ExportPickedList";
 import { getCardImageUrls } from "@/lib/cardImage";
+import { getCardTypes } from "@/lib/cardTypes";
 
 // Server component page to show picked cards per seat
 // New Route: /drafts/[draft_id]/picks
@@ -49,6 +50,23 @@ export default async function DraftPicksPage({
   });
   const cardMap = new Map(cardRows.map((c) => [c.id, c] as const));
 
+  function summarizePicked(ids: string[]): string {
+    const total = ids.length;
+    let creatures = 0;
+    let lands = 0;
+    for (const id of ids) {
+      const c = cardMap.get(id);
+      if (!c) continue;
+      const types = getCardTypes(c as unknown as { scryfallJson?: unknown | null });
+      const hasCreature = types.includes("Creature");
+      const isLandOnly = types.includes("Land") && types.length === 1; // Land + other types should NOT count as Land
+      if (hasCreature) creatures += 1; // Creature + other type should count as Creature
+      if (isLandOnly) lands += 1;
+    }
+    const nonCreatures = total - creatures;
+    return `total: ${total} / creatures: ${creatures}, none creatures: ${nonCreatures}, lands: ${lands}`;
+  }
+
   function toGridCard(cid: string): GridCard | null {
     const c = cardMap.get(cid);
     if (!c) return null;
@@ -66,13 +84,13 @@ export default async function DraftPicksPage({
     } satisfies GridCard;
   }
 
-  const seatCards: { seatIndex: number; cards: GridCard[] }[] = Array.from({ length: seat }).map(
-    (_, seatIndex) => {
+  const seatCards: { seatIndex: number; cards: GridCard[]; pickedSummaryText: string }[] =
+    Array.from({ length: seat }).map((_, seatIndex) => {
       const ids = pickedIdsPerSeat[seatIndex] ?? [];
       const cards = ids.map(toGridCard).filter((x): x is GridCard => !!x);
-      return { seatIndex, cards };
-    },
-  );
+      const pickedSummaryText = summarizePicked(ids);
+      return { seatIndex, cards, pickedSummaryText };
+    });
 
   return (
     <div className="min-h-screen p-6 sm:p-10">
@@ -92,6 +110,7 @@ export default async function DraftPicksPage({
           >
             <div className="flex items-center mb-3">
               <h2 className="text-lg font-semibold">Seat{sc.seatIndex + 1}</h2>
+              <span className="ml-3 text-sm opacity-70">{sc.pickedSummaryText}</span>
               <div className="ml-auto">
                 <ExportPickedList cards={sc.cards} seatIndex={sc.seatIndex} />
               </div>

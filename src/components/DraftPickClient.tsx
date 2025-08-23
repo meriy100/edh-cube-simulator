@@ -10,6 +10,7 @@ export type SeatPack = {
   cards: GridCard[]; // current pack remaining cards
   pickedCards?: GridCard[]; // already picked cards up to previous pick
   pickedThisPickIds?: string[]; // このピックで実際に選択されたカードID（完了表示用）
+  pickedSummaryText?: string; // format: total: ? / creatures: ?, none creatures: ?, lands: ?
 };
 
 type Props = {
@@ -157,7 +158,12 @@ export default function DraftPickClient({
             </div>
             {sp.pickedCards && sp.pickedCards.length > 0 && (
               <div className="mt-6">
-                <h3 className="text-base font-semibold mb-2">Picked so far</h3>
+                <div className="flex items-center mb-2">
+                  <h3 className="text-base font-semibold">Picked so far</h3>
+                  {sp.pickedSummaryText ? (
+                    <span className="ml-3 text-sm opacity-70">{sp.pickedSummaryText}</span>
+                  ) : null}
+                </div>
                 <div className="relative pb-24">
                   <CardGridWithPreview cards={sp.pickedCards} perRow={6} />
                 </div>
