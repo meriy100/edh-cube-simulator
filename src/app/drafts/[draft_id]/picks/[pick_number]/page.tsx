@@ -3,6 +3,7 @@ import Link from "next/link";
 import { type GridCard } from "@/components/CardGridWithPreview";
 import DraftPickClient, { type SeatPack } from "@/components/DraftPickClient";
 import { getCardTypes } from "@/lib/cardTypes";
+import { getCardImageUrls } from "@/lib/cardImage";
 
 // Server component page to show current pick's packs distributed to each Seat
 // New Route: /drafts/[draft_id]/picks/[pick_number]
@@ -104,7 +105,7 @@ export default async function DraftPickPage({
   // Fetch card details for all needed IDs once
   const cardRows = await prisma.card.findMany({
     where: { id: { in: allIds } },
-    select: { id: true, name: true, set: true, number: true, scryfallJson: true },
+    select: { id: true, name: true, set: true, number: true, scryfallJson: true, cubeCobra: true },
   });
   const cardMap = new Map(cardRows.map((c) => [c.id, c] as const));
 
@@ -128,28 +129,10 @@ export default async function DraftPickPage({
   function toGridCardById(cid: string): GridCard | null {
     const c = cardMap.get(cid);
     if (!c) return null;
-    // Extract image URLs from stored scryfallJson (avoid using Scryfall API endpoints)
-    let normalUrl = "";
-    let largeUrl = "";
-    try {
-      const j = c.scryfallJson as unknown;
-      const get = (obj: unknown, key: "normal" | "large"): string | undefined => {
-        if (!obj || typeof obj !== "object") return undefined;
-        const o = obj as {
-          image_uris?: { normal?: string; large?: string };
-          card_faces?: Array<{ image_uris?: { normal?: string; large?: string } }>;
-        };
-        return (
-          o.image_uris?.[key] ||
-          (Array.isArray(o.card_faces) ? o.card_faces[0]?.image_uris?.[key] : undefined)
-        );
-      };
-      normalUrl = get(j, "normal") ?? "";
-      largeUrl = get(j, "large") ?? normalUrl;
-    } catch {
-      normalUrl = "";
-      largeUrl = "";
-    }
+    // Prefer CubeCobra image URL when available; fallback to Scryfall
+    const { normal, large } = getCardImageUrls(c.scryfallJson as unknown, c.cubeCobra as unknown);
+    const normalUrl = normal ?? "";
+    const largeUrl = large ?? normalUrl;
     if (!normalUrl) return null;
     return {
       id: c.id,
