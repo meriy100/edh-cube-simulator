@@ -109,7 +109,7 @@ function PickedSummary({
     }
     const nonCreatures = total - creatures - lands;
     return `total: ${total} / creatures: ${creatures}, none creatures: ${nonCreatures}, lands: ${lands}`;
-  }, [pickedIds.join("|"), pickedCards]);
+  }, [pickedCards, pickedIds]);
   return <span className="ml-3 text-sm opacity-70">{text}</span>;
 }
 

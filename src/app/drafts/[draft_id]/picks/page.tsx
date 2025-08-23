@@ -112,7 +112,7 @@ export default async function DraftPicksPage({
             <div className="flex items-center mb-3">
               <h2 className="text-lg font-semibold">Seat{sc.seatIndex + 1}</h2>
               <div className="ml-auto">
-                <ExportPickedList cards={sc.cards} seatIndex={sc.seatIndex} />
+                <ExportPickedList draftId={draftId} cards={sc.cards} seatIndex={sc.seatIndex} />
               </div>
             </div>
             <PickedBoard draftId={draftId} seatIndex={sc.seatIndex} pickedCards={sc.cards} />

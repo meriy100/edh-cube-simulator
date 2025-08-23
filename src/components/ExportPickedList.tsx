@@ -4,21 +4,86 @@ import React from "react";
 import type { GridCard } from "./CardGridWithPreview";
 
 type Props = {
+  draftId: string;
   cards: GridCard[];
-  seatIndex?: number; // optional, for label only
+  seatIndex: number; // used for label and storage key
 };
 
-function buildExportText(cards: GridCard[]): string {
-  // Export format: "1 Name (SET) NUMBER" per line, matching root page pool input format (without tags)
-  // Keep order as provided. Ensure numbers/sets exist.
-  return cards.map((c) => `1 ${c.name} (${c.set}) ${c.number}`).join("\n");
+// keep single-line format per card as-is
+function buildLine(c: GridCard): string {
+  return `1 ${c.name} (${c.set}) ${c.number}`;
 }
 
-export default function ExportPickedList({ cards, seatIndex }: Props) {
+function storageKey(draftId: string, seatIndex: number) {
+  return `draft:${draftId}:seat:${seatIndex}:board`;
+}
+
+type BoardState = {
+  main: string[];
+  side: string[];
+  mainGrid?: string[][];
+};
+
+export default function ExportPickedList({ draftId, cards, seatIndex }: Props) {
   const [open, setOpen] = React.useState(false);
-  const text = React.useMemo(() => buildExportText(cards), [cards]);
+  const [text, setText] = React.useState("");
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
   const [copied, setCopied] = React.useState(false);
+
+  const rebuildText = React.useCallback(() => {
+    try {
+      const idToCard = new Map(cards.map((c) => [c.id, c] as const));
+      const raw = typeof window !== "undefined" ? localStorage.getItem(storageKey(draftId, seatIndex)) : null;
+      const parsed: BoardState | null = raw ? JSON.parse(raw) : null;
+      const grid = parsed?.mainGrid;
+      const mainIds = Array.isArray(grid) && grid.length
+        ? grid.flat()
+        : Array.isArray(parsed?.main)
+        ? parsed!.main
+        : cards.map((c) => c.id);
+      const sideIds = Array.isArray(parsed?.side) ? parsed!.side : [];
+
+      // Filter to picked cards only and keep order, also ensure no duplicates
+      const seen = new Set<string>();
+      const mainList: GridCard[] = [];
+      for (const id of mainIds) {
+        if (seen.has(id)) continue;
+        const c = idToCard.get(id);
+        if (c) {
+          mainList.push(c);
+          seen.add(id);
+        }
+      }
+      const sideList: GridCard[] = [];
+      for (const id of sideIds) {
+        if (seen.has(id)) continue;
+        const c = idToCard.get(id);
+        if (c) {
+          sideList.push(c);
+          seen.add(id);
+        }
+      }
+      // Any remaining picked cards (not present in saved state) -> default to mainboard at end
+      for (const c of cards) {
+        if (!seen.has(c.id)) mainList.push(c);
+      }
+
+      const mainText = mainList.map(buildLine).join("\n");
+      const sideText = sideList.map(buildLine).join("\n");
+      const headerMain = "mainboard";
+      const headerSide = "sideboard";
+      const finalText = `${headerMain}\n\n${mainText}\n\n${headerSide}\n\n${sideText}`.trimEnd();
+      setText(finalText);
+    } catch (e) {
+      console.error("failed to build export text", e);
+      // fallback: single list
+      setText(cards.map(buildLine).join("\n"));
+    }
+  }, [cards, draftId, seatIndex]);
+
+  React.useEffect(() => {
+    if (open) rebuildText();
+  }, [open, rebuildText]);
 
   const onCopy = async () => {
     try {
