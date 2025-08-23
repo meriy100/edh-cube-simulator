@@ -40,24 +40,28 @@ export default function PickedBoard({
   className,
 }: Props) {
   const ids = React.useMemo(() => pickedCards.map((c) => c.id), [pickedCards]);
-  const [board, setBoard] = React.useState<BoardState>(() => {
-    if (typeof window === "undefined") return { main: ids, side: [] };
+  // Initialize with SSR-safe default to avoid hydration mismatch.
+  const [board, setBoard] = React.useState<BoardState>({ main: ids, side: [] });
+
+  // After mount, load from localStorage and reconcile with current ids.
+  React.useEffect(() => {
     try {
       const raw = localStorage.getItem(storageKey(draftId, seatIndex));
       const parsed = raw ? (JSON.parse(raw) as BoardState) : null;
-      return reconcileState(ids, parsed);
+      setBoard((prev) => reconcileState(ids, parsed ?? prev));
     } catch {
-      return { main: ids, side: [] };
+      // ignore
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftId, seatIndex]);
 
-  // reconcile when pickedCards change (e.g., after new pick)
+  // Reconcile when pickedCards change (e.g., after new pick)
   React.useEffect(() => {
     setBoard((prev) => reconcileState(ids, prev));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ids.join("|")]);
 
-  // persist
+  // Persist
   React.useEffect(() => {
     try {
       localStorage.setItem(storageKey(draftId, seatIndex), JSON.stringify(board));
