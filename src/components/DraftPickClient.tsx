@@ -145,7 +145,7 @@ export default function DraftPickClient({
             className="border border-black/10 dark:border-white/15 rounded p-3"
           >
             <h2 className="text-lg font-semibold mb-3">Seat{sp.seatIndex + 1}</h2>
-            <div className="relative pb-24">
+            <div className="relative pb-8">
               <CardGridWithPreview
                 cards={sp.cards}
                 perRow={6}

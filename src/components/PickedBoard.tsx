@@ -288,7 +288,7 @@ export default function PickedBoard({
             <div className="font-semibold">Mainboard</div>
             <div className="ml-2 text-sm opacity-70">{board.main.length}</div>
           </div>
-          <div className="relative pb-24">{renderMainGrid(board.mainGrid || emptyCells())}</div>
+          <div className="relative pb-8">{renderMainGrid(board.mainGrid || emptyCells())}</div>
         </div>
         <div
           className="border border-dashed border-black/20 dark:border-white/20 rounded p-2"
@@ -301,7 +301,7 @@ export default function PickedBoard({
             <div className="font-semibold">Sideboard</div>
             <div className="ml-2 text-sm opacity-70">{board.side.length}</div>
           </div>
-          <div className="relative pb-24">{renderSideGrid(board.side)}</div>
+          <div className="relative pb-8">{renderSideGrid(board.side)}</div>
         </div>
       </div>
       {/* Right-side preview area */}
