@@ -215,7 +215,7 @@ export default function PickedBoard({
 
   const renderMainGrid = (cells: string[][]) => {
     return (
-      <div className="grid grid-cols-7 grid-rows-2 gap-2">
+      <div className="grid grid-cols-7 gap-2">
         {Array.from({ length: MAIN_CELLS }).map((_, idx) => {
           const idsInCell = cells[idx] || [];
           return (
