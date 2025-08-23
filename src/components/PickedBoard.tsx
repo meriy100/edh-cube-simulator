@@ -234,7 +234,7 @@ export default function PickedBoard({
                   const c = pickedCards.find((x) => x.id === id);
                   if (!c) return null;
                   return (
-                    <div key={id} className={`${i === 0 ? "" : "-mt-24 sm:-mt-28"} relative`}>
+                    <div key={id} className={`${i === 0 ? "" : "-mt-32 sm:-mt-36"} relative`}>
                       <img
                         src={c.normalUrl}
                         alt={`${c.name} (${c.set}) #${c.number}`}
