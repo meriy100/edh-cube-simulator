@@ -109,7 +109,6 @@ export default async function DraftPickPage({
   });
   const cardMap = new Map(cardRows.map((c) => [c.id, c] as const));
 
-
   function getManaValueFromScryfall(json: unknown): number {
     try {
       if (json && typeof json === "object") {

@@ -228,6 +228,13 @@ export default function PoolPage() {
           </button>
           <button
             type="button"
+            onClick={() => router.push(`/pools/${id}/combos`)}
+            className="rounded border border-foreground/50 text-foreground px-3 py-1.5 text-sm font-semibold hover:bg-foreground/5 cursor-pointer"
+          >
+            Combos
+          </button>
+          <button
+            type="button"
             onClick={() => setIsExportOpen(true)}
             className="rounded border border-foreground/50 text-foreground px-3 py-1.5 text-sm font-semibold hover:bg-foreground/5 cursor-pointer"
           >

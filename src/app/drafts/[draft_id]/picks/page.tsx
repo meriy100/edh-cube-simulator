@@ -51,7 +51,6 @@ export default async function DraftPicksPage({
   });
   const cardMap = new Map(cardRows.map((c) => [c.id, c] as const));
 
-
   function getManaValueFromScryfall(json: unknown): number {
     try {
       if (json && typeof json === "object") {
@@ -86,12 +85,13 @@ export default async function DraftPicksPage({
     } satisfies GridCard;
   }
 
-  const seatCards: { seatIndex: number; cards: GridCard[] }[] =
-    Array.from({ length: seat }).map((_, seatIndex) => {
+  const seatCards: { seatIndex: number; cards: GridCard[] }[] = Array.from({ length: seat }).map(
+    (_, seatIndex) => {
       const ids = pickedIdsPerSeat[seatIndex] ?? [];
       const cards = ids.map(toGridCard).filter((x): x is GridCard => !!x);
       return { seatIndex, cards };
-    });
+    },
+  );
 
   return (
     <div className="min-h-screen p-6 sm:p-10">

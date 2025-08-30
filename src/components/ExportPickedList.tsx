@@ -33,14 +33,16 @@ export default function ExportPickedList({ draftId, cards, seatIndex }: Props) {
   const rebuildText = React.useCallback(() => {
     try {
       const idToCard = new Map(cards.map((c) => [c.id, c] as const));
-      const raw = typeof window !== "undefined" ? localStorage.getItem(storageKey(draftId, seatIndex)) : null;
+      const raw =
+        typeof window !== "undefined" ? localStorage.getItem(storageKey(draftId, seatIndex)) : null;
       const parsed: BoardState | null = raw ? JSON.parse(raw) : null;
       const grid = parsed?.mainGrid;
-      const mainIds = Array.isArray(grid) && grid.length
-        ? grid.flat()
-        : Array.isArray(parsed?.main)
-        ? parsed!.main
-        : cards.map((c) => c.id);
+      const mainIds =
+        Array.isArray(grid) && grid.length
+          ? grid.flat()
+          : Array.isArray(parsed?.main)
+            ? parsed!.main
+            : cards.map((c) => c.id);
       const sideIds = Array.isArray(parsed?.side) ? parsed!.side : [];
 
       // Filter to picked cards only and keep order, also ensure no duplicates
