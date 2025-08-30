@@ -77,7 +77,7 @@ export function CombosMermaidGraph({
       for (let i = 0; i < cards.length - 1; i++) {
         const a = nodeIdByCardId.get(cards[i].id)!;
         const b = nodeIdByCardId.get(cards[i + 1].id)!;
-        edgeLines.push(`${a} --> ${b}`);
+        edgeLines.push(`${a} --- ${b}`);
       }
     }
 
