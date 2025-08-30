@@ -170,3 +170,54 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const { id: poolId } = await ctx.params;
+  try {
+    const combos = await prisma.combo.findMany({
+      where: { poolId },
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        sourceId: true,
+        card1: { select: { id: true, name: true, scryfallJson: true, cubeCobra: true } },
+        card2: { select: { id: true, name: true, scryfallJson: true, cubeCobra: true } },
+        card3: { select: { id: true, name: true, scryfallJson: true, cubeCobra: true } },
+        card4: { select: { id: true, name: true, scryfallJson: true, cubeCobra: true } },
+        card5: { select: { id: true, name: true, scryfallJson: true, cubeCobra: true } },
+        card6: { select: { id: true, name: true, scryfallJson: true, cubeCobra: true } },
+        card7: { select: { id: true, name: true, scryfallJson: true, cubeCobra: true } },
+        card8: { select: { id: true, name: true, scryfallJson: true, cubeCobra: true } },
+        card9: { select: { id: true, name: true, scryfallJson: true, cubeCobra: true } },
+        card10: { select: { id: true, name: true, scryfallJson: true, cubeCobra: true } },
+      },
+    });
+
+    const mapped = combos.map((c) => {
+      const cards = [
+        c.card1,
+        c.card2,
+        c.card3,
+        c.card4,
+        c.card5,
+        c.card6,
+        c.card7,
+        c.card8,
+        c.card9,
+        c.card10,
+      ].filter(Boolean) as Array<{
+        id: string;
+        name: string;
+        scryfallJson: unknown;
+        cubeCobra: unknown;
+      }>;
+      return { id: c.id, sourceId: c.sourceId, cards };
+    });
+
+    return NextResponse.json({ combos: mapped });
+  } catch (err: unknown) {
+    console.error("GET /api/pools/[id]/combos error", err);
+    const message = err instanceof Error ? err.message : "Internal error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
