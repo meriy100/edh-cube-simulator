@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getCardImageUrl } from "@/lib/cardImage";
+import CombosMermaidGraph from "@/components/CombosMermaidGraph";
 
 export default function CombosImportPage() {
   const params = useParams<{ id: string }>();
@@ -164,6 +165,8 @@ export default function CombosImportPage() {
           )}
         </section>
       )}
+
+      {combos && combos.length > 0 && <CombosMermaidGraph combos={combos} />}
 
       <section className="border border-black/10 dark:border-white/15 rounded p-4">
         <div className="flex items-baseline justify-between mb-3">
