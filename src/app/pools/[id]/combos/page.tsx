@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getCardImageUrl } from "@/lib/cardImage";
 import CombosMermaidGraph from "@/components/CombosMermaidGraph";
@@ -27,6 +27,14 @@ export default function CombosImportPage() {
   const [combos, setCombos] = useState<ComboItem[] | null>(null);
   const [comboError, setComboError] = useState<string | null>(null);
   const [comboLoading, setComboLoading] = useState(false);
+
+  // Filter state: selected card
+  const [selectedCard, setSelectedCard] = useState<null | { id: string; name: string }>(null);
+  const filteredCombos = useMemo(() => {
+    if (!combos) return null;
+    if (!selectedCard) return combos;
+    return combos.filter((c) => c.cards.some((cd) => cd.id === selectedCard.id));
+  }, [combos, selectedCard]);
 
   // do not early-return before hooks; guard inside effects/handlers instead
 
@@ -166,7 +174,30 @@ export default function CombosImportPage() {
         </section>
       )}
 
-      {combos && combos.length > 0 && <CombosMermaidGraph combos={combos} />}
+      {/* Filter indicator */}
+      {selectedCard && (
+        <div className="border border-black/10 dark:border-white/15 rounded p-3 mb-4 text-sm flex items-center gap-3">
+          <span className="opacity-70">現在のフィルター:</span>
+          <span className="inline-flex items-center gap-2 rounded-full bg-black/5 dark:bg-white/10 px-3 py-1">
+            <span className="text-xs">カード</span>
+            <span className="font-medium">{selectedCard.name}</span>
+            <button
+              type="button"
+              className="ml-1 text-xs underline"
+              onClick={() => setSelectedCard(null)}
+            >
+              解除
+            </button>
+          </span>
+        </div>
+      )}
+
+      {filteredCombos && filteredCombos.length > 0 && (
+        <CombosMermaidGraph
+          combos={filteredCombos}
+          onCardClick={(card) => setSelectedCard({ id: card.id, name: card.name })}
+        />
+      )}
 
       <section className="border border-black/10 dark:border-white/15 rounded p-4">
         <div className="flex items-baseline justify-between mb-3">
@@ -179,9 +210,12 @@ export default function CombosImportPage() {
         {combos && combos.length === 0 && (
           <div className="text-sm opacity-70">コンボはまだ登録されていません</div>
         )}
-        {combos && combos.length > 0 && (
+        {combos && combos.length > 0 && filteredCombos && filteredCombos.length === 0 && (
+          <div className="text-sm opacity-70">現在のフィルターに一致するコンボがありません</div>
+        )}
+        {filteredCombos && filteredCombos.length > 0 && (
           <ul className="space-y-4">
-            {combos.map((combo) => (
+            {filteredCombos.map((combo) => (
               <li
                 key={combo.id}
                 className="border border-black/10 dark:border-white/15 rounded p-3"

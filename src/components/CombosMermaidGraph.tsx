@@ -21,10 +21,27 @@ export type ComboItem = {
  * Renders a Mermaid.js flowchart where each unique card is a node with its image.
  * For each combo, edges connect cards sequentially (card1 --> card2 --> card3 ...).
  */
-export function CombosMermaidGraph({ combos }: { combos: ComboItem[] }) {
+export function CombosMermaidGraph({
+  combos,
+  onCardClick,
+}: {
+  combos: ComboItem[];
+  onCardClick?: (card: ComboCard) => void;
+}) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [svg, setSvg] = useState<string>("");
   const renderId = useId().replace(/[:]/g, "");
+
+  // Build quick lookup for cards by id (for click callbacks)
+  const cardById = useMemo(() => {
+    const map = new Map<string, ComboCard>();
+    for (const combo of combos || []) {
+      for (const card of combo.cards) {
+        if (!map.has(card.id)) map.set(card.id, card);
+      }
+    }
+    return map;
+  }, [combos]);
 
   // Prepare Mermaid definition based on combos
   const definition = useMemo(() => {
@@ -47,7 +64,7 @@ export function CombosMermaidGraph({ combos }: { combos: ComboItem[] }) {
           nodeIdByCardId.set(card.id, nodeId);
           const url =
             getCardImageUrl({ scryfallJson: card.scryfallJson, cubeCobra: card.cubeCobra }) || "";
-          const labelHtml = `<img src='${escapeHtml(url)}' alt='${escapeHtml(card.name)}' style='display:block;width:56px;height:auto;border-radius:4px;margin:0;padding:0;'/>`;
+          const labelHtml = `<img src='${escapeHtml(url)}' alt='${escapeHtml(card.name)}' data-card-id='${escapeHtml(card.id)}' style='display:block;width:56px;height:auto;border-radius:4px;margin:0;padding:0;cursor:pointer;'/>`;
           nodeLines.push(`${nodeId}["${labelHtml}"]:::n`);
         }
       }
@@ -101,6 +118,26 @@ export function CombosMermaidGraph({ combos }: { combos: ComboItem[] }) {
       cancelled = true;
     };
   }, [definition, renderId]);
+
+  // Delegate clicks to detect card image clicks
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !onCardClick) return;
+    const handler = (ev: MouseEvent) => {
+      const target = ev.target as HTMLElement | null;
+      if (!target) return;
+      const img = target.closest?.("[data-card-id]") as HTMLElement | null;
+      if (!img) return;
+      const cid = img.getAttribute("data-card-id");
+      if (!cid) return;
+      const card = cardById.get(cid);
+      if (card) onCardClick(card);
+    };
+    el.addEventListener("click", handler);
+    return () => {
+      el.removeEventListener("click", handler);
+    };
+  }, [onCardClick, cardById]);
 
   return (
     <div className="border border-black/10 dark:border-white/15 rounded p-4 mb-6">
