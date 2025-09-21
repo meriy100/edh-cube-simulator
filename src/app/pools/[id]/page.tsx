@@ -519,7 +519,7 @@ export default function PoolPage() {
                 />
                 <p className="mt-1 text-xs opacity-70">デフォルト 8</p>
               </div>
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex justify-between items-center gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsDraftOpen(false)}
@@ -527,12 +527,130 @@ export default function PoolPage() {
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="rounded bg-foreground text-background px-3 py-1.5 text-sm font-semibold hover:opacity-90"
-                >
-                  Confirm
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        if (!entries) {
+                          alert("カードリストの読み込み中です");
+                          return;
+                        }
+                        const totalPacks = (Number.isFinite(draftSeat) ? draftSeat : 8) * 3;
+                        // Build candidates: exclude welcome set
+                        const commanderCandidates = entries.filter(
+                          (e) =>
+                            e.isCommander && !e.tags.some((t) => t.startsWith("#9-welcome-set")),
+                        );
+                        const otherCandidates = entries.filter(
+                          (e) =>
+                            !e.isCommander && !e.tags.some((t) => t.startsWith("#9-welcome-set")),
+                        );
+
+                        const NEED_COMMANDERS = 2;
+                        const NEED_TOTAL = 20;
+                        const NEED_OTHERS = NEED_TOTAL - NEED_COMMANDERS; // 18
+
+                        if (commanderCandidates.length < NEED_COMMANDERS * totalPacks) {
+                          alert(
+                            `指揮官カードが不足しています（必要: ${NEED_COMMANDERS * totalPacks}、存在: ${commanderCandidates.length}）`,
+                          );
+                          return;
+                        }
+                        if (otherCandidates.length < NEED_OTHERS * totalPacks) {
+                          alert(
+                            `その他カードが不足しています（必要: ${NEED_OTHERS * totalPacks}、存在: ${otherCandidates.length}）`,
+                          );
+                          return;
+                        }
+
+                        function shuffle<T>(arr: T[]): T[] {
+                          const a = [...arr];
+                          for (let i = a.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [a[i], a[j]] = [a[j], a[i]];
+                          }
+                          return a;
+                        }
+
+                        const used = new Set<string>();
+                        let remainingCommanders = shuffle(commanderCandidates);
+                        let remainingOthers = shuffle(otherCandidates);
+
+                        function takeUnique<T extends { name: string }>(
+                          source: T[],
+                          n: number,
+                        ): T[] {
+                          const res: T[] = [];
+                          let i = 0;
+                          while (res.length < n && i < source.length) {
+                            const item = source[i++];
+                            if (used.has(item.name)) continue;
+                            used.add(item.name);
+                            res.push(item);
+                          }
+                          return res;
+                        }
+
+                        const packs: string[][] = [];
+                        for (let p = 0; p < totalPacks; p++) {
+                          if (
+                            remainingCommanders.length < NEED_COMMANDERS ||
+                            remainingOthers.length < NEED_OTHERS
+                          ) {
+                            remainingCommanders = shuffle(
+                              remainingCommanders.filter((e) => !used.has(e.name)),
+                            );
+                            remainingOthers = shuffle(
+                              remainingOthers.filter((e) => !used.has(e.name)),
+                            );
+                          }
+                          const commanders = takeUnique(remainingCommanders, NEED_COMMANDERS);
+                          const others = takeUnique(remainingOthers, NEED_OTHERS);
+                          if (commanders.length < NEED_COMMANDERS || others.length < NEED_OTHERS) {
+                            alert("カードが不足しています");
+                            return;
+                          }
+                          packs.push([
+                            ...commanders.map((c) => c.name),
+                            ...others.map((o) => o.name),
+                          ]);
+                        }
+
+                        const text = packs.map((pack) => pack.join("\n")).join("\n\n");
+
+                        if (navigator.clipboard && window.isSecureContext) {
+                          await navigator.clipboard.writeText(text);
+                        } else {
+                          // Fallback copy
+                          const ta = document.createElement("textarea");
+                          ta.value = text;
+                          ta.style.position = "fixed";
+                          ta.style.left = "-9999px";
+                          document.body.appendChild(ta);
+                          ta.focus();
+                          ta.select();
+                          document.execCommand("copy");
+                          document.body.removeChild(ta);
+                        }
+                        alert("Draftmancer 用ブースターリストをクリップボードにコピーしました");
+                      } catch (err) {
+                        console.error(err);
+                        alert("コピーに失敗しました");
+                      }
+                    }}
+                    className="rounded border border-foreground/50 text-foreground px-3 py-1.5 text-sm font-semibold hover:bg-foreground/5 cursor-pointer"
+                    title="Seat × 3 個のパックを生成し、各パック 2 指揮官 + 18 その他 (重複なし) のカード名をコピー"
+                  >
+                    Draftmancer
+                  </button>
+                  <button
+                    type="submit"
+                    className="rounded bg-foreground text-background px-3 py-1.5 text-sm font-semibold hover:opacity-90"
+                  >
+                    Confirm
+                  </button>
+                </div>
               </div>
             </form>
           </div>
