@@ -94,6 +94,8 @@ src/
 
 **For each UI component, create a corresponding Storybook story file following the naming convention: `ui/{ComponentName}.stories.tsx`.**
 
+**IMPORTANT: When implementing UI components, always use the Storybook MCP to leverage component URLs and preview functionality for development and testing.**
+
 Examples of components to create in this directory:
 
 - Button variants
@@ -103,7 +105,7 @@ Examples of components to create in this directory:
 - Modal and dialog components
 - Toast notifications
 
-#### Storybook Stories
+#### Storybook Stories and MCP Integration
 
 When creating UI components, always include a Storybook story to document:
 
@@ -111,6 +113,13 @@ When creating UI components, always include a Storybook story to document:
 - Visual states and variations
 - Interactive examples
 - Usage guidelines
+
+**Use the Storybook MCP server to get component URLs for visual testing and verification during implementation:**
+
+- Generate story URLs for component previews
+- Test component variations in isolation
+- Verify responsive behavior and styling
+- Validate interactive states and accessibility
 
 Example structure:
 
