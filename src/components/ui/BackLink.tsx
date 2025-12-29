@@ -14,10 +14,12 @@ export default function BackLink({
   children = "← Back",
   className = ""
 }: BackLinkProps) {
+  const linkClasses = `text-sm underline cursor-pointer hover:opacity-80 ${className}`.trim();
+
   return (
     <Link
       href={href}
-      className={`text-sm underline cursor-pointer hover:opacity-80 ${className}`.trim()}
+      className={linkClasses}
     >
       {children}
     </Link>

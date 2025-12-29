@@ -1,11 +1,25 @@
 import type { Meta, StoryObj } from "@storybook/nextjs";
 import BackLink from "./BackLink";
 
+// Mock Next.js router for Storybook
+const mockRouter = {
+  push: (url: string) => console.log(`Navigate to: ${url}`),
+  replace: (url: string) => console.log(`Replace with: ${url}`),
+  back: () => console.log("Navigate back"),
+  forward: () => console.log("Navigate forward"),
+  refresh: () => console.log("Refresh page"),
+  prefetch: () => Promise.resolve(),
+};
+
 const meta: Meta<typeof BackLink> = {
   title: "UI/BackLink",
   component: BackLink,
   parameters: {
     layout: "centered",
+    nextjs: {
+      appDirectory: true,
+      router: mockRouter,
+    },
   },
   argTypes: {
     href: {
