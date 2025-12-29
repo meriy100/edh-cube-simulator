@@ -3,6 +3,11 @@
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import Alert from "@/components/ui/Alert";
+import Button from "@/components/ui/Button";
+import BackLink from "@/components/ui/BackLink";
+import Card from "@/components/ui/Card";
 
 export default function AdminLoginPage() {
   const { data: session, status } = useSession();
@@ -58,10 +63,7 @@ export default function AdminLoginPage() {
   if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto"></div>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">読み込み中...</p>
-        </div>
+        <LoadingSpinner text="読み込み中..." />
       </div>
     );
   }
@@ -89,21 +91,23 @@ export default function AdminLoginPage() {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 py-8 px-6 shadow-lg rounded-lg border dark:border-gray-700">
+        <Card padding="lg" className="shadow-lg">
           {error && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
-            </div>
+            <Alert variant="error" className="mb-6">
+              {error}
+            </Alert>
           )}
 
-          <button
+          <Button
             onClick={handleGoogleLogin}
             disabled={isLoading}
-            className="w-full flex justify-center items-center px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            variant="outline"
+            size="lg"
+            className="w-full"
           >
             {isLoading ? (
               <div className="flex items-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 dark:border-white mr-2"></div>
+                <LoadingSpinner size="sm" className="mr-2" />
                 ログイン中...
               </div>
             ) : (
@@ -129,7 +133,7 @@ export default function AdminLoginPage() {
                 Google でログイン
               </div>
             )}
-          </button>
+          </Button>
 
           <div className="mt-6 text-center">
             <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -138,15 +142,12 @@ export default function AdminLoginPage() {
               管理者権限のないアカウントではアクセスできません。
             </p>
           </div>
-        </div>
+        </Card>
 
         <div className="text-center">
-          <button
-            onClick={() => router.push("/")}
-            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 underline"
-          >
+          <BackLink href="/">
             ← メインページに戻る
-          </button>
+          </BackLink>
         </div>
       </div>
     </div>
