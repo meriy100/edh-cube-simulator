@@ -46,7 +46,7 @@ export default function AdminPoolsPage() {
           poolCards: pool._count?.poolCards || 0,
           drafts: pool._count?.drafts || 0,
           combos: pool._count?.combos || 0,
-        }
+        },
       }));
 
       setPools(transformedPools);
@@ -73,8 +73,8 @@ export default function AdminPoolsPage() {
         throw new Error(data.error || "削除に失敗しました");
       }
 
-      setPools(pools.filter(pool => pool.id !== id));
-      setSelectedPools(new Set(Array.from(selectedPools).filter(poolId => poolId !== id)));
+      setPools(pools.filter((pool) => pool.id !== id));
+      setSelectedPools(new Set(Array.from(selectedPools).filter((poolId) => poolId !== id)));
     } catch (err) {
       console.error("Delete failed:", err);
       alert(err instanceof Error ? err.message : "削除に失敗しました");
@@ -101,7 +101,7 @@ export default function AdminPoolsPage() {
       });
 
       const deletedIds = await Promise.all(deletePromises);
-      setPools(pools.filter(pool => !deletedIds.includes(pool.id)));
+      setPools(pools.filter((pool) => !deletedIds.includes(pool.id)));
       setSelectedPools(new Set());
     } catch (err) {
       console.error("Bulk delete failed:", err);
@@ -113,7 +113,7 @@ export default function AdminPoolsPage() {
     if (selectedPools.size === filteredAndSortedPools.length) {
       setSelectedPools(new Set());
     } else {
-      setSelectedPools(new Set(filteredAndSortedPools.map(pool => pool.id)));
+      setSelectedPools(new Set(filteredAndSortedPools.map((pool) => pool.id)));
     }
   };
 
@@ -129,10 +129,11 @@ export default function AdminPoolsPage() {
 
   // Filter and sort pools
   const filteredAndSortedPools = pools
-    .filter(pool =>
-      searchTerm === "" ||
-      (pool.title?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      pool.id.toLowerCase().includes(searchTerm.toLowerCase())
+    .filter(
+      (pool) =>
+        searchTerm === "" ||
+        pool.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        pool.id.toLowerCase().includes(searchTerm.toLowerCase()),
     )
     .sort((a, b) => {
       let aValue: string | number;
@@ -250,7 +251,10 @@ export default function AdminPoolsPage() {
                 <th className="px-6 py-3 text-left">
                   <input
                     type="checkbox"
-                    checked={selectedPools.size === filteredAndSortedPools.length && filteredAndSortedPools.length > 0}
+                    checked={
+                      selectedPools.size === filteredAndSortedPools.length &&
+                      filteredAndSortedPools.length > 0
+                    }
                     onChange={handleSelectAll}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
@@ -329,7 +333,9 @@ export default function AdminPoolsPage() {
         {filteredAndSortedPools.length === 0 && (
           <div className="text-center py-12">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {searchTerm ? "検索条件に一致するPoolが見つかりません" : "Poolがまだ作成されていません"}
+              {searchTerm
+                ? "検索条件に一致するPoolが見つかりません"
+                : "Poolがまだ作成されていません"}
             </p>
           </div>
         )}

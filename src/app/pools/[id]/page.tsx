@@ -2,6 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import BackLink from "@/components/ui/BackLink";
+import PageHeader from "@/components/ui/PageHeader";
+import Button from "@/components/ui/Button";
+import SectionCard from "@/components/ui/SectionCard";
+import TagInput from "@/components/ui/TagInput";
+import TagBadge from "@/components/ui/TagBadge";
+import Modal from "@/components/ui/Modal";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 type CardEntry = {
   count: number;
@@ -41,7 +49,6 @@ export default function PoolPage() {
   const [entries, setEntries] = useState<CardEntry[] | null>(null);
   const [poolMeta, setPoolMeta] = useState<ApiPool | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState<string>("");
   const [imageMap, setImageMap] = useState<Record<string, string>>({});
   const [typeMap, setTypeMap] = useState<Record<string, string[]>>({});
   const [loadingEntries, setLoadingEntries] = useState<boolean>(true);
@@ -209,264 +216,187 @@ export default function PoolPage() {
 
   return (
     <div className="min-h-screen p-6 sm:p-10">
-      <div className="flex items-center gap-3 mb-4">
-        <button
-          type="button"
-          onClick={() => router.push("/")}
-          className="text-sm underline cursor-pointer"
-        >
-          ← Back
-        </button>
-        <h1 className="text-2xl font-bold">Pool Detail</h1>
-        <div className="ml-auto flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setIsDraftOpen(true)}
-            className="rounded border border-foreground/50 text-foreground px-3 py-1.5 text-sm font-semibold hover:bg-foreground/5 cursor-pointer"
-          >
-            Draft
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push(`/pools/${id}/combos`)}
-            className="rounded border border-foreground/50 text-foreground px-3 py-1.5 text-sm font-semibold hover:bg-foreground/5 cursor-pointer"
-          >
-            Combos
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsExportOpen(true)}
-            className="rounded border border-foreground/50 text-foreground px-3 py-1.5 text-sm font-semibold hover:bg-foreground/5 cursor-pointer"
-          >
-            Export
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push(`/pools/${id}/sample_pack`)}
-            className="rounded bg-foreground text-background px-3 py-1.5 text-sm font-semibold hover:opacity-90 cursor-pointer"
-          >
-            Sample pack
-          </button>
-        </div>
-      </div>
-      {poolMeta?.title && <div className="mb-2 opacity-80">{poolMeta.title}</div>}
+      <PageHeader
+        title="Pool Detail"
+        subtitle={poolMeta?.title || undefined}
+        backElement={<BackLink href="/" />}
+        actions={
+          <>
+            <Button variant="outline" onClick={() => setIsDraftOpen(true)}>
+              Draft
+            </Button>
+            <Button variant="outline" onClick={() => router.push(`/pools/${id}/combos`)}>
+              Combos
+            </Button>
+            <Button variant="outline" onClick={() => setIsExportOpen(true)}>
+              Export
+            </Button>
+            <Button variant="primary" onClick={() => router.push(`/pools/${id}/sample_pack`)}>
+              Sample pack
+            </Button>
+          </>
+        }
+      />
 
-      <section className="border border-black/10 dark:border-white/15 rounded p-3 mb-6">
-        <h2 className="text-lg font-semibold mb-3">フィルター条件</h2>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!tagInput.trim()) return;
-            addTag(tagInput);
-            setTagInput("");
-          }}
-          className="flex flex-wrap items-center gap-2 mb-3"
-        >
-          <input
-            type="text"
-            placeholder="#タグ名 を入力（# は省略可）"
-            value={tagInput}
-            data-1p-ignore
-            onChange={(e) => setTagInput(e.target.value)}
-            className="px-2 py-1 rounded border border-black/10 dark:border-white/20 bg-transparent text-sm"
-          />
-          <button
-            type="submit"
-            className="rounded bg-foreground text-background px-3 py-1.5 text-sm font-semibold hover:opacity-90 cursor-pointer"
-          >
-            タグを追加
-          </button>
-          {selectedTags.length > 0 && (
-            <button
-              type="button"
-              onClick={clearTags}
-              className="ml-auto text-xs opacity-80 underline hover:opacity-100 cursor-pointer"
-            >
-              すべてクリア
-            </button>
-          )}
-        </form>
-        <div className="flex flex-wrap gap-2">
-          {selectedTags.length === 0 && <div className="text-sm opacity-70">（未指定）</div>}
-          {selectedTags.map((t) => (
-            <span
-              key={t}
-              className="inline-flex items-center gap-1 text-[12px] px-2 py-1 rounded bg-black/5 dark:bg-white/10"
-            >
-              {t}
-              <button
-                type="button"
-                onClick={() => removeTag(t)}
-                aria-label={`${t} を削除`}
-                className="rounded px-1 hover:bg-black/10 dark:hover:bg-white/20 cursor-pointer"
+      <SectionCard title="フィルター条件" className="mb-6">
+        <TagInput
+          selectedTags={selectedTags}
+          onAddTag={addTag}
+          onRemoveTag={removeTag}
+          onClearTags={clearTags}
+        />
+      </SectionCard>
+
+      <SectionCard
+        title="Commanders"
+        subtitle={`${filteredCommanders.length} cards found`}
+      >
+        {loadingEntries ? (
+          <LoadingSpinner text="読み込み中..." />
+        ) : (
+          <div className="flex flex-wrap gap-3">
+            {filteredCommanders.length === 0 && (
+              <div className="text-sm opacity-70">該当なし</div>
+            )}
+            {filteredCommanders.map((c, idx) => (
+              <div
+                key={`commander-${idx}-${c.name}-${c.number}`}
+                className="border border-black/10 dark:border-white/15 rounded p-3 w-[260px] flex-shrink-0"
               >
-                ×
-              </button>
-            </span>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-xl font-semibold mb-3">Commanders ({filteredCommanders.length})</h2>
-        <div className="flex flex-wrap gap-3">
-          {loadingEntries ? (
-            <div className="text-sm opacity-70">読み込み中...</div>
-          ) : (
-            filteredCommanders.length === 0 && <div className="text-sm opacity-70">該当なし</div>
-          )}
-          {filteredCommanders.map((c, idx) => (
-            <div
-              key={`commander-${idx}-${c.name}-${c.number}`}
-              className="border border-black/10 dark:border-white/15 rounded p-3 w-[260px] flex-shrink-0"
-            >
-              {imageMap[c.name] && (
-                <img src={imageMap[c.name]} alt={c.name} className="w-full rounded mb-2" />
-              )}
-              <div className="text-sm opacity-70">x{c.count}</div>
-              <div className="font-semibold">{c.name}</div>
-              <div className="text-xs opacity-70">
-                ({c.set}) {c.number}
-                {Array.isArray(typeMap[c.name]) && typeMap[c.name].length > 0 && (
-                  <> · {typeMap[c.name].join(" / ")}</>
+                {imageMap[c.name] && (
+                  <img src={imageMap[c.name]} alt={c.name} className="w-full rounded mb-2" />
+                )}
+                <div className="text-sm opacity-70">x{c.count}</div>
+                <div className="font-semibold">{c.name}</div>
+                <div className="text-xs opacity-70">
+                  ({c.set}) {c.number}
+                  {Array.isArray(typeMap[c.name]) && typeMap[c.name].length > 0 && (
+                    <> · {typeMap[c.name].join(" / ")}</>
+                  )}
+                </div>
+                {c.tags.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {c.tags.map((t) => (
+                      <TagBadge
+                        key={t}
+                        variant="clickable"
+                        size="sm"
+                        onClick={() => addTag(t)}
+                        title={`${t} でフィルター`}
+                      >
+                        {t}
+                      </TagBadge>
+                    ))}
+                  </div>
                 )}
               </div>
-              {c.tags.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {c.tags.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => addTag(t)}
-                      className="text-[11px] px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20"
-                      title={`${t} でフィルター`}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        )}
+      </SectionCard>
 
-      <section>
-        <h2 className="text-xl font-semibold mb-3">Normal Package ({filteredOthers.length})</h2>
-        <div className="flex flex-wrap gap-3">
-          {loadingEntries ? (
-            <div className="text-sm opacity-70">読み込み中...</div>
-          ) : (
-            filteredOthers.length === 0 && <div className="text-sm opacity-70">該当なし</div>
-          )}
-          {filteredOthers.map((c, idx) => (
-            <div
-              key={`other-${idx}-${c.name}-${c.number}`}
-              className="border border-black/10 dark:border-white/15 rounded p-3 w-[260px] flex-shrink-0"
-            >
-              {imageMap[c.name] && (
-                <img src={imageMap[c.name]} alt={c.name} className="w-full rounded mb-2" />
-              )}
-              <div className="text-sm opacity-70">x{c.count}</div>
-              <div className="font-semibold">{c.name}</div>
-              <div className="text-xs opacity-70">
-                ({c.set}) {c.number}
-                {Array.isArray(typeMap[c.name]) && typeMap[c.name].length > 0 && (
-                  <> · {typeMap[c.name].join(" / ")}</>
-                )}
-              </div>
-              {c.tags.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {c.tags.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => addTag(t)}
-                      className="text-[11px] px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20"
-                      title={`${t} でフィルター`}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-xl font-semibold mb-3">Welcome set ({filteredWelcome.length})</h2>
-        <div className="flex flex-wrap gap-3">
-          {loadingEntries ? (
-            <div className="text-sm opacity-70">読み込み中...</div>
-          ) : (
-            filteredWelcome.length === 0 && <div className="text-sm opacity-70">該当なし</div>
-          )}
-          {filteredWelcome.map((c, idx) => (
-            <div
-              key={`welcome-${idx}-${c.name}-${c.number}`}
-              className="border border-black/10 dark:border-white/15 rounded p-3 w-[260px] flex-shrink-0"
-            >
-              {imageMap[c.name] && (
-                <img src={imageMap[c.name]} alt={c.name} className="w-full rounded mb-2" />
-              )}
-              <div className="text-sm opacity-70">x{c.count}</div>
-              <div className="font-semibold">{c.name}</div>
-              <div className="text-xs opacity-70">
-                ({c.set}) {c.number}
-                {Array.isArray(typeMap[c.name]) && typeMap[c.name].length > 0 && (
-                  <> · {typeMap[c.name].join(" / ")}</>
-                )}
-              </div>
-              {c.tags.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {c.tags.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => addTag(t)}
-                      className="text-[11px] px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20"
-                      title={`${t} でフィルター`}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {isDraftOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="draft-modal-title"
-        >
-          {/* backdrop */}
-          <div
-            className="absolute inset-0 bg-black/50 cursor-pointer"
-            onClick={() => setIsDraftOpen(false)}
-            aria-hidden="true"
-          />
-          {/* dialog */}
-          <div className="relative z-10 w-full max-w-md rounded-lg border border-black/10 dark:border-white/15 bg-background p-4 shadow-xl">
-            <div className="flex items-center justify-between mb-3">
-              <h3 id="draft-modal-title" className="text-lg font-semibold">
-                Draft
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsDraftOpen(false)}
-                aria-label="Close"
-                className="rounded px-2 py-1 text-sm hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer"
+      <SectionCard
+        title="Normal Package"
+        subtitle={`${filteredOthers.length} cards found`}
+      >
+        {loadingEntries ? (
+          <LoadingSpinner text="読み込み中..." />
+        ) : (
+          <div className="flex flex-wrap gap-3">
+            {filteredOthers.length === 0 && (
+              <div className="text-sm opacity-70">該当なし</div>
+            )}
+            {filteredOthers.map((c, idx) => (
+              <div
+                key={`other-${idx}-${c.name}-${c.number}`}
+                className="border border-black/10 dark:border-white/15 rounded p-3 w-[260px] flex-shrink-0"
               >
-                ×
-              </button>
-            </div>
+                {imageMap[c.name] && (
+                  <img src={imageMap[c.name]} alt={c.name} className="w-full rounded mb-2" />
+                )}
+                <div className="text-sm opacity-70">x{c.count}</div>
+                <div className="font-semibold">{c.name}</div>
+                <div className="text-xs opacity-70">
+                  ({c.set}) {c.number}
+                  {Array.isArray(typeMap[c.name]) && typeMap[c.name].length > 0 && (
+                    <> · {typeMap[c.name].join(" / ")}</>
+                  )}
+                </div>
+                {c.tags.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {c.tags.map((t) => (
+                      <TagBadge
+                        key={t}
+                        variant="clickable"
+                        size="sm"
+                        onClick={() => addTag(t)}
+                        title={`${t} でフィルター`}
+                      >
+                        {t}
+                      </TagBadge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </SectionCard>
+
+      <SectionCard
+        title="Welcome set"
+        subtitle={`${filteredWelcome.length} cards found`}
+      >
+        {loadingEntries ? (
+          <LoadingSpinner text="読み込み中..." />
+        ) : (
+          <div className="flex flex-wrap gap-3">
+            {filteredWelcome.length === 0 && (
+              <div className="text-sm opacity-70">該当なし</div>
+            )}
+            {filteredWelcome.map((c, idx) => (
+              <div
+                key={`welcome-${idx}-${c.name}-${c.number}`}
+                className="border border-black/10 dark:border-white/15 rounded p-3 w-[260px] flex-shrink-0"
+              >
+                {imageMap[c.name] && (
+                  <img src={imageMap[c.name]} alt={c.name} className="w-full rounded mb-2" />
+                )}
+                <div className="text-sm opacity-70">x{c.count}</div>
+                <div className="font-semibold">{c.name}</div>
+                <div className="text-xs opacity-70">
+                  ({c.set}) {c.number}
+                  {Array.isArray(typeMap[c.name]) && typeMap[c.name].length > 0 && (
+                    <> · {typeMap[c.name].join(" / ")}</>
+                  )}
+                </div>
+                {c.tags.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {c.tags.map((t) => (
+                      <TagBadge
+                        key={t}
+                        variant="clickable"
+                        size="sm"
+                        onClick={() => addTag(t)}
+                        title={`${t} でフィルター`}
+                      >
+                        {t}
+                      </TagBadge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </SectionCard>
+
+      <Modal
+        open={isDraftOpen}
+        onClose={() => setIsDraftOpen(false)}
+        title="Draft"
+        size="md"
+      >
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
@@ -520,16 +450,17 @@ export default function PoolPage() {
                 <p className="mt-1 text-xs opacity-70">デフォルト 8</p>
               </div>
               <div className="flex justify-between items-center gap-2 pt-2">
-                <button
+                <Button
                   type="button"
                   onClick={() => setIsDraftOpen(false)}
-                  className="rounded px-3 py-1.5 text-sm hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer"
+                  variant="ghost"
                 >
                   Cancel
-                </button>
+                </Button>
                 <div className="flex items-center gap-2">
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={async () => {
                       try {
                         if (!entries) {
@@ -639,71 +570,41 @@ export default function PoolPage() {
                         alert("コピーに失敗しました");
                       }
                     }}
-                    className="rounded border border-foreground/50 text-foreground px-3 py-1.5 text-sm font-semibold hover:bg-foreground/5 cursor-pointer"
                     title="Seat × 3 個のパックを生成し、各パック 2 指揮官 + 18 その他 (重複なし) のカード名をコピー"
                   >
                     Draftmancer
-                  </button>
-                  <button
-                    type="submit"
-                    className="rounded bg-foreground text-background px-3 py-1.5 text-sm font-semibold hover:opacity-90"
-                  >
+                  </Button>
+                  <Button type="submit" variant="primary">
                     Confirm
-                  </button>
+                  </Button>
                 </div>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
 
-      {isExportOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="export-modal-title"
-        >
-          {/* backdrop */}
-          <div
-            className="absolute inset-0 bg-black/50 cursor-pointer"
-            onClick={() => setIsExportOpen(false)}
-            aria-hidden="true"
-          />
-          {/* dialog */}
-          <div className="relative z-10 w-full max-w-2xl rounded-lg border border-black/10 dark:border-white/15 bg-background p-4 shadow-xl">
-            <div className="flex items-center justify-between mb-3">
-              <h3 id="export-modal-title" className="text-lg font-semibold">
-                Export Pool (Moxfield タグ付き)
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsExportOpen(false)}
-                aria-label="Close"
-                className="rounded px-2 py-1 text-sm hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer"
-              >
-                ×
-              </button>
-            </div>
+      <Modal
+        open={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+        title="Export Pool (Moxfield タグ付き)"
+        size="xl"
+      >
             <textarea
               ref={textareaRef}
               className="w-full h-72 p-2 rounded border border-black/10 dark:border-white/20 bg-transparent font-mono text-sm"
               readOnly
               value={exportText}
             />
-            <div className="mt-3 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="rounded bg-foreground text-background px-3 py-1.5 text-sm font-semibold hover:opacity-90 cursor-pointer"
-              >
-                {copied ? "Copied!" : "Copy Moxfield"}
-              </button>
-              <div className="opacity-70 text-xs">Moxfield 形式: 1 Name (SET) NUMBER #tag...</div>
-            </div>
-          </div>
+        <div className="mt-3 flex items-center gap-2">
+          <Button
+            type="button"
+            onClick={handleCopy}
+            variant="primary"
+          >
+            {copied ? "Copied!" : "Copy Moxfield"}
+          </Button>
+          <div className="opacity-70 text-xs">Moxfield 形式: 1 Name (SET) NUMBER #tag...</div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

@@ -2,6 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Button from "@/components/ui/Button";
+import Textarea from "@/components/ui/Textarea";
+import Alert from "@/components/ui/Alert";
+import SectionCard from "@/components/ui/SectionCard";
+import ListItem from "@/components/ui/ListItem";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import PageHeader from "@/components/ui/PageHeader";
 
 type CardEntry = {
   count: number;
@@ -193,14 +200,15 @@ export default function Home() {
 
   return (
     <div className="min-h-screen p-6 sm:p-10">
-      <h1 className="text-2xl font-bold mb-4">EDH Cube Draft Simulator</h1>
+      <PageHeader title="EDH Cube Draft Simulator" />
       <form onSubmit={handleSubmit} className="mb-6 flex flex-col gap-3">
         <label htmlFor="cube-text" className="font-medium">
           Cube プールを貼り付けてください（Moxfield 形式）
         </label>
-        <textarea
+        <Textarea
           id="cube-text"
-          className="w-full min-h-48 h-60 p-3 rounded border border-black/10 dark:border-white/20 bg-transparent font-mono text-sm"
+          size="lg"
+          monospace
           placeholder={
             "1 Abrade (TDC) 203 #2-targeted-disruption #9-1-R\n1 Abrupt Decay (MB2) 78 #2-targeted-disruption #9-2-BG\n1 Accursed Marauder (MH3) 80 #2-mass-disruption #9-1-B"
           }
@@ -223,13 +231,9 @@ export default function Home() {
           </div>
         </div>
         <div className="flex flex-col gap-2">
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="rounded bg-foreground text-background px-4 py-2 text-sm font-semibold hover:opacity-90 w-fit cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-          >
+          <Button type="submit" disabled={isSaving} variant="primary" className="w-fit">
             {isSaving ? "保存中..." : "Submit"}
-          </button>
+          </Button>
           {isSaving && (
             <div className="text-sm opacity-70 mt-1">保存中です。しばらくお待ちください…</div>
           )}
@@ -237,7 +241,7 @@ export default function Home() {
       </form>
 
       {parseErrors.length > 0 && (
-        <div className="mb-6 border border-red-300 dark:border-red-700 bg-red-50/60 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded p-3">
+        <Alert variant="error" className="mb-6">
           <div className="font-semibold mb-2">パースに失敗した行（{parseErrors.length} 行）</div>
           <ul className="list-disc pl-5 space-y-1">
             {parseErrors.map((err, idx) => (
@@ -246,89 +250,71 @@ export default function Home() {
               </li>
             ))}
           </ul>
-        </div>
+        </Alert>
       )}
 
-      <section className="mt-10">
-        <h2 className="text-xl font-semibold mb-3">Pools</h2>
+      <SectionCard title="Pools" className="mt-10">
         {loadingPools ? (
-          <div className="opacity-70 text-sm">読み込み中...</div>
+          <LoadingSpinner text="読み込み中..." />
         ) : (
-          <ul className="flex flex-col gap-2">
-            {pools.length === 0 && <li className="opacity-70 text-sm">Pool はまだありません</li>}
+          <div className="flex flex-col gap-2">
+            {pools.length === 0 && (
+              <div className="opacity-70 text-sm">Pool はまだありません</div>
+            )}
             {pools.map((p) => (
-              <li
+              <ListItem
                 key={p.id}
-                className="flex items-center gap-3 border border-black/10 dark:border-white/15 rounded p-2"
-              >
-                <div className="flex-1">
-                  <div className="font-medium">
-                    {p.title ?? "(untitled)"}{" "}
-                    <span className="opacity-70 text-xs">
-                      {new Date(p.createdAt).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="opacity-70 text-xs">cards: {p.count}</div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => router.push(`/pools/${p.id}`)}
-                  className="text-sm underline cursor-pointer"
-                >
-                  Show
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDeletePool(p.id)}
-                  className="text-sm underline text-red-600 cursor-pointer"
-                >
-                  Delete
-                </button>
-              </li>
+                title={p.title ?? "(untitled)"}
+                subtitle={`cards: ${p.count}`}
+                metadata={new Date(p.createdAt).toLocaleString()}
+                actions={
+                  <>
+                    <Button type="button" onClick={() => router.push(`/pools/${p.id}`)} variant="link">
+                      Show
+                    </Button>
+                    <Button type="button" onClick={() => handleDeletePool(p.id)} variant="danger">
+                      Delete
+                    </Button>
+                  </>
+                }
+              />
             ))}
-          </ul>
+          </div>
         )}
-      </section>
+      </SectionCard>
 
-      <section className="mt-10">
-        <h2 className="text-xl font-semibold mb-3">Drafts</h2>
+      <SectionCard title="Drafts" className="mt-10">
         {loadingDrafts ? (
-          <div className="opacity-70 text-sm">読み込み中...</div>
+          <LoadingSpinner text="読み込み中..." />
         ) : (
-          <ul className="flex flex-col gap-2">
-            {drafts.length === 0 && <li className="opacity-70 text-sm">Draft はまだありません</li>}
+          <div className="flex flex-col gap-2">
+            {drafts.length === 0 && (
+              <div className="opacity-70 text-sm">Draft はまだありません</div>
+            )}
             {drafts.map((d) => (
-              <li
+              <ListItem
                 key={d.id}
-                className="flex items-center gap-3 border border-black/10 dark:border-white/15 rounded p-2"
-              >
-                <div className="flex-1">
-                  <div className="font-medium">
-                    {d.pool.title ?? "(untitled)"}{" "}
-                    <span className="opacity-70 text-xs">
-                      {new Date(d.createdAt).toLocaleString()} / seat {d.seat}
-                    </span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => router.push(`/drafts/${d.id}/picks`)}
-                  className="text-sm underline cursor-pointer"
-                >
-                  Open
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteDraft(d.id)}
-                  className="text-sm underline text-red-600 cursor-pointer"
-                >
-                  Delete
-                </button>
-              </li>
+                title={d.pool.title ?? "(untitled)"}
+                metadata={`${new Date(d.createdAt).toLocaleString()} / seat ${d.seat}`}
+                actions={
+                  <>
+                    <Button
+                      type="button"
+                      onClick={() => router.push(`/drafts/${d.id}/picks`)}
+                      variant="link"
+                    >
+                      Open
+                    </Button>
+                    <Button type="button" onClick={() => handleDeleteDraft(d.id)} variant="danger">
+                      Delete
+                    </Button>
+                  </>
+                }
+              />
             ))}
-          </ul>
+          </div>
         )}
-      </section>
+      </SectionCard>
     </div>
   );
 }

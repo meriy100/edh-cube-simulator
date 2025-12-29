@@ -4,6 +4,8 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import CardGridWithPreview, { type GridCard } from "./CardGridWithPreview";
 import PickedBoard from "./PickedBoard";
+import Button from "./ui/Button";
+import Card from "./ui/Card";
 
 export type SeatPack = {
   seatIndex: number;
@@ -87,7 +89,7 @@ export default function DraftPickClient({
       {/* Top bar with Prev + Submit/Next (sticky) */}
       <div className="sticky top-0 z-20 mb-4 -mx-2 px-2 py-2 bg-white/90 dark:bg-gray-900/80 backdrop-blur border-b border-black/10 dark:border-white/10 flex items-center gap-3">
         <div className="ml-auto flex items-center gap-2">
-          <button
+          <Button
             type="button"
             onClick={() =>
               router.push(
@@ -95,54 +97,41 @@ export default function DraftPickClient({
               )
             }
             disabled={pickNumber <= 1}
-            className={
-              "px-4 py-2 rounded font-semibold border " +
-              (pickNumber > 1
-                ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 cursor-pointer"
-                : "bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed")
-            }
+            variant="outline"
             aria-disabled={pickNumber <= 1}
           >
             Prev
-          </button>
+          </Button>
 
           {isPickCompleted ? (
-            <button
+            <Button
               type="button"
               onClick={() =>
                 router.push(
                   `/drafts/${encodeURIComponent(draftId)}/picks/${encodeURIComponent(String(pickNumber + 1))}`,
                 )
               }
-              className="px-4 py-2 rounded font-semibold border bg-indigo-600 text-white border-indigo-700 hover:bg-indigo-700 cursor-pointer"
+              variant="secondary"
             >
               Next
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
               type="button"
               disabled={!allSelected || submitting}
               onClick={handleSubmit}
-              className={
-                "px-4 py-2 rounded font-semibold border " +
-                (allSelected && !submitting
-                  ? "bg-emerald-600 text-white border-emerald-700 hover:bg-emerald-700 cursor-pointer"
-                  : "bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed")
-              }
+              variant="primary"
               aria-disabled={!allSelected || submitting}
             >
               {submitting ? "Submitting..." : "Submit"}
-            </button>
+            </Button>
           )}
         </div>
       </div>
 
       <div className="space-y-6">
         {seatPacks.map((sp) => (
-          <section
-            key={`seat-${sp.seatIndex}`}
-            className="border border-black/10 dark:border-white/15 rounded p-3"
-          >
+          <Card key={`seat-${sp.seatIndex}`} as="section">
             <h2 className="text-lg font-semibold mb-3">Seat{sp.seatIndex + 1}</h2>
             <div className="relative pb-8">
               <CardGridWithPreview
@@ -168,7 +157,7 @@ export default function DraftPickClient({
                 />
               </div>
             )}
-          </section>
+          </Card>
         ))}
       </div>
     </div>

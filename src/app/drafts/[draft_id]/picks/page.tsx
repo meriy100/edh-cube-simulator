@@ -1,10 +1,12 @@
 import prisma from "@/lib/prisma";
-import Link from "next/link";
 import { type GridCard } from "@/components/CardGridWithPreview";
 import ExportPickedList from "@/components/ExportPickedList";
 import PickedBoard from "@/components/PickedBoard";
 import { getCardImageUrls } from "@/lib/cardImage";
 import { getCardTypes } from "@/lib/cardTypes";
+import BackLink from "@/components/ui/BackLink";
+import PageHeader from "@/components/ui/PageHeader";
+import SectionCard from "@/components/ui/SectionCard";
 
 // Server component page to show picked cards per seat
 // New Route: /drafts/[draft_id]/picks
@@ -95,28 +97,23 @@ export default async function DraftPicksPage({
 
   return (
     <div className="min-h-screen p-6 sm:p-10">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href={`/pools/${poolId}`} className="text-sm underline">
-          ← Back
-        </Link>
-        <h1 className="text-2xl font-bold">Picked Cards</h1>
-        <div className="ml-auto text-sm opacity-70">Draft ID: {draft.id}</div>
-      </div>
+      <PageHeader
+        title="Picked Cards"
+        subtitle={`Draft ID: ${draft.id}`}
+        backElement={<BackLink href={`/pools/${poolId}`} />}
+      />
 
       <div className="space-y-8">
         {seatCards.map((sc) => (
-          <section
+          <SectionCard
             key={`seat-${sc.seatIndex}`}
-            className="border border-black/10 dark:border-white/15 rounded p-3"
+            title={`Seat${sc.seatIndex + 1}`}
+            actions={
+              <ExportPickedList draftId={draftId} cards={sc.cards} seatIndex={sc.seatIndex} />
+            }
           >
-            <div className="flex items-center mb-3">
-              <h2 className="text-lg font-semibold">Seat{sc.seatIndex + 1}</h2>
-              <div className="ml-auto">
-                <ExportPickedList draftId={draftId} cards={sc.cards} seatIndex={sc.seatIndex} />
-              </div>
-            </div>
             <PickedBoard draftId={draftId} seatIndex={sc.seatIndex} pickedCards={sc.cards} />
-          </section>
+          </SectionCard>
         ))}
       </div>
     </div>
