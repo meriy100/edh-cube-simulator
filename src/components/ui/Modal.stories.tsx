@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { useState } from "react";
 import Modal from "./Modal";
 import Button from "./Button";
@@ -28,20 +28,14 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 // Template component for interactive stories
-function ModalTemplate(args: any) {
+function ModalTemplate(args: StoryObj["args"] & { children?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <Button onClick={() => setOpen(true)}>
-        Open Modal
-      </Button>
-      <Modal
-        {...args}
-        open={open}
-        onClose={() => setOpen(false)}
-      >
-        {args.children}
+      <Button onClick={() => setOpen(true)}>Open Modal</Button>
+      <Modal {...args} open={open} onClose={() => setOpen(false)}>
+        {args?.children}
       </Modal>
     </>
   );
@@ -66,7 +60,10 @@ export const WithoutTitle: Story = {
     children: (
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Custom Content</h3>
-        <p>This modal doesn't have a title prop, so you can customize the header however you like.</p>
+        <p>
+          This modal doesn&apos;t have a title prop, so you can customize the header however you
+          like.
+        </p>
       </div>
     ),
   },
@@ -79,8 +76,10 @@ export const WithoutCloseButton: Story = {
     showCloseButton: false,
     children: (
       <div className="space-y-4">
-        <p>This modal doesn't show the default close button.</p>
-        <p>You'll need to provide your own way to close it or rely on clicking the backdrop.</p>
+        <p>This modal doesn&apos;t show the default close button.</p>
+        <p>
+          You&apos;ll need to provide your own way to close it or rely on clicking the backdrop.
+        </p>
       </div>
     ),
   },
@@ -93,7 +92,7 @@ export const NoBackdropClose: Story = {
     closeOnBackdropClick: false,
     children: (
       <div className="space-y-4">
-        <p>This modal won't close when you click the backdrop.</p>
+        <p>This modal won&apos;t close when you click the backdrop.</p>
         <p>You must use the close button or press Escape.</p>
       </div>
     ),

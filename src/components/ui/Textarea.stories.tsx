@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import Textarea from "./Textarea";
 
 const meta: Meta<typeof Textarea> = {
@@ -113,11 +113,7 @@ export const WithLabel: Story = {
       <label htmlFor="description" className="block text-sm font-medium mb-2">
         Description
       </label>
-      <Textarea
-        {...args}
-        id="description"
-        placeholder="Enter a detailed description..."
-      />
+      <Textarea {...args} id="description" placeholder="Enter a detailed description..." />
     </div>
   ),
 };
@@ -140,22 +136,13 @@ export const FormExample: Story = {
         <label htmlFor="content" className="block text-sm font-medium mb-1">
           Content
         </label>
-        <Textarea
-          id="content"
-          size="lg"
-          placeholder="Write your content here..."
-        />
+        <Textarea id="content" size="lg" placeholder="Write your content here..." />
       </div>
       <div>
         <label htmlFor="code" className="block text-sm font-medium mb-1">
           Code Snippet
         </label>
-        <Textarea
-          id="code"
-          monospace
-          size="md"
-          placeholder="// Enter your code here"
-        />
+        <Textarea id="code" monospace size="md" placeholder="// Enter your code here" />
       </div>
     </form>
   ),

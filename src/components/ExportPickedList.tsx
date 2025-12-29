@@ -131,21 +131,9 @@ export default function ExportPickedList({ draftId, cards, seatIndex }: Props) {
         size="xl"
         id={`export-modal-${seatIndex ?? "x"}`}
       >
-        <Textarea
-          ref={textareaRef}
-          size="xl"
-          monospace
-          readOnly
-          value={text}
-          className="mb-3"
-        />
+        <Textarea ref={textareaRef} size="xl" monospace readOnly value={text} className="mb-3" />
         <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            onClick={onCopy}
-            variant="primary"
-            size="sm"
-          >
+          <Button type="button" onClick={onCopy} variant="primary" size="sm">
             {copied ? "Copied!" : "Copy Clipboard"}
           </Button>
           <div className="opacity-70 text-xs">Moxfield 形式: 1 Name (SET) NUMBER</div>

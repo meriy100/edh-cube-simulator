@@ -131,10 +131,7 @@ export default function DraftPickClient({
 
       <div className="space-y-6">
         {seatPacks.map((sp) => (
-          <Card
-            key={`seat-${sp.seatIndex}`}
-            as="section"
-          >
+          <Card key={`seat-${sp.seatIndex}`} as="section">
             <h2 className="text-lg font-semibold mb-3">Seat{sp.seatIndex + 1}</h2>
             <div className="relative pb-8">
               <CardGridWithPreview

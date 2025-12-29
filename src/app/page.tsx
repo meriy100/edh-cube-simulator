@@ -226,12 +226,7 @@ export default function Home() {
           </div>
         </div>
         <div className="flex flex-col gap-2">
-          <Button
-            type="submit"
-            disabled={isSaving}
-            variant="primary"
-            className="w-fit"
-          >
+          <Button type="submit" disabled={isSaving} variant="primary" className="w-fit">
             {isSaving ? "保存中..." : "Submit"}
           </Button>
           {isSaving && (
@@ -274,18 +269,10 @@ export default function Home() {
                   </div>
                   <div className="opacity-70 text-xs">cards: {p.count}</div>
                 </div>
-                <Button
-                  type="button"
-                  onClick={() => router.push(`/pools/${p.id}`)}
-                  variant="link"
-                >
+                <Button type="button" onClick={() => router.push(`/pools/${p.id}`)} variant="link">
                   Show
                 </Button>
-                <Button
-                  type="button"
-                  onClick={() => handleDeletePool(p.id)}
-                  variant="danger"
-                >
+                <Button type="button" onClick={() => handleDeletePool(p.id)} variant="danger">
                   Delete
                 </Button>
               </li>
@@ -321,11 +308,7 @@ export default function Home() {
                 >
                   Open
                 </Button>
-                <Button
-                  type="button"
-                  onClick={() => handleDeleteDraft(d.id)}
-                  variant="danger"
-                >
+                <Button type="button" onClick={() => handleDeleteDraft(d.id)} variant="danger">
                   Delete
                 </Button>
               </li>

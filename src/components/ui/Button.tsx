@@ -12,12 +12,17 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const buttonVariants: Record<ButtonVariant, string> = {
-  primary: "bg-emerald-600 text-white border-emerald-700 hover:bg-emerald-700 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300",
-  secondary: "bg-indigo-600 text-white border-indigo-700 hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300",
-  outline: "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300",
-  ghost: "border-black/20 dark:border-white/20 hover:bg-foreground hover:text-background disabled:opacity-60",
+  primary:
+    "bg-emerald-600 text-white border-emerald-700 hover:bg-emerald-700 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300",
+  secondary:
+    "bg-indigo-600 text-white border-indigo-700 hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300",
+  outline:
+    "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300",
+  ghost:
+    "border-black/20 dark:border-white/20 hover:bg-foreground hover:text-background disabled:opacity-60",
   link: "text-sm underline bg-transparent border-none hover:opacity-80 disabled:opacity-60",
-  danger: "text-sm underline text-red-600 bg-transparent border-none hover:opacity-80 disabled:opacity-60",
+  danger:
+    "text-sm underline text-red-600 bg-transparent border-none hover:opacity-80 disabled:opacity-60",
 };
 
 const buttonSizes: Record<ButtonSize, string> = {
@@ -34,7 +39,8 @@ export default function Button({
   children,
   ...props
 }: ButtonProps) {
-  const baseClasses = "rounded font-semibold border cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed";
+  const baseClasses =
+    "rounded font-semibold border cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed";
 
   const variantClasses = buttonVariants[variant];
   const sizeClasses = buttonSizes[size];
@@ -46,11 +52,7 @@ export default function Button({
     : `${baseClasses} ${variantClasses} ${sizeClasses} ${className}`.trim();
 
   return (
-    <button
-      className={finalClasses}
-      disabled={disabled}
-      {...props}
-    >
+    <button className={finalClasses} disabled={disabled} {...props}>
       {children}
     </button>
   );

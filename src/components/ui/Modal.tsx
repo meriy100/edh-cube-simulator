@@ -90,27 +90,16 @@ export default function Modal({
       >
         {(title || showCloseButton) && (
           <div className="flex items-center gap-2 mb-3">
-            {title && (
-              <h3 className="text-lg font-semibold flex-1">
-                {title}
-              </h3>
-            )}
+            {title && <h3 className="text-lg font-semibold flex-1">{title}</h3>}
             {showCloseButton && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                aria-label="Close modal"
-              >
+              <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close modal">
                 Close
               </Button>
             )}
           </div>
         )}
 
-        <div>
-          {children}
-        </div>
+        <div>{children}</div>
       </div>
     </div>
   );

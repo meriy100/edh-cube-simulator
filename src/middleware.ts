@@ -10,7 +10,8 @@ export default auth((req) => {
   const userEmail = req.auth?.user?.email?.toLowerCase().trim();
 
   // Get admin emails from environment
-  const adminEmails = process.env.ADMIN_EMAILS?.split(",").map(email => email.trim().toLowerCase()) || [];
+  const adminEmails =
+    process.env.ADMIN_EMAILS?.split(",").map((email) => email.trim().toLowerCase()) || [];
   const isAdminUser = userEmail && adminEmails.includes(userEmail);
 
   // Check if accessing admin routes

@@ -14,6 +14,7 @@ This is a Magic: The Gathering EDH (Elder Dragon Highlander) Cube Draft Simulato
 ## Development Setup
 
 ### Package Manager
+
 **Always use yarn for this project.** The project is configured to use yarn 4.6.0:
 
 ```bash
@@ -40,6 +41,7 @@ yarn check
 ```
 
 ### Environment Setup
+
 1. Configure DATABASE_URL in your environment
 2. Set up Google OAuth credentials for NextAuth
 3. Run `yarn prisma:push` to create database tables
@@ -77,6 +79,7 @@ src/
 ```
 
 ### Key Features
+
 - **Pool Management**: Import card pools from Moxfield format or CubeCobra CSV
 - **Draft Simulation**: Multi-player cube draft simulation
 - **Card Database**: Stores parsed card information with tags and metadata
@@ -86,11 +89,13 @@ src/
 ## Development Guidelines
 
 ### UI Components
+
 **Always create reusable UI components in `src/components/ui/`.**
 
 **For each UI component, create a corresponding Storybook story file following the naming convention: `ui/{ComponentName}.stories.tsx`.**
 
 Examples of components to create in this directory:
+
 - Button variants
 - Form controls (Input, Select, Textarea)
 - Layout components (Card, Container)
@@ -99,13 +104,16 @@ Examples of components to create in this directory:
 - Toast notifications
 
 #### Storybook Stories
+
 When creating UI components, always include a Storybook story to document:
+
 - Component API and props
 - Visual states and variations
 - Interactive examples
 - Usage guidelines
 
 Example structure:
+
 ```
 src/components/ui/
 ├── Button.tsx
@@ -116,24 +124,30 @@ src/components/ui/
 ```
 
 ### Code Standards
+
 - Use TypeScript for all new files
 - Follow the existing pattern of "use client" for client components
 - Use Tailwind CSS for styling with the existing dark/light mode classes
 - Implement proper error handling with user-friendly messages
 - Use React Server Components where appropriate (default in App Router)
+- **Always run `yarn lint` after implementation and ensure it passes without errors**
+- Fix all linting issues before considering the implementation complete
 
 ### Database
+
 - Use Prisma for database operations
 - Run `yarn prisma:generate` after schema changes
 - Use `yarn prisma:push` for development database updates
 - Follow the existing patterns in API routes for database queries
 
 ### Authentication
+
 - Google OAuth is configured through NextAuth
 - Admin routes are protected with middleware
 - Use the auth utilities in `src/lib/auth.ts`
 
 ### API Design
+
 - Follow REST conventions for API routes
 - Include proper error handling and HTTP status codes
 - Use TypeScript interfaces for request/response types
@@ -141,23 +155,33 @@ src/components/ui/
 
 ## Testing & Quality
 
+**Before completing any implementation, always run these quality checks:**
+
 ```bash
 # Type checking
 yarn typecheck
 
-# Linting
+# Linting (MUST pass without errors)
 yarn lint
 
 # Formatting check
 yarn format:check
 
-# All checks
+# All checks combined
 yarn check
 ```
+
+### Quality Requirements
+
+- **All lint errors must be fixed** - `yarn lint` must pass with zero errors
+- Type checking must pass without TypeScript errors
+- Code formatting should follow Prettier standards
+- Run `yarn check` to verify all quality checks pass at once
 
 ## Deployment
 
 The application is designed to deploy on Vercel:
+
 - Automatic deployments from main branch
 - Environment variables configured in Vercel dashboard
 - Database hosted on Vercel Postgres
@@ -167,12 +191,14 @@ The application is designed to deploy on Vercel:
 The application supports two input formats:
 
 ### Moxfield Format
+
 ```
 1 Abrade (TDC) 203 #2-targeted-disruption #9-1-R
 1 Abrupt Decay (MB2) 78 #2-targeted-disruption #9-2-BG
 ```
 
 ### CubeCobra CSV
+
 Standard CSV export from CubeCobra platform.
 
 ## Contributing
@@ -183,3 +209,5 @@ Standard CSV export from CubeCobra platform.
 4. Test thoroughly with both input formats
 5. Ensure proper error handling for user interactions
 6. Maintain responsive design with Tailwind CSS
+7. **Run `yarn lint` and ensure it passes before completing any implementation**
+8. Verify all quality checks pass with `yarn check`

@@ -23,7 +23,8 @@ export async function isAdminAuthenticated(): Promise<boolean> {
     return false;
   }
 
-  const adminEmails = process.env.ADMIN_EMAILS?.split(",").map(email => email.trim().toLowerCase()) || [];
+  const adminEmails =
+    process.env.ADMIN_EMAILS?.split(",").map((email) => email.trim().toLowerCase()) || [];
   const userEmail = session.user.email.toLowerCase().trim();
 
   return adminEmails.includes(userEmail);
@@ -32,6 +33,7 @@ export async function isAdminAuthenticated(): Promise<boolean> {
 /**
  * Check if user is authenticated admin for middleware
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function isAdminAuthenticatedForRequest(_request: NextRequest): Promise<boolean> {
   try {
     const session = await getAuth()();
@@ -40,7 +42,8 @@ export async function isAdminAuthenticatedForRequest(_request: NextRequest): Pro
       return false;
     }
 
-    const adminEmails = process.env.ADMIN_EMAILS?.split(",").map(email => email.trim().toLowerCase()) || [];
+    const adminEmails =
+      process.env.ADMIN_EMAILS?.split(",").map((email) => email.trim().toLowerCase()) || [];
     const userEmail = session.user.email.toLowerCase().trim();
 
     return adminEmails.includes(userEmail);
@@ -60,7 +63,8 @@ export async function getAdminUser() {
     return null;
   }
 
-  const adminEmails = process.env.ADMIN_EMAILS?.split(",").map(email => email.trim().toLowerCase()) || [];
+  const adminEmails =
+    process.env.ADMIN_EMAILS?.split(",").map((email) => email.trim().toLowerCase()) || [];
   const userEmail = session.user.email.toLowerCase().trim();
 
   if (!adminEmails.includes(userEmail)) {
