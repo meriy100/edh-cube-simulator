@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
-import { ReactNode, useEffect } from "react";
+import { ReactNode, Suspense, useEffect } from "react";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -22,7 +22,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }, [status, router, isLoginPage]);
 
   if (isLoginPage) {
-    return <div className="min-h-screen bg-gray-50 dark:bg-gray-900">{children}</div>;
+    return (
+      <Suspense>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">{children}</div>
+      </Suspense>
+    );
   }
 
   const handleLogout = async () => {
