@@ -11,7 +11,7 @@ interface SelectOption {
 }
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  size?: SelectSize;
+  fieldSize?: SelectSize;
   error?: boolean;
   fullWidth?: boolean;
   options: SelectOption[];
@@ -25,7 +25,7 @@ const selectSizes: Record<SelectSize, string> = {
 };
 
 export default function Select({
-  size = "md",
+  fieldSize = "md",
   error = false,
   fullWidth = false,
   options,
@@ -34,7 +34,7 @@ export default function Select({
   disabled,
   ...props
 }: SelectProps) {
-  const sizeClasses = selectSizes[size];
+  const sizeClasses = selectSizes[fieldSize];
   const widthClasses = fullWidth ? "w-full" : "";
   const errorClasses = error
     ? "border-red-300 dark:border-red-700 focus:ring-red-500"

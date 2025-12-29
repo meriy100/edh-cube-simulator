@@ -23,7 +23,7 @@ const meta: Meta<typeof Select> = {
   },
   tags: ["autodocs"],
   argTypes: {
-    size: {
+    fieldSize: {
       control: "select",
       options: ["sm", "md", "lg"],
     },
@@ -63,7 +63,7 @@ export const WithPlaceholder: Story = {
 
 export const Small: Story = {
   args: {
-    size: "sm",
+    fieldSize: "sm",
     options: sampleOptions,
     placeholder: "Small select",
   },
@@ -71,7 +71,7 @@ export const Small: Story = {
 
 export const Medium: Story = {
   args: {
-    size: "md",
+    fieldSize: "md",
     options: sampleOptions,
     placeholder: "Medium select",
   },
@@ -79,7 +79,7 @@ export const Medium: Story = {
 
 export const Large: Story = {
   args: {
-    size: "lg",
+    fieldSize: "lg",
     options: sampleOptions,
     placeholder: "Large select",
   },

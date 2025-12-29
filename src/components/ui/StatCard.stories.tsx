@@ -1,14 +1,9 @@
-import type { Meta, StoryObj } from "@storybook/nextjs";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import StatCard from "./StatCard";
 
 // Sample icons for stories
 const PoolIcon = () => (
-  <svg
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    className="w-full h-full"
-  >
+  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-full h-full">
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -19,12 +14,7 @@ const PoolIcon = () => (
 );
 
 const DraftIcon = () => (
-  <svg
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    className="w-full h-full"
-  >
+  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-full h-full">
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -35,12 +25,7 @@ const DraftIcon = () => (
 );
 
 const CardIcon = () => (
-  <svg
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    className="w-full h-full"
-  >
+  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-full h-full">
     <path
       strokeLinecap="round"
       strokeLinejoin="round"

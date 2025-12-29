@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/nextjs";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import PageHeader from "./PageHeader";
 import BackLink from "./BackLink";
 import Button from "./Button";
@@ -79,6 +79,7 @@ export const WithEverything: Story = {
 export const AdminDashboard: Story = {
   args: {
     title: "管理ダッシュボード",
-    subtitle: "EDH Cube Simulator の管理画面へようこそ。システムの概要と管理機能にアクセスできます。",
+    subtitle:
+      "EDH Cube Simulator の管理画面へようこそ。システムの概要と管理機能にアクセスできます。",
   },
 };

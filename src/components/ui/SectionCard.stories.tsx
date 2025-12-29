@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/nextjs";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import SectionCard from "./SectionCard";
 import Button from "./Button";
 import ListItem from "./ListItem";
@@ -48,7 +48,11 @@ export const WithSubtitle: Story = {
 export const WithActions: Story = {
   args: {
     title: "Seat1",
-    actions: <Button variant="link" size="sm">Export</Button>,
+    actions: (
+      <Button variant="link" size="sm">
+        Export
+      </Button>
+    ),
     children: <div className="text-sm opacity-70">Content goes here</div>,
   },
 };
@@ -57,7 +61,7 @@ export const FilterSection: Story = {
   render: () => {
     const [selectedTags, setSelectedTags] = useState<string[]>([
       "#2-targeted-disruption",
-      "#commander"
+      "#commander",
     ]);
 
     const handleAddTag = (tag: string) => {
@@ -68,7 +72,7 @@ export const FilterSection: Story = {
     };
 
     const handleRemoveTag = (tag: string) => {
-      setSelectedTags(selectedTags.filter(t => t !== tag));
+      setSelectedTags(selectedTags.filter((t) => t !== tag));
     };
 
     const handleClearTags = () => {
@@ -151,11 +155,13 @@ export const DraftsSection: Story = {
 export const SeatSection: Story = {
   args: {
     title: "Seat1",
-    actions: <Button variant="link" size="sm">Export</Button>,
+    actions: (
+      <Button variant="link" size="sm">
+        Export
+      </Button>
+    ),
     children: (
-      <div className="text-sm opacity-70">
-        Picked cards and board would be displayed here
-      </div>
+      <div className="text-sm opacity-70">Picked cards and board would be displayed here</div>
     ),
   },
 };

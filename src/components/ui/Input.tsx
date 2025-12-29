@@ -5,7 +5,7 @@ import React from "react";
 type InputSize = "sm" | "md" | "lg";
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  size?: InputSize;
+  fieldSize?: InputSize;
   error?: boolean;
   fullWidth?: boolean;
 }
@@ -17,14 +17,14 @@ const inputSizes: Record<InputSize, string> = {
 };
 
 export default function Input({
-  size = "md",
+  fieldSize = "md",
   error = false,
   fullWidth = false,
   className = "",
   disabled,
   ...props
 }: InputProps) {
-  const sizeClasses = inputSizes[size];
+  const sizeClasses = inputSizes[fieldSize];
   const widthClasses = fullWidth ? "w-full" : "";
   const errorClasses = error
     ? "border-red-300 dark:border-red-700 focus:ring-red-500"

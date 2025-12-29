@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/nextjs";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import ActionCard from "./ActionCard";
 
 // Sample icons for stories
@@ -143,7 +143,8 @@ export const QuickActionsGrid: Story = {
 export const LongDescription: Story = {
   args: {
     title: "データベース管理",
-    description: "データベースのバックアップ、復元、最適化などの高度な管理機能にアクセスします。この操作には管理者権限が必要です。",
+    description:
+      "データベースのバックアップ、復元、最適化などの高度な管理機能にアクセスします。この操作には管理者権限が必要です。",
     icon: <RefreshIcon />,
     onClick: () => console.log("Database management"),
   },

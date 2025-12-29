@@ -10,7 +10,7 @@ const meta: Meta<typeof Input> = {
   },
   tags: ["autodocs"],
   argTypes: {
-    size: {
+    fieldSize: {
       control: "select",
       options: ["sm", "md", "lg"],
     },
@@ -46,21 +46,21 @@ export const Default: Story = {
 
 export const Small: Story = {
   args: {
-    size: "sm",
+    fieldSize: "sm",
     placeholder: "Small input",
   },
 };
 
 export const Medium: Story = {
   args: {
-    size: "md",
+    fieldSize: "md",
     placeholder: "Medium input",
   },
 };
 
 export const Large: Story = {
   args: {
-    size: "lg",
+    fieldSize: "lg",
     placeholder: "Large input",
   },
 };

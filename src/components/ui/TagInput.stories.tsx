@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/nextjs";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { useState } from "react";
 import TagInput from "./TagInput";
 
@@ -54,7 +54,7 @@ export const Default: Story = {
     };
 
     const handleRemoveTag = (tag: string) => {
-      setSelectedTags(selectedTags.filter(t => t !== tag));
+      setSelectedTags(selectedTags.filter((t) => t !== tag));
     };
 
     const handleClearTags = () => {
@@ -78,7 +78,7 @@ export const WithInitialTags: Story = {
     const [selectedTags, setSelectedTags] = useState<string[]>([
       "#2-targeted-disruption",
       "#9-1-R",
-      "#commander"
+      "#commander",
     ]);
 
     const handleAddTag = (tag: string) => {
@@ -89,7 +89,7 @@ export const WithInitialTags: Story = {
     };
 
     const handleRemoveTag = (tag: string) => {
-      setSelectedTags(selectedTags.filter(t => t !== tag));
+      setSelectedTags(selectedTags.filter((t) => t !== tag));
     };
 
     const handleClearTags = () => {
@@ -120,7 +120,7 @@ export const English: Story = {
     };
 
     const handleRemoveTag = (tag: string) => {
-      setSelectedTags(selectedTags.filter(t => t !== tag));
+      setSelectedTags(selectedTags.filter((t) => t !== tag));
     };
 
     const handleClearTags = () => {
@@ -147,7 +147,7 @@ export const InSection: Story = {
   render: () => {
     const [selectedTags, setSelectedTags] = useState<string[]>([
       "#2-targeted-disruption",
-      "#commander"
+      "#commander",
     ]);
 
     const handleAddTag = (tag: string) => {
@@ -158,7 +158,7 @@ export const InSection: Story = {
     };
 
     const handleRemoveTag = (tag: string) => {
-      setSelectedTags(selectedTags.filter(t => t !== tag));
+      setSelectedTags(selectedTags.filter((t) => t !== tag));
     };
 
     const handleClearTags = () => {
