@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Button from "@/components/ui/Button";
+import Textarea from "@/components/ui/Textarea";
 
 type CardEntry = {
   count: number;
@@ -198,9 +200,10 @@ export default function Home() {
         <label htmlFor="cube-text" className="font-medium">
           Cube プールを貼り付けてください（Moxfield 形式）
         </label>
-        <textarea
+        <Textarea
           id="cube-text"
-          className="w-full min-h-48 h-60 p-3 rounded border border-black/10 dark:border-white/20 bg-transparent font-mono text-sm"
+          size="lg"
+          monospace
           placeholder={
             "1 Abrade (TDC) 203 #2-targeted-disruption #9-1-R\n1 Abrupt Decay (MB2) 78 #2-targeted-disruption #9-2-BG\n1 Accursed Marauder (MH3) 80 #2-mass-disruption #9-1-B"
           }
@@ -223,13 +226,14 @@ export default function Home() {
           </div>
         </div>
         <div className="flex flex-col gap-2">
-          <button
+          <Button
             type="submit"
             disabled={isSaving}
-            className="rounded bg-foreground text-background px-4 py-2 text-sm font-semibold hover:opacity-90 w-fit cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            variant="primary"
+            className="w-fit"
           >
             {isSaving ? "保存中..." : "Submit"}
-          </button>
+          </Button>
           {isSaving && (
             <div className="text-sm opacity-70 mt-1">保存中です。しばらくお待ちください…</div>
           )}
@@ -270,20 +274,20 @@ export default function Home() {
                   </div>
                   <div className="opacity-70 text-xs">cards: {p.count}</div>
                 </div>
-                <button
+                <Button
                   type="button"
                   onClick={() => router.push(`/pools/${p.id}`)}
-                  className="text-sm underline cursor-pointer"
+                  variant="link"
                 >
                   Show
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={() => handleDeletePool(p.id)}
-                  className="text-sm underline text-red-600 cursor-pointer"
+                  variant="danger"
                 >
                   Delete
-                </button>
+                </Button>
               </li>
             ))}
           </ul>
@@ -310,20 +314,20 @@ export default function Home() {
                     </span>
                   </div>
                 </div>
-                <button
+                <Button
                   type="button"
                   onClick={() => router.push(`/drafts/${d.id}/picks`)}
-                  className="text-sm underline cursor-pointer"
+                  variant="link"
                 >
                   Open
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={() => handleDeleteDraft(d.id)}
-                  className="text-sm underline text-red-600 cursor-pointer"
+                  variant="danger"
                 >
                   Delete
-                </button>
+                </Button>
               </li>
             ))}
           </ul>
