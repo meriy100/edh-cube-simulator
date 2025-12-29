@@ -88,6 +88,8 @@ src/
 ### UIコンポーネント
 **再利用可能なUIコンポーネントは必ず `src/components/ui/` に作成してください。**
 
+**各UIコンポーネントには、命名規則 `ui/{ComponentName}.stories.tsx` に従ってStorybookストーリーファイルを作成してください。**
+
 このディレクトリに作成するコンポーネントの例：
 - ボタンのバリエーション
 - フォームコントロール（Input、Select、Textarea）
@@ -95,6 +97,23 @@ src/
 - ローディング状態とスケルトン
 - モーダルとダイアログコンポーネント
 - トースト通知
+
+#### Storybookストーリー
+UIコンポーネントを作成する際は、必ずStorybookストーリーを含めて以下を文書化してください：
+- コンポーネントのAPIとprops
+- 視覚的な状態とバリエーション
+- インタラクティブな例
+- 使用ガイドライン
+
+構造例：
+```
+src/components/ui/
+├── Button.tsx
+├── Button.stories.tsx
+├── Input.tsx
+├── Input.stories.tsx
+└── ...
+```
 
 ### コード規約
 - すべての新しいファイルでTypeScriptを使用

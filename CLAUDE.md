@@ -88,6 +88,8 @@ src/
 ### UI Components
 **Always create reusable UI components in `src/components/ui/`.**
 
+**For each UI component, create a corresponding Storybook story file following the naming convention: `ui/{ComponentName}.stories.tsx`.**
+
 Examples of components to create in this directory:
 - Button variants
 - Form controls (Input, Select, Textarea)
@@ -95,6 +97,23 @@ Examples of components to create in this directory:
 - Loading states and skeletons
 - Modal and dialog components
 - Toast notifications
+
+#### Storybook Stories
+When creating UI components, always include a Storybook story to document:
+- Component API and props
+- Visual states and variations
+- Interactive examples
+- Usage guidelines
+
+Example structure:
+```
+src/components/ui/
+├── Button.tsx
+├── Button.stories.tsx
+├── Input.tsx
+├── Input.stories.tsx
+└── ...
+```
 
 ### Code Standards
 - Use TypeScript for all new files
