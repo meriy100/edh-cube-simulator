@@ -1,10 +1,18 @@
 "use client";
 
-import React from "react";
+import React, { ComponentProps } from "react";
+import NextLink from "next/link";
 
-type LinkVariant = "default" | "danger" | "nav" | "outlined" | "action-blue" | "action-green" | "action-red";
+type LinkVariant =
+  | "default"
+  | "danger"
+  | "nav"
+  | "outlined"
+  | "action-blue"
+  | "action-green"
+  | "action-red";
 
-interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+interface LinkProps extends ComponentProps<typeof NextLink> {
   variant?: LinkVariant;
   children: React.ReactNode;
   href: string;
@@ -15,9 +23,11 @@ const linkVariants: Record<LinkVariant, string> = {
   default: "text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300",
   danger: "text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300",
   nav: "text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors",
-  outlined: "text-sm text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md font-medium transition-colors border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500",
+  outlined:
+    "text-sm text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md font-medium transition-colors border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500",
   "action-blue": "text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300",
-  "action-green": "text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300",
+  "action-green":
+    "text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300",
   "action-red": "text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300",
 };
 
@@ -55,14 +65,14 @@ export default function Link({
     : `${baseClasses} ${underlineClasses} ${focusRingClasses} ${variantClasses} ${className}`.trim();
 
   return (
-    <a
+    <NextLink
       className={finalClasses}
-      href={disabled ? undefined : href}
+      href={href}
       onClick={handleClick}
       {...(disabled ? { "aria-disabled": true } : {})}
       {...props}
     >
       {children}
-    </a>
+    </NextLink>
   );
 }

@@ -58,7 +58,7 @@ export const WithActions: Story = {
     metadata: "2024/12/29 10:30:00",
     actions: (
       <>
-        <Button variant="link">Show</Button>
+        <Button variant="danger">Show</Button>
         <Button variant="danger">Delete</Button>
       </>
     ),
@@ -72,7 +72,7 @@ export const PoolItem: Story = {
     metadata: "2024/12/29 10:30:00",
     actions: (
       <>
-        <Button variant="link" onClick={() => console.log("Show")}>
+        <Button variant="danger" onClick={() => console.log("Show")}>
           Show
         </Button>
         <Button variant="danger" onClick={() => console.log("Delete")}>
@@ -89,7 +89,7 @@ export const DraftItem: Story = {
     metadata: "2024/12/29 10:30:00 / seat 8",
     actions: (
       <>
-        <Button variant="link" onClick={() => console.log("Open")}>
+        <Button variant="danger" onClick={() => console.log("Open")}>
           Open
         </Button>
         <Button variant="danger" onClick={() => console.log("Delete")}>
@@ -117,7 +117,7 @@ export const ListExample: Story = {
         metadata="2024/12/29 10:30:00"
         actions={
           <>
-            <Button variant="link">Show</Button>
+            <Button variant="danger">Show</Button>
             <Button variant="danger">Delete</Button>
           </>
         }
@@ -128,7 +128,7 @@ export const ListExample: Story = {
         metadata="2024/12/28 15:45:00"
         actions={
           <>
-            <Button variant="link">Show</Button>
+            <Button variant="danger">Show</Button>
             <Button variant="danger">Delete</Button>
           </>
         }
@@ -139,7 +139,7 @@ export const ListExample: Story = {
         metadata="2024/12/27 09:15:00"
         actions={
           <>
-            <Button variant="link">Show</Button>
+            <Button variant="danger">Show</Button>
             <Button variant="danger">Delete</Button>
           </>
         }

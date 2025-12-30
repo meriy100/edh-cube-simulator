@@ -49,7 +49,7 @@ export const WithActions: Story = {
   args: {
     title: "Seat1",
     actions: (
-      <Button variant="link" size="sm">
+      <Button variant="danger" size="sm">
         Export
       </Button>
     ),
@@ -102,7 +102,7 @@ export const PoolsSection: Story = {
           metadata="2024/12/29 10:30:00"
           actions={
             <>
-              <Button variant="link">Show</Button>
+              <Button variant="danger">Show</Button>
               <Button variant="danger">Delete</Button>
             </>
           }
@@ -113,7 +113,7 @@ export const PoolsSection: Story = {
           metadata="2024/12/28 15:45:00"
           actions={
             <>
-              <Button variant="link">Show</Button>
+              <Button variant="danger">Show</Button>
               <Button variant="danger">Delete</Button>
             </>
           }
@@ -132,7 +132,7 @@ export const DraftsSection: Story = {
           metadata="2024/12/29 10:30:00 / seat 8"
           actions={
             <>
-              <Button variant="link">Open</Button>
+              <Button variant="danger">Open</Button>
               <Button variant="danger">Delete</Button>
             </>
           }
@@ -142,7 +142,7 @@ export const DraftsSection: Story = {
           metadata="2024/12/28 15:45:00 / seat 6"
           actions={
             <>
-              <Button variant="link">Open</Button>
+              <Button variant="danger">Open</Button>
               <Button variant="danger">Delete</Button>
             </>
           }
@@ -156,7 +156,7 @@ export const SeatSection: Story = {
   args: {
     title: "Seat1",
     actions: (
-      <Button variant="link" size="sm">
+      <Button variant="danger" size="sm">
         Export
       </Button>
     ),

@@ -9,6 +9,7 @@ import SectionCard from "@/components/ui/SectionCard";
 import ListItem from "@/components/ui/ListItem";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import PageHeader from "@/components/ui/PageHeader";
+import Link from "@/components/ui/Link";
 
 type CardEntry = {
   count: number;
@@ -258,9 +259,7 @@ export default function Home() {
           <LoadingSpinner text="読み込み中..." />
         ) : (
           <div className="flex flex-col gap-2">
-            {pools.length === 0 && (
-              <div className="opacity-70 text-sm">Pool はまだありません</div>
-            )}
+            {pools.length === 0 && <div className="opacity-70 text-sm">Pool はまだありません</div>}
             {pools.map((p) => (
               <ListItem
                 key={p.id}
@@ -269,9 +268,7 @@ export default function Home() {
                 metadata={new Date(p.createdAt).toLocaleString()}
                 actions={
                   <>
-                    <Button type="button" onClick={() => router.push(`/pools/${p.id}`)} variant="link">
-                      Show
-                    </Button>
+                    <Link href={`/pools/${p.id}`}>Show</Link>
                     <Button type="button" onClick={() => handleDeletePool(p.id)} variant="danger">
                       Delete
                     </Button>
@@ -298,13 +295,7 @@ export default function Home() {
                 metadata={`${new Date(d.createdAt).toLocaleString()} / seat ${d.seat}`}
                 actions={
                   <>
-                    <Button
-                      type="button"
-                      onClick={() => router.push(`/drafts/${d.id}/picks`)}
-                      variant="link"
-                    >
-                      Open
-                    </Button>
+                    <Link href={`/drafts/${d.id}/picks`}>Open</Link>
                     <Button type="button" onClick={() => handleDeleteDraft(d.id)} variant="danger">
                       Delete
                     </Button>
