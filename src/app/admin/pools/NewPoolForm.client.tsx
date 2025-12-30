@@ -6,11 +6,13 @@ import SectionCard from "@/components/ui/SectionCard";
 import Button from "@/components/ui/Button.client";
 import Alert from "@/components/ui/Alert.client";
 import LoadingSpinner from "@/components/ui/LoadingSpinner.client";
+import { useRouter } from "next/navigation";
 
 const NewPoolForm = () => {
   const [file, setFile] = useState<File>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>();
+  const router = useRouter();
 
   const handleInput: FormEventHandler<HTMLInputElement> = (e) => {
     setFile(e.currentTarget.files?.[0]);
@@ -43,6 +45,10 @@ const NewPoolForm = () => {
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
       if (fileInput) {
         fileInput.value = "";
+      }
+
+      if (data.id) {
+        router.push(`/admin/pools/${data.id}`);
       }
     } catch (err) {
       console.error("Error uploading CSV:", err);

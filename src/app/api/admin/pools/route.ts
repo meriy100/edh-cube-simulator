@@ -126,10 +126,7 @@ export const POST = async (req: NextRequest) => {
     });
 
     return NextResponse.json({
-      message: "CSV file uploaded successfully",
-      fileInfo: parsedRows.data,
-      rawCsv: csvContent,
-      uploadedBy: session.user.email,
+      id: pool.id,
     });
   } catch (error) {
     console.error("Error processing CSV upload:", error);
