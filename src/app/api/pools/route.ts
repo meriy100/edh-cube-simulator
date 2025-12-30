@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import adminDb from "@/lib/firebase/admin";
 
-export async function POST(req: NextRequest) {
+// 使用例
+async function getPools() {
+  const snapshot = await adminDb().collection("pools").limit(5).get();
+  snapshot.forEach((doc) => {
+    console.log(doc.id, "=>", doc.data());
+  });
+}
+export async function GET(req: NextRequest) {
+  console.log(await getPools());
   return NextResponse.json({});
 }
