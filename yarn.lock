@@ -2695,6 +2695,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/papaparse@npm:^5.5.2":
+  version: 5.5.2
+  resolution: "@types/papaparse@npm:5.5.2"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/27b097b6f8f204b20ade1f2cbf4798eb38caa5fbfa3180fd0faa5e3f9aea371c1786ae180d56f3287556463eefe3100c953e316ea6ee99d7ae1d04111cfc9e50
+  languageName: node
+  linkType: hard
+
 "@types/qs@npm:*":
   version: 6.14.0
   resolution: "@types/qs@npm:6.14.0"
@@ -4082,6 +4091,7 @@ __metadata:
     "@storybook/nextjs-vite": "npm:^10.1.10"
     "@tailwindcss/postcss": "npm:^4"
     "@types/node": "npm:^20"
+    "@types/papaparse": "npm:^5.5.2"
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"
     "@vitest/browser-playwright": "npm:^4.0.16"
@@ -4093,6 +4103,7 @@ __metadata:
     firebase-admin: "npm:^13.6.0"
     next: "npm:15.4.10"
     next-auth: "npm:^5.0.0-beta.30"
+    papaparse: "npm:^5.5.3"
     playwright: "npm:^1.57.0"
     prettier: "npm:^3.3.3"
     react: "npm:19.1.0"
@@ -4100,6 +4111,7 @@ __metadata:
     storybook: "npm:^10.1.10"
     tailwindcss: "npm:^4"
     typescript: "npm:^5"
+    ulid: "npm:^3.0.2"
     vite: "npm:^7.3.0"
     vitest: "npm:^4.0.16"
     zod: "npm:^4.2.1"
@@ -6982,6 +6994,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"papaparse@npm:^5.5.3":
+  version: 5.5.3
+  resolution: "papaparse@npm:5.5.3"
+  checksum: 10c0/623aae6a35703308fd5a39d616fb3837231ebc70697346355ea508154d3f24df75b6554b736afc1924192205518a5db14e75f5e1cf35d154326050a37cdd9447
+  languageName: node
+  linkType: hard
+
 "parent-module@npm:^1.0.0":
   version: 1.0.1
   resolution: "parent-module@npm:1.0.1"
@@ -8461,6 +8480,15 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10c0/ad09fdf7a756814dce65bc60c1657b40d44451346858eea230e10f2e95a289d9183b6e32e5c11e95acc0ccc214b4f36289dcad4bf1886b0adb84d711d336a430
+  languageName: node
+  linkType: hard
+
+"ulid@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "ulid@npm:3.0.2"
+  bin:
+    ulid: dist/cli.js
+  checksum: 10c0/3993499f0cb3f322e46a8da7144b184d9b12d2cc1976dd7eeb35fc2b4e153c547e8963db4d5a320995c481b0e0294289ba8260e0f69dce99ded3c647c33ac574
   languageName: node
   linkType: hard
 

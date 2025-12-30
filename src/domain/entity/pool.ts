@@ -1,3 +1,5 @@
+import { ulid } from "ulid";
+
 declare const poolIdCommonality: unique symbol;
 type PoolId = string & { [poolIdCommonality]: never };
 
@@ -10,3 +12,11 @@ export interface Pool {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export const newPool = ({ count }: { count: number }): Pool => ({
+  id: PoolId(ulid()),
+  version: "unknown",
+  count,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+});
