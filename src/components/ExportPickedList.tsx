@@ -117,7 +117,7 @@ export default function ExportPickedList({ draftId, cards, seatIndex }: Props) {
       <Button
         type="button"
         onClick={() => setOpen(true)}
-        variant="link"
+        variant="primary"
         aria-haspopup="dialog"
         aria-controls={open ? `export-modal-${seatIndex ?? "x"}` : undefined}
       >

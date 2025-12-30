@@ -139,8 +139,9 @@ src/components/ui/
 - Use Tailwind CSS for styling with the existing dark/light mode classes
 - Implement proper error handling with user-friendly messages
 - Use React Server Components where appropriate (default in App Router)
+- **CRITICAL: Always run `yarn typecheck` to verify TypeScript types are correct**
 - **Always run `yarn lint` after implementation and ensure it passes without errors**
-- Fix all linting issues before considering the implementation complete
+- Fix all linting and type errors before considering the implementation complete
 
 ### Database
 
@@ -182,10 +183,16 @@ yarn check
 
 ### Quality Requirements
 
+- **CRITICAL: All TypeScript type errors must be fixed** - `yarn typecheck` must pass without errors
 - **All lint errors must be fixed** - `yarn lint` must pass with zero errors
 - Type checking must pass without TypeScript errors
 - Code formatting should follow Prettier standards
 - Run `yarn check` to verify all quality checks pass at once
+
+**MANDATORY CHECK SEQUENCE:**
+1. `yarn typecheck` - MUST pass before proceeding
+2. `yarn lint` - MUST pass before completion
+3. `yarn format:check` - Verify formatting compliance
 
 ## Deployment
 
@@ -218,5 +225,6 @@ Standard CSV export from CubeCobra platform.
 4. Test thoroughly with both input formats
 5. Ensure proper error handling for user interactions
 6. Maintain responsive design with Tailwind CSS
-7. **Run `yarn lint` and ensure it passes before completing any implementation**
-8. Verify all quality checks pass with `yarn check`
+7. **MANDATORY: Run `yarn typecheck` and ensure it passes without errors**
+8. **Run `yarn lint` and ensure it passes before completing any implementation**
+9. Verify all quality checks pass with `yarn check`

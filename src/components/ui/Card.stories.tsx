@@ -97,7 +97,7 @@ export const WithActions: Story = {
       <div>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold">Card with Actions</h3>
-          <Button variant="link" size="sm">
+          <Button variant="danger" size="sm">
             Edit
           </Button>
         </div>

@@ -2,7 +2,7 @@
 
 import React from "react";
 
-type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "link" | "danger";
+type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -20,7 +20,6 @@ const buttonVariants: Record<ButtonVariant, string> = {
     "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300",
   ghost:
     "border-black/20 dark:border-white/20 hover:bg-foreground hover:text-background disabled:opacity-60",
-  link: "text-sm underline bg-transparent border-none hover:opacity-80 disabled:opacity-60",
   danger:
     "text-sm underline text-red-600 bg-transparent border-none hover:opacity-80 disabled:opacity-60",
 };
@@ -45,9 +44,9 @@ export default function Button({
   const variantClasses = buttonVariants[variant];
   const sizeClasses = buttonSizes[size];
 
-  // For link and danger variants, remove border and padding adjustments
-  const isLinkVariant = variant === "link" || variant === "danger";
-  const finalClasses = isLinkVariant
+  // For danger variant, remove border and padding adjustments
+  const isDangerVariant = variant === "danger";
+  const finalClasses = isDangerVariant
     ? `${variantClasses} ${className}`.trim()
     : `${baseClasses} ${variantClasses} ${sizeClasses} ${className}`.trim();
 
