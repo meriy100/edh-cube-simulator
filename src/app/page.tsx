@@ -5,6 +5,8 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import PoolList from "@/components/pools/PoolList";
 import { fetchPools } from "@/repository/pools";
 
+export const dynamic = "force-dynamic";
+
 const Home = () => {
   const poolsPromise = fetchPools();
 
