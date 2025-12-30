@@ -136,7 +136,7 @@ src/components/ui/
 ### Code Standards
 
 - Use TypeScript for all new files
-- Follow the existing pattern of "use client" for client components
+- **Define functions using arrow function syntax** - Use `const ComponentName = () => {}` instead of `function ComponentName() {}`
 - Use Tailwind CSS for styling with the existing dark/light mode classes
 - **Always add `cursor: pointer` to clickable UI elements** - Use `cursor-pointer` class for interactive elements (buttons, clickable areas, etc.) and `cursor-not-allowed` for disabled states
 - Implement proper error handling with user-friendly messages

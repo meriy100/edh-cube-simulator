@@ -136,7 +136,7 @@ src/components/ui/
 ### コード規約
 
 - すべての新しいファイルでTypeScriptを使用
-- クライアントコンポーネントには既存パターンの"use client"を使用
+- **関数定義にはアロー関数構文を使用する** - `function ComponentName() {}` ではなく `const ComponentName = () => {}` を使用する
 - スタイリングには既存のダーク/ライトモードクラスでTailwind CSSを使用
 - **クリック可能なUI要素には必ず `cursor: pointer` を追加する** - インタラクティブな要素（ボタン、クリック可能な領域など）には `cursor-pointer` クラスを使用し、無効状態には `cursor-not-allowed` を使用する
 - ユーザーフレンドリーなメッセージで適切なエラーハンドリングを実装
