@@ -9,6 +9,7 @@ function initializeFirebaseAdmin() {
         // 1. WIF の設定情報を定義（Terraform で作成した値を使用）
         const wifConfig = {
           type: "external_account",
+          project_id: process.env.GCP_PROJECT_ID,
           audience: `//iam.googleapis.com/projects/${process.env.GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/${process.env.GCP_WIP_ID}/providers/${process.env.GCP_WIP_PROVIDER_ID}`,
           subject_token_type: "urn:ietf:params:oauth:token-type:jwt",
           token_url: "https://sts.googleapis.com/v1/token",
