@@ -1,12 +1,11 @@
 import NextAuth from "next-auth";
 import { after, NextRequest, NextResponse } from "next/server";
 import { config } from "@/lib/auth";
-import z, { ZodType } from "zod";
-import { createPool } from "@/repository/pools";
+import z from "zod";
+import { createPool, updatePoolStatus } from "@/repository/pools";
 import { newPool } from "@/domain/entity/pool";
 import Papa from "papaparse";
 import { createCards } from "@/repository/cards";
-import { Card } from "@/domain/entity/card";
 import { createPoolXCards } from "@/repository/poolXCards";
 import { PoolXCard } from "@/domain/entity/poolXCard";
 
@@ -51,14 +50,12 @@ const csvSchema = z.preprocess((rawCsv) => {
 
 export const POST = async (req: NextRequest) => {
   try {
-    // Check authentication
     const session = await auth();
 
     if (!session || !session.user) {
       return NextResponse.json({ error: "Authentication required" }, { status: 403 });
     }
 
-    // Get form data
     const formData = await req.formData();
     const csvFile = formData.get("csv") as File;
 
@@ -66,7 +63,6 @@ export const POST = async (req: NextRequest) => {
       return NextResponse.json({ error: "CSV file is required" }, { status: 400 });
     }
 
-    // Validate file type
     if (!csvFile.name.endsWith(".csv") && csvFile.type !== "text/csv") {
       return NextResponse.json(
         { error: "Invalid file type. Please upload a CSV file." },
@@ -74,7 +70,6 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    // Read CSV content
     const csvContent = await csvFile.text();
 
     if (!csvContent.trim()) {
@@ -107,22 +102,33 @@ export const POST = async (req: NextRequest) => {
 
     const pool = newPool({ count: parsedRows.data.length });
     after(async () => {
-      await createPool(pool);
+      try {
+        await createPool(pool);
 
-      await createPoolXCards(
-        pool.id,
-        parsedRows.data.map(
-          (d): PoolXCard => ({
-            name: d.name,
-            cmc: d.cmc,
-            type: d.type,
-            imageUrl: d.imageUrl,
-            imageBackUrl: d.imageBackUrl,
-            commander: d.tags.includes("0-commander"),
-            tags: d.tags,
-          }),
-        ),
-      );
+        await createPoolXCards(
+          pool.id,
+          parsedRows.data.map(
+            (d): PoolXCard => ({
+              name: d.name,
+              cmc: d.cmc,
+              type: d.type,
+              imageUrl: d.imageUrl,
+              imageBackUrl: d.imageBackUrl,
+              commander: d.tags.includes("0-commander"),
+              tags: d.tags,
+            }),
+          ),
+        );
+
+        await updatePoolStatus(pool.id, "ready");
+      } catch (error) {
+        console.error("Error in background pool processing:", error);
+        await updatePoolStatus(
+          pool.id,
+          "error",
+          error instanceof Error ? error.message : "Unknown error occurred",
+        );
+      }
     });
 
     return NextResponse.json({
