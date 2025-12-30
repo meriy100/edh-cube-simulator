@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import Link from "./Link";
+import Link from "./Link.client";
 
 const meta: Meta<typeof Link> = {
   title: "UI/Link",

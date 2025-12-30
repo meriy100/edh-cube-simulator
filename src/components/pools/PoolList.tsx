@@ -1,4 +1,4 @@
-import ListItem from "@/components/ui/ListItem";
+import ListItem from "@/components/ui/ListItem.client";
 import { Pool } from "@/domain/entity/pool";
 
 interface Props {
@@ -7,9 +7,9 @@ interface Props {
 
 const PoolsList = ({ pools }: Props) => {
   return (
-    <div>
+    <div className="flex flex-col gap-2">
       {pools.map((p) => (
-        <ListItem key={p.id} title={p.version} />
+        <ListItem key={p.id} title={p.version} subtitle={p.createdAt.toLocaleDateString()} />
       ))}
     </div>
   );

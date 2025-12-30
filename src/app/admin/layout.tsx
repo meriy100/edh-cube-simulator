@@ -3,7 +3,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { ReactNode, Suspense, useEffect } from "react";
-import Link from "@/components/ui/Link";
+import Link from "@/components/ui/Link.client";
 
 interface AdminLayoutProps {
   children: ReactNode;

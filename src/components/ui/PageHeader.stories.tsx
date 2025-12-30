@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import PageHeader from "./PageHeader";
-import BackLink from "./BackLink";
-import Button from "./Button";
+import BackLink from "./BackLink.client";
+import Button from "./Button.client";
 
 const meta: Meta<typeof PageHeader> = {
   title: "UI/PageHeader",

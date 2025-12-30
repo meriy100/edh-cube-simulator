@@ -136,8 +136,10 @@ src/components/ui/
 ### コード規約
 
 - すべての新しいファイルでTypeScriptを使用
-- クライアントコンポーネントには既存パターンの"use client"を使用
+- **関数定義にはアロー関数構文を使用する** - `function ComponentName() {}` ではなく `const ComponentName = () => {}` を使用する
+- **クライアントコンポーネントの命名規約** - `'use client'` ディレクティブが必要なコンポーネントには `.client.tsx` 拡張子を使用してサーバーコンポーネントと区別する（例：`Button.client.tsx`、`Modal.client.tsx`）
 - スタイリングには既存のダーク/ライトモードクラスでTailwind CSSを使用
+- **クリック可能なUI要素には必ず `cursor: pointer` を追加する** - インタラクティブな要素（ボタン、クリック可能な領域など）には `cursor-pointer` クラスを使用し、無効状態には `cursor-not-allowed` を使用する
 - ユーザーフレンドリーなメッセージで適切なエラーハンドリングを実装
 - 適切な場所でReact Server Componentsを使用（App Routerでのデフォルト）
 - **重要: TypeScript の型が正しいことを確認するため、必ず `yarn typecheck` を実行する**

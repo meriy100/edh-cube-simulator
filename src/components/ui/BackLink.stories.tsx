@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import BackLink from "./BackLink";
+import BackLink from "./BackLink.client";
 
 // Mock Next.js router for Storybook
 const mockRouter = {

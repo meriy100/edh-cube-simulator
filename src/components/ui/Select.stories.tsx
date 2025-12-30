@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { fn } from "storybook/test";
-import Select from "./Select";
+import Select from "./Select.client";
 
 const sampleOptions = [
   { value: "option1", label: "Option 1" },

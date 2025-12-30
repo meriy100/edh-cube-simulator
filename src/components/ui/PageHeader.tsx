@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 
 interface PageHeaderProps {
@@ -15,7 +13,7 @@ export default function PageHeader({
   subtitle,
   backElement,
   actions,
-  className = ""
+  className = "",
 }: PageHeaderProps) {
   return (
     <div className={`flex items-center gap-3 mb-6 ${className}`.trim()}>

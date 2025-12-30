@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import Button from "./Button";
-import TagBadge from "./TagBadge";
+import Button from "./Button.client";
+import TagBadge from "./TagBadge.client";
 
 interface TagInputProps {
   selectedTags: string[];

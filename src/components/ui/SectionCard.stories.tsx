@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import SectionCard from "./SectionCard";
-import Button from "./Button";
-import ListItem from "./ListItem";
-import TagInput from "./TagInput";
+import Button from "./Button.client";
+import ListItem from "./ListItem.client";
+import TagInput from "./TagInput.client";
 import { useState } from "react";
 
 const meta: Meta<typeof SectionCard> = {

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import ListItem from "./ListItem";
-import Button from "./Button";
+import ListItem from "./ListItem.client";
+import Button from "./Button.client";
 
 const meta: Meta<typeof ListItem> = {
   title: "UI/ListItem",

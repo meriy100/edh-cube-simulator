@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import Card from "./Card";
-import Button from "./Button";
+import Card from "./Card.client";
+import Button from "./Button.client";
 
 const meta: Meta<typeof Card> = {
   title: "UI/Card",

@@ -1,24 +1,26 @@
-"use client";
+import { ReactNode } from "react";
 
-import React from "react";
-
-interface SectionCardProps {
+interface Props {
   title: string;
   subtitle?: string;
-  actions?: React.ReactNode;
-  children: React.ReactNode;
+  actions?: ReactNode;
+  footerActions?: ReactNode;
+  children: ReactNode;
   className?: string;
 }
 
-export default function SectionCard({
+const SectionCard = ({
   title,
   subtitle,
   actions,
+  footerActions,
   children,
-  className = ""
-}: SectionCardProps) {
+  className = "",
+}: Props) => {
   return (
-    <section className={`border border-black/10 dark:border-white/15 rounded p-3 ${className}`.trim()}>
+    <section
+      className={`border border-black/10 dark:border-white/15 rounded p-3 ${className}`.trim()}
+    >
       <div className="flex items-center mb-3">
         <div className="flex-1">
           <h2 className="text-lg font-semibold">{title}</h2>
@@ -26,7 +28,12 @@ export default function SectionCard({
         </div>
         {actions && <div className="ml-auto">{actions}</div>}
       </div>
-      <div>{children}</div>
+      <div className="flex flex-col gap-2">
+        {children}
+        {footerActions && <div className="flex justify-end">{footerActions}</div>}
+      </div>
     </section>
   );
-}
+};
+
+export default SectionCard;

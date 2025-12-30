@@ -136,8 +136,10 @@ src/components/ui/
 ### Code Standards
 
 - Use TypeScript for all new files
-- Follow the existing pattern of "use client" for client components
+- **Define functions using arrow function syntax** - Use `const ComponentName = () => {}` instead of `function ComponentName() {}`
+- **Client Component Naming Convention** - Use `.client.tsx` extension for components that require `'use client'` directive to distinguish them from Server Components (e.g., `Button.client.tsx`, `Modal.client.tsx`)
 - Use Tailwind CSS for styling with the existing dark/light mode classes
+- **Always add `cursor: pointer` to clickable UI elements** - Use `cursor-pointer` class for interactive elements (buttons, clickable areas, etc.) and `cursor-not-allowed` for disabled states
 - Implement proper error handling with user-friendly messages
 - Use React Server Components where appropriate (default in App Router)
 - **CRITICAL: Always run `yarn typecheck` to verify TypeScript types are correct**
