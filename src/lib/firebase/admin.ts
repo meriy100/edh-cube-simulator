@@ -9,7 +9,6 @@ function initializeFirebaseAdmin() {
         // 1. WIF の設定情報を定義（Terraform で作成した値を使用）
         const wifConfig = {
           type: "external_account",
-          project_id: process.env.GCP_PROJECT_ID,
           audience: `//iam.googleapis.com/projects/${process.env.GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/${process.env.GCP_WIP_ID}/providers/${process.env.GCP_WIP_PROVIDER_ID}`,
           subject_token_type: "urn:ietf:params:oauth:token-type:jwt",
           token_url: "https://sts.googleapis.com/v1/token",
@@ -33,7 +32,15 @@ function initializeFirebaseAdmin() {
         // 3. Firebase Admin SDK の初期化
         if (getApps().length === 0) {
           initializeApp({
-            credential: cert(authClient as never),
+            credential: {
+              getAccessToken: async () => {
+                const res = await authClient.getAccessToken();
+                return {
+                  access_token: res.token!,
+                  expires_in: res.res?.data.expires_in || 3600, // デフォルト1時間
+                };
+              },
+            },
             projectId: process.env.GCP_PROJECT_ID,
           });
         }
