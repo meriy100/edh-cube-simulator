@@ -7,9 +7,9 @@ interface Props {
 
 const PoolsList = ({ pools }: Props) => {
   return (
-    <div>
+    <div className="flex flex-col gap-2">
       {pools.map((p) => (
-        <ListItem key={p.id} title={p.version} />
+        <ListItem key={p.id} title={p.version} subtitle={p.createdAt.toLocaleDateString()} />
       ))}
     </div>
   );

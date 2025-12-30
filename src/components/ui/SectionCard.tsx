@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 
 interface SectionCardProps {
@@ -15,10 +13,12 @@ export default function SectionCard({
   subtitle,
   actions,
   children,
-  className = ""
+  className = "",
 }: SectionCardProps) {
   return (
-    <section className={`border border-black/10 dark:border-white/15 rounded p-3 ${className}`.trim()}>
+    <section
+      className={`border border-black/10 dark:border-white/15 rounded p-3 ${className}`.trim()}
+    >
       <div className="flex items-center mb-3">
         <div className="flex-1">
           <h2 className="text-lg font-semibold">{title}</h2>
