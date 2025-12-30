@@ -138,6 +138,7 @@ src/components/ui/
 - すべての新しいファイルでTypeScriptを使用
 - クライアントコンポーネントには既存パターンの"use client"を使用
 - スタイリングには既存のダーク/ライトモードクラスでTailwind CSSを使用
+- **クリック可能なUI要素には必ず `cursor: pointer` を追加する** - インタラクティブな要素（ボタン、クリック可能な領域など）には `cursor-pointer` クラスを使用し、無効状態には `cursor-not-allowed` を使用する
 - ユーザーフレンドリーなメッセージで適切なエラーハンドリングを実装
 - 適切な場所でReact Server Componentsを使用（App Routerでのデフォルト）
 - **重要: TypeScript の型が正しいことを確認するため、必ず `yarn typecheck` を実行する**
