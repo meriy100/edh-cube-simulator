@@ -1,4 +1,4 @@
-import ListItem from "@/components/ui/ListItem";
+import ListItem from "@/components/ui/ListItem.client";
 import { Pool } from "@/domain/entity/pool";
 
 interface Props {

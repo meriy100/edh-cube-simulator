@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { useState } from "react";
-import Modal from "./Modal";
-import Button from "./Button";
+import Modal from "./Modal.client";
+import Button from "./Button.client";
 
 const meta: Meta<typeof Modal> = {
   title: "UI/Modal",

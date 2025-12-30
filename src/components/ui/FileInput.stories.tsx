@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { fn } from "storybook/test";
-import FileInput from "./FileInput";
+import FileInput from "./FileInput.client";
 
 const meta: Meta<typeof FileInput> = {
   title: "UI/FileInput",

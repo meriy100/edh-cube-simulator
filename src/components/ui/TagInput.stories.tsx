@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { useState } from "react";
-import TagInput from "./TagInput";
+import TagInput from "./TagInput.client";
 
 const meta: Meta<typeof TagInput> = {
   title: "UI/TagInput",

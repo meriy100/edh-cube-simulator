@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import ActionCard from "./ActionCard";
+import ActionCard from "./ActionCard.client";
 
 // Sample icons for stories
 const PoolIcon = () => (

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { fn } from "storybook/test";
-import Alert from "./Alert";
+import Alert from "./Alert.client";
 
 const meta: Meta<typeof Alert> = {
   title: "UI/Alert",

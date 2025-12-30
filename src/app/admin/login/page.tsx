@@ -3,11 +3,11 @@
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import Alert from "@/components/ui/Alert";
-import Button from "@/components/ui/Button";
-import BackLink from "@/components/ui/BackLink";
-import Card from "@/components/ui/Card";
+import LoadingSpinner from "@/components/ui/LoadingSpinner.client";
+import Alert from "@/components/ui/Alert.client";
+import Button from "@/components/ui/Button.client";
+import BackLink from "@/components/ui/BackLink.client";
+import Card from "@/components/ui/Card.client";
 
 export default function AdminLoginPage() {
   const { data: session, status } = useSession();

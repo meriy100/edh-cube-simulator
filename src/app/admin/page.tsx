@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import StatCard from "@/components/ui/StatCard";
-import ActionCard from "@/components/ui/ActionCard";
+import StatCard from "@/components/ui/StatCard.client";
+import ActionCard from "@/components/ui/ActionCard.client";
 import PageHeader from "@/components/ui/PageHeader";
 
 export default function AdminDashboard() {

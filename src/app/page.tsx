@@ -1,7 +1,7 @@
 import PageHeader from "@/components/ui/PageHeader";
 import { Suspense, use } from "react";
 import { Pool } from "@/domain/entity/pool";
-import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import LoadingSpinner from "@/components/ui/LoadingSpinner.client";
 import PoolList from "@/components/pools/PoolList";
 import { fetchPools } from "@/repository/pools";
 
