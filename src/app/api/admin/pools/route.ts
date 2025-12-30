@@ -1,34 +1,27 @@
 import NextAuth from "next-auth";
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { config } from "@/lib/auth";
-import z from "zod";
+import z, { ZodType } from "zod";
 import { createPool } from "@/repository/pools";
-import { ulid } from "ulid";
-import { newPool, PoolId } from "@/domain/entity/pool";
+import { newPool } from "@/domain/entity/pool";
 import Papa from "papaparse";
+import { createCards } from "@/repository/cards";
+import { Card } from "@/domain/entity/card";
+import { createPoolXCards } from "@/repository/poolXCards";
+import { PoolXCard } from "@/domain/entity/poolXCard";
 
 const { auth } = NextAuth(config);
 
-const csvStringSchema = z.preprocess((arg) => {
-  if (typeof arg === "string") {
-    if (arg.startsWith('"') && arg.endsWith('"')) {
-      return arg.slice(1, -1);
-    }
-  }
-  return arg;
-}, z.string());
-
-const tagSchema = csvStringSchema.transform((v) => v.split(";").map((tag) => tag.trim()));
+const tagSchema = z.string().transform((v) => v.split(";").map((tag) => tag.trim()));
 
 const rowSchema = z.object({
-  name: csvStringSchema,
+  name: z.string(),
   cmc: z.coerce.number().int(),
-  type: csvStringSchema,
-  set: csvStringSchema,
-  colorIdentity: csvStringSchema,
-  imageUrl: csvStringSchema,
-  imageBackUrl: csvStringSchema.optional(),
-  tags: tagSchema.optional(),
+  type: z.string(),
+  set: z.string(),
+  imageUrl: z.string(),
+  imageBackUrl: z.string().optional(),
+  tags: tagSchema,
 });
 
 const csvRowParser = z.preprocess((data) => {
@@ -39,12 +32,22 @@ const csvRowParser = z.preprocess((data) => {
     cmc: data[1],
     type: data[2],
     set: data[4],
-    colorIdentity: data[7],
     imageUrl: data[11],
     imageBackUrl: data[12],
     tags: data[13],
   };
 }, rowSchema);
+
+const csvSchema = z.preprocess((rawCsv) => {
+  if (typeof rawCsv !== "string") return rawCsv;
+
+  const csvParseResults = Papa.parse<string[]>(rawCsv, {
+    header: false,
+    skipEmptyLines: true,
+  });
+
+  return csvParseResults.data.filter((row) => row[10] === "false");
+}, z.array(csvRowParser));
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -77,23 +80,7 @@ export const POST = async (req: NextRequest) => {
     if (!csvContent.trim()) {
       return NextResponse.json({ error: "CSV file is empty" }, { status: 400 });
     }
-    const csvParseResults = Papa.parse<string[]>(csvContent, {
-      header: false,
-      skipEmptyLines: true,
-    });
-    if (!csvParseResults.data) {
-      return NextResponse.json(
-        {
-          error: "Invalid CSV format. Please check the CSV file and try again.",
-          details: csvParseResults.errors,
-        },
-        { status: 400 },
-      );
-    }
-
-    const filteredMainboard = csvParseResults.data.filter((row) => row[10] === "false");
-
-    const parsedRows = z.array(csvRowParser).safeParse(filteredMainboard);
+    const parsedRows = csvSchema.safeParse(csvContent);
 
     if (!parsedRows.success) {
       console.error("Invalid CSV format:", parsedRows.error);
@@ -101,19 +88,47 @@ export const POST = async (req: NextRequest) => {
         {
           error: "Invalid CSV format. Please check the CSV file and try again.",
           details: parsedRows.error.issues,
-          rowCsv: filteredMainboard,
+          rawCsv: csvContent,
         },
         { status: 400 },
       );
     }
 
-    await createPool(newPool({ count: parsedRows.data.length }));
+    await createCards(
+      parsedRows.data.map((d) => ({
+        name: d.name,
+        cmc: d.cmc,
+        type: d.type,
+        set: d.set,
+        imageUrl: d.imageUrl,
+        imageBackUrl: d.imageBackUrl,
+      })),
+    );
 
-    // For now, return success with file info
+    const pool = newPool({ count: parsedRows.data.length });
+    after(async () => {
+      await createPool(pool);
+
+      await createPoolXCards(
+        pool.id,
+        parsedRows.data.map(
+          (d): PoolXCard => ({
+            name: d.name,
+            cmc: d.cmc,
+            type: d.type,
+            imageUrl: d.imageUrl,
+            imageBackUrl: d.imageBackUrl,
+            commander: d.tags.includes("0-commander"),
+            tags: d.tags,
+          }),
+        ),
+      );
+    });
+
     return NextResponse.json({
       message: "CSV file uploaded successfully",
       fileInfo: parsedRows.data,
-      rowCsv: filteredMainboard,
+      rawCsv: csvContent,
       uploadedBy: session.user.email,
     });
   } catch (error) {

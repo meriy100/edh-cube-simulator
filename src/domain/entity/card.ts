@@ -5,8 +5,7 @@ export interface Card {
   cmc: number;
   type: string;
   set: string;
-  colorIdentity: Color[];
+  colorIdentity?: Color[];
   imageUrl: string;
   imageBackUrl?: string;
-  tags: string[];
 }

@@ -1,7 +1,7 @@
 import { ulid } from "ulid";
 
 declare const poolIdCommonality: unique symbol;
-type PoolId = string & { [poolIdCommonality]: never };
+export type PoolId = string & { [poolIdCommonality]: never };
 
 export const PoolId = (id: string): PoolId => id as PoolId;
 
