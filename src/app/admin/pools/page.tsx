@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "@/components/ui/Link";
 
 interface Pool {
   id: string;
@@ -305,24 +306,25 @@ export default function AdminPoolsPage() {
                     {new Date(pool.createdAt).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 text-sm font-medium space-x-2">
-                    <button
-                      onClick={() => router.push(`/pools/${pool.id}`)}
-                      className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
+                    <Link
+                      variant="action-blue"
+                      href={`/pools/${pool.id}`}
                     >
                       表示
-                    </button>
-                    <button
-                      onClick={() => router.push(`/pools/${pool.id}/combos`)}
-                      className="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300"
+                    </Link>
+                    <Link
+                      variant="action-green"
+                      href={`/pools/${pool.id}/combos`}
                     >
                       コンボ
-                    </button>
-                    <button
+                    </Link>
+                    <Link
+                      variant="action-red"
+                      href="#"
                       onClick={() => handleDeletePool(pool.id)}
-                      className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
                     >
                       削除
-                    </button>
+                    </Link>
                   </td>
                 </tr>
               ))}

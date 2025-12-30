@@ -3,6 +3,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { ReactNode, Suspense, useEffect } from "react";
+import Link from "@/components/ui/Link";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -69,24 +70,24 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
             {/* Navigation */}
             <nav className="hidden md:flex space-x-8">
-              <button
-                onClick={() => router.push("/admin")}
-                className="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              <Link
+                variant="nav"
+                href="/admin"
               >
                 ダッシュボード
-              </button>
-              <button
-                onClick={() => router.push("/admin/pools")}
-                className="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              </Link>
+              <Link
+                variant="nav"
+                href="/admin/pools"
               >
                 Pool管理
-              </button>
-              <button
-                onClick={() => router.push("/")}
-                className="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              </Link>
+              <Link
+                variant="nav"
+                href="/"
               >
                 メインサイト
-              </button>
+              </Link>
             </nav>
 
             {/* User Menu */}
@@ -104,12 +105,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <p className="text-gray-500 dark:text-gray-400">{session.user.email}</p>
                 </div>
               </div>
-              <button
+              <Link
+                variant="outlined"
+                href="#"
                 onClick={handleLogout}
-                className="text-sm text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md font-medium transition-colors border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
               >
                 ログアウト
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -118,24 +120,24 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="md:hidden border-t dark:border-gray-700">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex space-x-1 py-3">
-              <button
-                onClick={() => router.push("/admin")}
-                className="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              <Link
+                variant="nav"
+                href="/admin"
               >
                 ダッシュボード
-              </button>
-              <button
-                onClick={() => router.push("/admin/pools")}
-                className="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              </Link>
+              <Link
+                variant="nav"
+                href="/admin/pools"
               >
                 Pool管理
-              </button>
-              <button
-                onClick={() => router.push("/")}
-                className="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              </Link>
+              <Link
+                variant="nav"
+                href="/"
               >
                 メインサイト
-              </button>
+              </Link>
             </div>
           </div>
         </div>
