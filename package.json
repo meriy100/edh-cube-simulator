@@ -22,7 +22,8 @@
     "next": "15.4.10",
     "next-auth": "^5.0.0-beta.30",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.1.3",

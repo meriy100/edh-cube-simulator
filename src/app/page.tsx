@@ -1,16 +1,26 @@
-"use client";
-
 import PageHeader from "@/components/ui/PageHeader";
-import { useEffect } from "react";
+import { Suspense, use } from "react";
+import { Pool } from "@/domain/entity/pool";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import PoolList from "@/components/pools/PoolList";
+import { fetchPools } from "@/repository/pools";
 
-export default function Home() {
-  useEffect(() => {
-    fetch("/api/pools");
-  }, []);
+const Home = () => {
+  const poolsPromise = fetchPools();
 
   return (
     <div className="min-h-screen p-6 sm:p-10">
-      <PageHeader title="EDH Cube Draft Simulator" />
+      <PageHeader title="EDH Cube Discover" />
+      <Suspense fallback={<LoadingSpinner size="md" />}>
+        <PoolsListContainer poolsPromise={poolsPromise} />
+      </Suspense>
     </div>
   );
-}
+};
+
+export default Home;
+
+const PoolsListContainer = ({ poolsPromise }: { poolsPromise: Promise<Pool[]> }) => {
+  const pools = use(poolsPromise);
+  return <PoolList pools={pools} />;
+};
