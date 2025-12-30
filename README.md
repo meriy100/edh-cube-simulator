@@ -37,22 +37,15 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ---
 
-## Database (Prisma + Vercel Postgres)
+## Database (Firestore)
 
-This project saves parsed card entries from the top page to a Postgres database via Prisma.
+This project saves parsed card entries from the top page to Google Cloud Firestore.
 
-1. Set DATABASE_URL in your environment (already present in .env.development.local for local dev).
-2. Create the database tables from the Prisma schema:
+1. Set Firebase configuration in your environment variables (.env.development.local for local dev).
+2. Ensure your Firebase project is set up with Firestore enabled.
+3. Configure authentication (service account for development, Workload Identity for production).
 
-```bash
-npm run prisma:push
-# or
-yarn prisma:push
-```
-
-This will create the Card table defined in prisma/schema.prisma.
-
-On submit, the app calls POST /api/cards and performs a bulk insert (createMany) for all parsed entries.
+On submit, the app calls POST /api/cards and performs batch operations to save all parsed entries to Firestore collections.
 
 ## Code Formatting (Prettier)
 

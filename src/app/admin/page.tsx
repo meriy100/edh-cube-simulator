@@ -1,99 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import Alert from "@/components/ui/Alert";
 import StatCard from "@/components/ui/StatCard";
 import ActionCard from "@/components/ui/ActionCard";
 import PageHeader from "@/components/ui/PageHeader";
 
-interface SystemStats {
-  pools: {
-    total: number;
-    recentCount: number;
-  };
-  drafts: {
-    total: number;
-    recentCount: number;
-  };
-  cards: {
-    total: number;
-  };
-}
-
 export default function AdminDashboard() {
   const router = useRouter();
-  const [stats, setStats] = useState<SystemStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setLoading(true);
-
-        // Fetch pools data
-        const poolsResponse = await fetch("/api/pools");
-        const poolsData = await poolsResponse.json();
-
-        // Fetch drafts data
-        const draftsResponse = await fetch("/api/drafts");
-        const draftsData = await draftsResponse.json();
-
-        // Fetch cards data
-        const cardsResponse = await fetch("/api/cards");
-        const cardsData = await cardsResponse.json();
-
-        // Calculate recent counts (last 7 days)
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-
-        const recentPools =
-          poolsData.pools?.filter(
-            (pool: { createdAt: string }) => new Date(pool.createdAt) >= oneWeekAgo,
-          ) || [];
-
-        const recentDrafts =
-          draftsData.drafts?.filter(
-            (draft: { createdAt: string }) => new Date(draft.createdAt) >= oneWeekAgo,
-          ) || [];
-
-        setStats({
-          pools: {
-            total: poolsData.pools?.length || 0,
-            recentCount: recentPools.length,
-          },
-          drafts: {
-            total: draftsData.drafts?.length || 0,
-            recentCount: recentDrafts.length,
-          },
-          cards: {
-            total: cardsData.cards?.length || 0,
-          },
-        });
-      } catch (err) {
-        console.error("Failed to fetch stats:", err);
-        setError("統計情報の取得に失敗しました");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <LoadingSpinner text="読み込み中..." />
-      </div>
-    );
-  }
-
-  if (error) {
-    return <Alert variant="error">{error}</Alert>;
-  }
 
   return (
     <div className="space-y-6">
@@ -108,16 +21,11 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
           title="Pools"
-          value={stats?.pools.total || 0}
-          subtitle={`過去7日間: ${stats?.pools.recentCount || 0}個`}
+          value={0}
+          subtitle={`過去7日間: ${0}個`}
           color="blue"
           icon={
-            <svg
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              className="w-full h-full"
-            >
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-full h-full">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -129,39 +37,12 @@ export default function AdminDashboard() {
         />
 
         <StatCard
-          title="Drafts"
-          value={stats?.drafts.total || 0}
-          subtitle={`過去7日間: ${stats?.drafts.recentCount || 0}個`}
-          color="green"
-          icon={
-            <svg
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              className="w-full h-full"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
-          }
-        />
-
-        <StatCard
           title="Cards"
-          value={stats?.cards.total || 0}
+          value={0}
           subtitle="ユニークカード数"
           color="purple"
           icon={
-            <svg
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              className="w-full h-full"
-            >
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-full h-full">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -212,10 +93,6 @@ export default function AdminDashboard() {
           <div className="flex justify-between items-center py-2 border-b dark:border-gray-700">
             <span className="text-sm font-medium text-gray-900 dark:text-white">認証方式</span>
             <span className="text-sm text-gray-500 dark:text-gray-400">Google OAuth 2.0</span>
-          </div>
-          <div className="flex justify-between items-center py-2">
-            <span className="text-sm font-medium text-gray-900 dark:text-white">データベース</span>
-            <span className="text-sm text-gray-500 dark:text-gray-400">PostgreSQL (Prisma)</span>
           </div>
         </div>
       </div>

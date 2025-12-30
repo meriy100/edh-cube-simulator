@@ -6,7 +6,7 @@
 
 - **フレームワーク**: Next.js 15.4.10 with App Router
 - **フロントエンド**: React 19.1.0、TypeScript、Tailwind CSS 4
-- **データベース**: Prisma ORM with PostgreSQL
+- **データベース**: Google Cloud Firestore
 - **認証**: NextAuth with Google OAuth
 - **パッケージマネージャー**: yarn 4.6.0
 - **Nodeバージョン**: 22.18.0（Voltaで管理）
@@ -27,11 +27,8 @@ yarn dev
 # プロジェクトのビルド
 yarn build
 
-# データベースマイグレーション実行
-yarn prisma:push
-
-# Prismaクライアント生成
-yarn prisma:generate
+# Firebase操作（追加のコマンドは不要）
+# Firebase設定は設定ファイルを通じて処理されます
 
 # コードフォーマット
 yarn format
@@ -42,9 +39,10 @@ yarn check
 
 ### 環境設定
 
-1. 環境変数でDATABASE_URLを設定
+1. Firebase環境変数を設定（Firebase設定セクションを参照）
 2. NextAuth用のGoogle OAuthクレデンシャルを設定
-3. `yarn prisma:push`を実行してデータベーステーブルを作成
+3. Firestoreが有効なFirebaseプロジェクトを設定
+4. 開発用のサービスアカウントまたは本番用のWorkload Identityを設定
 
 ## アーキテクチャ
 
@@ -74,7 +72,10 @@ src/
 │   ├── auth.ts           # 認証ユーティリティ
 │   ├── cardImage.ts      # カード画像処理
 │   ├── cardTypes.ts      # 型定義
-│   └── prisma.ts         # Prismaクライアント
+│   └── firebase/         # Firebase設定とユーティリティ
+│       ├── config.ts     # Firebaseクライアント設定
+│       ├── admin.ts      # Firebase管理SDK
+│       └── types.ts      # Firestore型定義
 └── middleware.ts         # Next.jsミドルウェア
 ```
 
@@ -145,10 +146,11 @@ src/components/ui/
 
 ### データベース
 
-- データベース操作にはPrismaを使用
-- スキーマ変更後は`yarn prisma:generate`を実行
-- 開発環境でのデータベース更新には`yarn prisma:push`を使用
-- データベースクエリにはAPIルートの既存パターンに従う
+- データベース操作にはFirebase Firestoreを使用
+- クライアントサイド操作にはFirebaseクライアントSDKを活用
+- サーバーサイド操作にはFirebase管理SDKを使用
+- `src/lib/firebase/types.ts`で定義されたTypeScriptインターフェースに従う
+- 適切なFirestoreセキュリティルールを実装
 
 ### 認証
 
@@ -200,7 +202,8 @@ yarn check
 
 - mainブランチからの自動デプロイ
 - Vercelダッシュボードで設定された環境変数
-- Vercel Postgresでホストされたデータベース
+- Google Cloud Firestoreでホストされたデータベース
+- セキュアなGCP認証のためのWorkload Identity統合
 
 ## カードデータ形式
 

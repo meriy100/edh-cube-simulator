@@ -6,7 +6,7 @@ This is a Magic: The Gathering EDH (Elder Dragon Highlander) Cube Draft Simulato
 
 - **Framework**: Next.js 15.4.10 with App Router
 - **Frontend**: React 19.1.0, TypeScript, Tailwind CSS 4
-- **Database**: Prisma ORM with PostgreSQL
+- **Database**: Google Cloud Firestore
 - **Authentication**: NextAuth with Google OAuth
 - **Package Manager**: yarn 4.6.0
 - **Node Version**: 22.18.0 (managed by Volta)
@@ -27,11 +27,8 @@ yarn dev
 # Build project
 yarn build
 
-# Run database migrations
-yarn prisma:push
-
-# Generate Prisma client
-yarn prisma:generate
+# Firebase operations (no additional commands needed)
+# Firebase setup is handled through configuration files
 
 # Code formatting
 yarn format
@@ -42,9 +39,10 @@ yarn check
 
 ### Environment Setup
 
-1. Configure DATABASE_URL in your environment
+1. Configure Firebase environment variables (see Firebase configuration section)
 2. Set up Google OAuth credentials for NextAuth
-3. Run `yarn prisma:push` to create database tables
+3. Ensure Firebase project is set up with Firestore enabled
+4. Configure service account for development or Workload Identity for production
 
 ## Architecture
 
@@ -74,7 +72,10 @@ src/
 │   ├── auth.ts           # Authentication utilities
 │   ├── cardImage.ts      # Card image handling
 │   ├── cardTypes.ts      # Type definitions
-│   └── prisma.ts         # Prisma client
+│   └── firebase/         # Firebase configuration and utilities
+│       ├── config.ts     # Firebase client configuration
+│       ├── admin.ts      # Firebase admin SDK
+│       └── types.ts      # Firestore type definitions
 └── middleware.ts         # Next.js middleware
 ```
 
@@ -145,10 +146,11 @@ src/components/ui/
 
 ### Database
 
-- Use Prisma for database operations
-- Run `yarn prisma:generate` after schema changes
-- Use `yarn prisma:push` for development database updates
-- Follow the existing patterns in API routes for database queries
+- Use Firebase Firestore for database operations
+- Utilize Firebase client SDK for client-side operations
+- Use Firebase Admin SDK for server-side operations
+- Follow TypeScript interfaces defined in `src/lib/firebase/types.ts`
+- Implement proper Firestore security rules
 
 ### Authentication
 
@@ -200,7 +202,8 @@ The application is designed to deploy on Vercel:
 
 - Automatic deployments from main branch
 - Environment variables configured in Vercel dashboard
-- Database hosted on Vercel Postgres
+- Database hosted on Google Cloud Firestore
+- Workload Identity integration for secure GCP authentication
 
 ## Card Data Format
 
