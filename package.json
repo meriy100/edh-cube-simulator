@@ -15,6 +15,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@google-cloud/pubsub": "^5.2.0",
     "@storybook/addon-mcp": "^0.1.6",
     "@types/papaparse": "^5.5.2",
     "firebase": "^12.7.0",
