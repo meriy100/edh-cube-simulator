@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { LucideIcon } from "lucide-react";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
@@ -9,6 +10,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   children: React.ReactNode;
+  icon?: LucideIcon;
 }
 
 const buttonVariants: Record<ButtonVariant, string> = {
@@ -30,12 +32,19 @@ const buttonSizes: Record<ButtonSize, string> = {
   lg: "px-6 py-3 text-base",
 };
 
+const iconSizes: Record<ButtonSize, number> = {
+  sm: 14,
+  md: 16,
+  lg: 18,
+};
+
 export default function Button({
   variant = "primary",
   size = "md",
   className = "",
   disabled,
   children,
+  icon,
   ...props
 }: ButtonProps) {
   const baseClasses =
@@ -50,9 +59,15 @@ export default function Button({
     ? `${variantClasses} ${className}`.trim()
     : `${baseClasses} ${variantClasses} ${sizeClasses} ${className}`.trim();
 
+  const IconComponent = icon;
+  const iconSize = iconSizes[size];
+
   return (
     <button className={finalClasses} disabled={disabled} {...props}>
-      {children}
+      <div className="flex items-center justify-center gap-2">
+        {IconComponent && <IconComponent size={iconSize} />}
+        {children}
+      </div>
     </button>
   );
 }

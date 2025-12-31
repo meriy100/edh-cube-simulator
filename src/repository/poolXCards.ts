@@ -3,13 +3,11 @@ import { PoolId } from "@/domain/entity/pool";
 import adminDb from "@/lib/firebase/admin";
 import z, { ZodType } from "zod";
 import { fetchPool } from "@/repository/pools";
+import { fetchCards } from "@/repository/cards";
+import { newCardId } from "@/domain/entity/card";
 
-const poolXDecodeSchema: ZodType<PoolXCard> = z.object({
+const poolXDecodeSchema: ZodType<Omit<PoolXCard, "card">> = z.object({
   name: z.string(),
-  cmc: z.number(),
-  type: z.string(),
-  imageUrl: z.string(),
-  imageBackUrl: z.string().optional(),
   commander: z.boolean(),
   tags: z.array(z.string()),
 });
@@ -33,7 +31,16 @@ const attemptFetchPoolXCards = async (
       `Error parsing poolXCards ${result.error.issues.map((issue) => issue.message).join(", ")}`,
     );
   }
-  return result.data;
+
+  const cards = await fetchCards({ names: result.data.map((p) => p.name) });
+
+  return result.data.map((p, i) => {
+    const card = cards.find((c) => c.name === p.name);
+    if (card === undefined) {
+      throw new Error(`Card ${p.name} not found`);
+    }
+    return { ...p, card };
+  });
 };
 
 const pollForPoolXCards = async (
@@ -94,13 +101,16 @@ export const fetchPoolXCards = async (
   }
 };
 
-export const createPoolXCards = async (poolId: PoolId, poolXCards: PoolXCard[]): Promise<void> => {
+export const createPoolXCards = async (
+  poolId: PoolId,
+  poolXCards: Omit<PoolXCard, "card">[],
+): Promise<void> => {
   try {
     const db = adminDb();
     const batch = db.batch();
 
     poolXCards.forEach((poolXCard) => {
-      const docId = Buffer.from(poolXCard.name).toString("base64");
+      const docId = newCardId(poolXCard.name);
       const docRef = db.collection("pools").doc(poolId).collection("poolXCards").doc(docId);
       batch.set(docRef, poolXCard, { merge: true });
     });

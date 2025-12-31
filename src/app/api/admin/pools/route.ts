@@ -18,8 +18,9 @@ const rowSchema = z.object({
   cmc: z.coerce.number().int(),
   type: z.string(),
   set: z.string(),
-  imageUrl: z.string(),
-  imageBackUrl: z.string().optional(),
+  collectorNumber: z.string(),
+  originalImageUrl: z.string().optional(),
+  originalImageBackUrl: z.string().optional(),
   tags: tagSchema,
 });
 
@@ -31,8 +32,9 @@ const csvRowParser = z.preprocess((data) => {
     cmc: data[1],
     type: data[2],
     set: data[4],
-    imageUrl: data[11],
-    imageBackUrl: data[12],
+    collectorNumber: data[5],
+    originalImageUrl: data[11],
+    originalImageBackUrl: data[12],
     tags: data[13],
   };
 }, rowSchema);
@@ -95,8 +97,9 @@ export const POST = async (req: NextRequest) => {
         cmc: d.cmc,
         type: d.type,
         set: d.set,
-        imageUrl: d.imageUrl,
-        imageBackUrl: d.imageBackUrl,
+        collectorNumber: d.collectorNumber,
+        originalImageUrl: d.originalImageUrl,
+        originalImageBackUrl: d.originalImageBackUrl,
       })),
     );
 
@@ -108,12 +111,8 @@ export const POST = async (req: NextRequest) => {
         await createPoolXCards(
           pool.id,
           parsedRows.data.map(
-            (d): PoolXCard => ({
+            (d): Omit<PoolXCard, "card"> => ({
               name: d.name,
-              cmc: d.cmc,
-              type: d.type,
-              imageUrl: d.imageUrl,
-              imageBackUrl: d.imageBackUrl,
               commander: d.tags.includes("0-commander"),
               tags: d.tags,
             }),
