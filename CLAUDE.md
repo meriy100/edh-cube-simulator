@@ -70,8 +70,6 @@ src/
 │   └── PickedBoard.tsx
 ├── lib/                  # Utility libraries
 │   ├── auth.ts           # Authentication utilities
-│   ├── cardImage.ts      # Card image handling
-│   ├── cardTypes.ts      # Type definitions
 │   └── firebase/         # Firebase configuration and utilities
 │       ├── config.ts     # Firebase client configuration
 │       ├── admin.ts      # Firebase admin SDK

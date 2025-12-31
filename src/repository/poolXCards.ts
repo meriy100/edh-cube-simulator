@@ -4,6 +4,7 @@ import adminDb from "@/lib/firebase/admin";
 import z, { ZodType } from "zod";
 import { fetchPool } from "@/repository/pools";
 import { fetchCards } from "@/repository/cards";
+import { newCardId } from "@/domain/entity/card";
 
 const poolXDecodeSchema: ZodType<Omit<PoolXCard, "card">> = z.object({
   name: z.string(),
@@ -109,7 +110,7 @@ export const createPoolXCards = async (
     const batch = db.batch();
 
     poolXCards.forEach((poolXCard) => {
-      const docId = Buffer.from(poolXCard.name).toString("base64");
+      const docId = newCardId(poolXCard.name);
       const docRef = db.collection("pools").doc(poolId).collection("poolXCards").doc(docId);
       batch.set(docRef, poolXCard, { merge: true });
     });

@@ -1,4 +1,4 @@
-import { Card } from "@/domain/entity/card";
+import { Card, newCardId } from "@/domain/entity/card";
 import adminDb from "@/lib/firebase/admin";
 import z from "zod";
 import { chunk } from "lodash";
@@ -56,6 +56,20 @@ export const fetchCards = async (query: { names?: string[] } = {}): Promise<Card
   }
 };
 
+export const fetchCard = async (id: string): Promise<Card> => {
+  const doc = await adminDb().collection(collectionPath).doc(id).get();
+  if (!doc.exists) {
+    throw new Error(`Not Found`);
+  }
+  const result = cardDecodeSchema.safeParse(doc.data());
+  if (!result.success) {
+    throw new Error(
+      `Error parsing card ${result.error.issues.map((issue) => issue.message).join(", ")}`,
+    );
+  }
+  return result.data;
+};
+
 export const createCards = async (cards: Card[]): Promise<void> => {
   try {
     const db = adminDb();
@@ -63,7 +77,7 @@ export const createCards = async (cards: Card[]): Promise<void> => {
 
     // Add each card to the batch operation
     cards.forEach((card) => {
-      const docRef = db.collection(collectionPath).doc(Buffer.from(card.name).toString("base64"));
+      const docRef = db.collection(collectionPath).doc(newCardId(card.name));
       batch.set(docRef, card, { merge: true });
     });
 
