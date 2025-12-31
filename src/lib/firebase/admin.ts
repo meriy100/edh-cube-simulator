@@ -27,6 +27,11 @@ function initializeFirebaseAdmin() {
       initializeApp({
         credential: cert(credentialData),
       });
+
+      const adminDbInstance = getFirestore();
+      adminDbInstance.settings({
+        ignoreUndefinedProperties: true,
+      });
     } catch (error) {
       console.error("Firebase Admin initialization error:", error);
       throw error;

@@ -5,9 +5,12 @@ import z from "zod";
 import { createPool, updatePoolStatus } from "@/repository/pools";
 import { newPool } from "@/domain/entity/pool";
 import Papa from "papaparse";
-import { createCards } from "@/repository/cards";
+import { createCards, fetchCards, updateCard } from "@/repository/cards";
 import { createPoolXCards } from "@/repository/poolXCards";
 import { PoolXCard } from "@/domain/entity/poolXCard";
+import { fetchScryfall } from "@/lib/scryfall";
+import { newCardId } from "@/domain/entity/card";
+import { publishMessage } from "@/lib/pubsub";
 
 const { auth } = NextAuth(config);
 
@@ -120,6 +123,14 @@ export const POST = async (req: NextRequest) => {
         );
 
         await updatePoolStatus(pool.id, "ready");
+
+        const cards = await fetchCards({ names: parsedRows.data.map((d) => d.name) });
+        const message = {
+          cards: cards
+            .filter((c) => c.scryfall === undefined)
+            .map((card) => ({ id: newCardId(card.name), name: card.name })),
+        };
+        await publishMessage("worker-topic", message, { eventType: "attachScryfall" });
       } catch (error) {
         console.error("Error in background pool processing:", error);
         await updatePoolStatus(

@@ -140,12 +140,10 @@ export const fetchScryfall = async (cardName: string): Promise<CardResponse> => 
     const jaRes = await fetch(jaSearchUrl);
 
     if (jaRes.ok) {
-      const searchResult = await jaRes.json();
-      if (searchResult.data && searchResult.data.length > 0) {
-        // リストの先頭（最新セットなど）を日本語版データとして採用
-        const jaList = z.array(scryfallCardSchema).parse(searchResult.data);
-        jaData = findBestJapaneseCard(jaList);
-      }
+      const { data: jaList } = z
+        .object({ data: z.array(scryfallCardSchema) })
+        .parse(await jaRes.json());
+      jaData = findBestJapaneseCard(jaList);
     }
   } catch (error) {
     // ネットワークエラー等の場合。日本語版がない(404)場合は jaRes.ok が false になるだけでここは通りません。
