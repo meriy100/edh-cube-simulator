@@ -3,6 +3,7 @@ import SectionCard from "@/components/ui/SectionCard";
 import { fetchCard } from "@/repository/cards";
 import CardImage from "@/components/cards/CardImage.client";
 import ColorIdentityBadges from "@/components/ui/ColorIdentityBadges.client";
+import RefetchScryfallButton from "@/app/admin/cards/[id]/RefetchScryfallButton.client";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -56,6 +57,9 @@ const AdminCardShowPage = async ({ params }: Props) => {
               <span className="text-sm font-medium">{card.type}</span>
             </p>
             <ColorIdentityBadges colorIdentity={card.colorIdentity || []} />
+            <div className="flex justify-end">
+              <RefetchScryfallButton name={card.name} />
+            </div>
           </SectionCard>
         </div>
       </div>

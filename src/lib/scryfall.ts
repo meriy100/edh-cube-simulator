@@ -1,17 +1,74 @@
-interface ScryfallCard {
-  name: string;
-  set: string;
-  collector_number: string;
-  lang: string;
-  oracle_id: string; // 紐付けに必須
-  printed_name?: string;
-  printed_text?: string;
-  oracle_text?: string;
-  image_uris?: {
-    normal: string;
-    png: string;
-  };
-}
+import { z } from "zod";
+
+const ImageUrisSchema = z.object({
+  small: z.string(),
+  normal: z.string(),
+  large: z.string(),
+  png: z.string(),
+  art_crop: z.string(),
+  border_crop: z.string(),
+});
+
+// 分割カードや両面カードの「各面」を表すスキーマ
+const CardFaceSchema = z.object({
+  name: z.string(),
+  printed_name: z.string().optional().nullable(),
+  printed_text: z.string().optional().nullable(),
+
+  mana_cost: z.string().optional(),
+  type_line: z.string().optional(),
+  oracle_text: z.string().optional(),
+  colors: z.array(z.string()).optional(),
+  power: z.string().optional(),
+  toughness: z.string().optional(),
+  artist: z.string().optional(),
+  image_uris: ImageUrisSchema.optional(), // 両面カードの場合、各面に画像がある
+});
+
+const scryfallCardSchema = z.object({
+  // 常に存在する基本識別子
+  id: z.string(),
+  oracle_id: z.string().optional(), // 一部の特殊カードでは無い場合がある
+  name: z.string(),
+  printed_name: z.string().optional().nullable(),
+  printed_text: z.string().optional().nullable(),
+  layout: z.enum([
+    "normal",
+    "split",
+    "flip",
+    "transform",
+    "modal_dfc",
+    "meld",
+    "leveler",
+    "class",
+    "saga",
+    "adventure",
+    "host",
+    "augment",
+  ]),
+
+  // 基本特性（単面カードの場合はここにある）
+  mana_cost: z.string().optional(),
+  cmc: z.number(),
+  type_line: z.string(),
+  oracle_text: z.string().optional(),
+  colors: z.array(z.string()).optional(),
+  color_identity: z.array(z.string()),
+
+  // 画像（単面カードはここ、両面カードは card_faces 側にある）
+  image_uris: ImageUrisSchema.optional(),
+
+  // ★重要：変則カード用の配列
+  // 分割カード(split)や両面カード(transform, modal_dfc)の場合にデータが入る
+  card_faces: z.array(CardFaceSchema).optional(),
+
+  // セット・販売情報
+  set: z.string(),
+  set_name: z.string(),
+  collector_number: z.string(),
+});
+
+export type ScryfallCard = z.infer<typeof scryfallCardSchema>;
 
 interface CardResponse {
   en: ScryfallCard;
@@ -26,7 +83,7 @@ const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 /**
  * カード名から英語版と日本語版の情報を取得する (Fetch API 版)
  */
-export const fetchCardInfoEnJa = async (cardName: string): Promise<CardResponse> => {
+export const fetchScryfall = async (cardName: string): Promise<CardResponse> => {
   const baseUrl = "https://api.scryfall.com";
 
   // 1. 英語版を exact 検索で取得
@@ -40,7 +97,7 @@ export const fetchCardInfoEnJa = async (cardName: string): Promise<CardResponse>
     throw new Error(`Scryfall API error: ${enRes.status}`);
   }
 
-  const enData: ScryfallCard = await enRes.json();
+  const enData = scryfallCardSchema.parse(await enRes.json());
 
   // Scryfall API の推奨に従い、次のリクエスト前に少し待機
   await sleep(100);
@@ -59,7 +116,7 @@ export const fetchCardInfoEnJa = async (cardName: string): Promise<CardResponse>
       const searchResult = await jaRes.json();
       if (searchResult.data && searchResult.data.length > 0) {
         // リストの先頭（最新セットなど）を日本語版データとして採用
-        jaData = searchResult.data[0];
+        jaData = scryfallCardSchema.parse(searchResult.data[0]);
       }
     }
   } catch (error) {

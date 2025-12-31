@@ -90,3 +90,7 @@ export const createCards = async (cards: Card[]): Promise<void> => {
     throw error;
   }
 };
+
+export const updateCard = async (id: string, card: Partial<Card>): Promise<void> => {
+  await adminDb().collection(collectionPath).doc(id).update(card);
+};

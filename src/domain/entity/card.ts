@@ -1,4 +1,5 @@
 import { v5 as uuidv5 } from "uuid";
+import { ScryfallCard } from "@/lib/scryfall";
 
 const NAMESPACE_MTG = "44869818-5a23-4709-906d-669528d229f3";
 
@@ -13,6 +14,8 @@ export interface Card {
   colorIdentity?: Color[];
   originalImageUrl?: string;
   originalImageBackUrl?: string;
+  scryfall?: ScryfallCard;
+  scryfallJa?: ScryfallCard;
 }
 
 export const newCardId = (name: string) => {
