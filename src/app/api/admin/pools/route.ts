@@ -108,12 +108,8 @@ export const POST = async (req: NextRequest) => {
         await createPoolXCards(
           pool.id,
           parsedRows.data.map(
-            (d): PoolXCard => ({
+            (d): Omit<PoolXCard, "card"> => ({
               name: d.name,
-              cmc: d.cmc,
-              type: d.type,
-              imageUrl: d.imageUrl,
-              imageBackUrl: d.imageBackUrl,
               commander: d.tags.includes("0-commander"),
               tags: d.tags,
             }),

@@ -20,41 +20,45 @@ const PoolXCardGrid = ({ poolXCards }: Props) => {
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-      {poolXCards.map((card) => (
+      {poolXCards.map((poolXCard) => (
         <div
-          key={card.name}
+          key={poolXCard.name}
           className="flex flex-col space-y-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow"
         >
           <div className="relative bg-gray-200 dark:bg-gray-700" style={{ aspectRatio: "63/88" }}>
-            {card.imageUrl !== "" ? <CardImage imageUrl={card.imageUrl} name={card.name} /> : null}
+            {poolXCard.card.imageUrl !== "" ? (
+              <CardImage imageUrl={poolXCard.card.imageUrl} name={poolXCard.card.name} />
+            ) : null}
           </div>
 
           <div className="p-3 space-y-2">
             <h3 className="font-medium text-sm text-gray-900 dark:text-white line-clamp-2 leading-tight">
-              {card.name}
+              {poolXCard.card.name}
             </h3>
-            {card.commander && (
+            {poolXCard.commander && (
               <span className="bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded">
                 統率者
               </span>
             )}
 
             <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
-              <span className="font-medium">CMC: {card.cmc}</span>
+              <span className="font-medium">CMC: {poolXCard.card.cmc}</span>
             </div>
 
-            <div className="text-xs text-gray-600 dark:text-gray-400 truncate">{card.type}</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 truncate">
+              {poolXCard.card.type}
+            </div>
 
-            {card.tags.length > 0 && (
+            {poolXCard.tags.length > 0 && (
               <div className="flex flex-wrap gap-1">
-                {card.tags.slice(0, 2).map((tag) => (
+                {poolXCard.tags.slice(0, 2).map((tag) => (
                   <TagBadge key={tag} size="sm">
                     {tag}
                   </TagBadge>
                 ))}
-                {card.tags.length > 2 && (
+                {poolXCard.tags.length > 2 && (
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    +{card.tags.length - 2}
+                    +{poolXCard.tags.length - 2}
                   </span>
                 )}
               </div>

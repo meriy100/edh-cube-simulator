@@ -2640,6 +2640,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/lodash@npm:^4":
+  version: 4.17.21
+  resolution: "@types/lodash@npm:4.17.21"
+  checksum: 10c0/73cb006e047d8871e9d63f3a165543bf16c44a5b6fe3f9f6299e37cb8d67a7b1d55ac730959a81f9def510fd07232ff7e30e05413e5d5a12793baad84ebe36c3
+  languageName: node
+  linkType: hard
+
 "@types/long@npm:^4.0.0":
   version: 4.0.2
   resolution: "@types/long@npm:4.0.2"
@@ -4090,6 +4097,7 @@ __metadata:
     "@storybook/addon-vitest": "npm:^10.1.10"
     "@storybook/nextjs-vite": "npm:^10.1.10"
     "@tailwindcss/postcss": "npm:^4"
+    "@types/lodash": "npm:^4"
     "@types/node": "npm:^20"
     "@types/papaparse": "npm:^5.5.2"
     "@types/react": "npm:^19"
@@ -4101,6 +4109,7 @@ __metadata:
     eslint-plugin-storybook: "npm:^10.1.10"
     firebase: "npm:^12.7.0"
     firebase-admin: "npm:^13.6.0"
+    lodash: "npm:^4.17.21"
     next: "npm:15.4.10"
     next-auth: "npm:^5.0.0-beta.30"
     papaparse: "npm:^5.5.3"
@@ -6343,6 +6352,13 @@ __metadata:
   version: 4.1.1
   resolution: "lodash.once@npm:4.1.1"
   checksum: 10c0/46a9a0a66c45dd812fcc016e46605d85ad599fe87d71a02f6736220554b52ffbe82e79a483ad40f52a8a95755b0d1077fba259da8bfb6694a7abbf4a48f1fc04
+  languageName: node
+  linkType: hard
+
+"lodash@npm:^4.17.21":
+  version: 4.17.21
+  resolution: "lodash@npm:4.17.21"
+  checksum: 10c0/d8cbea072bb08655bb4c989da418994b073a608dffa608b09ac04b43a791b12aeae7cd7ad919aa4c925f33b48490b5cfe6c1f71d827956071dae2e7bb3a6b74c
   languageName: node
   linkType: hard
 

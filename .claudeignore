@@ -1,0 +1,7 @@
+node_modules/
+dist/
+tmp/
+build/
+*.log
+.git/
+large_data_files/
