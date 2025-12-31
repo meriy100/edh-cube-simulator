@@ -21,48 +21,48 @@ export const Colorless: Story = {
 
 export const MonoWhite: Story = {
   args: {
-    colorIdentity: ["w"],
+    colorIdentity: ["W"],
   },
 };
 
 export const MonoBlue: Story = {
   args: {
-    colorIdentity: ["u"],
+    colorIdentity: ["U"],
   },
 };
 
 export const MonoBlack: Story = {
   args: {
-    colorIdentity: ["b"],
+    colorIdentity: ["B"],
   },
 };
 
 export const MonoRed: Story = {
   args: {
-    colorIdentity: ["r"],
+    colorIdentity: ["R"],
   },
 };
 
 export const MonoGreen: Story = {
   args: {
-    colorIdentity: ["g"],
+    colorIdentity: ["G"],
   },
 };
 
 export const Multicolor: Story = {
   args: {
-    colorIdentity: ["w", "u"],
+    colorIdentity: ["W", "U"],
   },
 };
 
 export const TriColor: Story = {
   args: {
-    colorIdentity: ["r", "w", "b"],
+    colorIdentity: ["R", "W", "B"],
   },
 };
 
 export const FiveColor: Story = {
   args: {
-    colorIdentity: ["w", "u", "b", "r", "g"],
+    colorIdentity: ["W", "U", "B", "R", "G"],
   },
 };
