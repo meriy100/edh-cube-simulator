@@ -5,7 +5,8 @@ export interface Card {
   cmc: number;
   type: string;
   set: string;
+  collectorNumber: string;
   colorIdentity?: Color[];
-  imageUrl: string;
-  imageBackUrl?: string;
+  originalImageUrl?: string;
+  originalImageBackUrl?: string;
 }

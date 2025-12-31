@@ -10,8 +10,9 @@ const cardDecodeSchema = z.object({
   cmc: z.number(),
   type: z.string(),
   set: z.string(),
-  imageUrl: z.string(),
-  imageBackUrl: z.string().optional(),
+  collectorNumber: z.string(),
+  originalImageUrl: z.string().optional(),
+  originalImageBackUrl: z.string().optional(),
 });
 
 export const fetchCards = async (query: { names?: string[] } = {}): Promise<Card[]> => {

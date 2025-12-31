@@ -26,8 +26,8 @@ const PoolXCardGrid = ({ poolXCards }: Props) => {
           className="flex flex-col space-y-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow"
         >
           <div className="relative bg-gray-200 dark:bg-gray-700" style={{ aspectRatio: "63/88" }}>
-            {poolXCard.card.imageUrl !== "" ? (
-              <CardImage imageUrl={poolXCard.card.imageUrl} name={poolXCard.card.name} />
+            {poolXCard.card.originalImageUrl ? (
+              <CardImage imageUrl={poolXCard.card.originalImageUrl} name={poolXCard.card.name} />
             ) : null}
           </div>
 
