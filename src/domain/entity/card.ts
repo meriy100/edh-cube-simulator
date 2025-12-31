@@ -41,6 +41,9 @@ export const cardIdentity = (card: Card): Color[] | undefined => {
   return undefined;
 };
 
+export const isCardMultiFaces = (card: Card): boolean =>
+  (card.scryfall?.card_faces?.length ?? 0) > 1;
+
 export const cardOracle = (card: Card): string | undefined => {
   if (card.scryfallJa) {
     return card.scryfallJa.printed_text ?? card.scryfallJa.oracle_text;

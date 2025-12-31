@@ -11,6 +11,7 @@ import {
   cardOracle,
   cardOracleBack,
   cardOracleFront,
+  isCardMultiFaces,
 } from "@/domain/entity/card";
 
 interface Props {
@@ -58,15 +59,13 @@ const AdminCardShowPage = async ({ params }: Props) => {
               <ColorIdentityBadges colorIdentity={cardIdentity(card) ?? []} />
             </InfoDisplay>
             <InfoDisplay label="Oracle">
-              {card.scryfall?.layout !== "split" && card.scryfall?.layout !== "transform"
-                ? cardOracle(card)
-                : cardOracleFront(card)}
+              {isCardMultiFaces(card) ? cardOracleFront(card) : cardOracle(card)}
             </InfoDisplay>
             <div className="flex justify-end">
               <RefetchScryfallButton name={card.name} />
             </div>
           </SectionCard>
-          {card.scryfall?.layout === "split" || card.scryfall?.layout === "transform" ? (
+          {isCardMultiFaces(card) ? (
             <SectionCard title="第2面">
               <InfoDisplay label="Oracle">{cardOracleBack(card)}</InfoDisplay>
             </SectionCard>
