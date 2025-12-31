@@ -2,6 +2,7 @@ import { Card, newCardId } from "@/domain/entity/card";
 import adminDb from "@/lib/firebase/admin";
 import z from "zod";
 import { chunk } from "lodash";
+import { scryfallCardSchema } from "@/lib/scryfall";
 
 const collectionPath = "cards";
 
@@ -13,6 +14,8 @@ const cardDecodeSchema = z.object({
   collectorNumber: z.string(),
   originalImageUrl: z.string().optional(),
   originalImageBackUrl: z.string().optional(),
+  scryfall: scryfallCardSchema.optional(),
+  scryfallJa: scryfallCardSchema.optional(),
 });
 
 export const fetchCards = async (query: { names?: string[] } = {}): Promise<Card[]> => {

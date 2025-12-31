@@ -4,6 +4,14 @@ import { fetchCard } from "@/repository/cards";
 import CardImage from "@/components/cards/CardImage.client";
 import ColorIdentityBadges from "@/components/ui/ColorIdentityBadges.client";
 import RefetchScryfallButton from "@/app/admin/cards/[id]/RefetchScryfallButton.client";
+import InfoDisplay from "@/components/ui/InfoDisplay";
+import {
+  cardIdentity,
+  cardNameJa,
+  cardOracle,
+  cardOracleBack,
+  cardOracleFront,
+} from "@/domain/entity/card";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -14,7 +22,7 @@ const AdminCardShowPage = async ({ params }: Props) => {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={card.name} />
+      <PageHeader title={cardNameJa(card)} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">
@@ -44,23 +52,25 @@ const AdminCardShowPage = async ({ params }: Props) => {
 
         <div className="space-y-6">
           <SectionCard title="基本情報">
-            <p>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">
-                Mana Value:
-              </span>
-              <span className="text-sm font-medium">{card.cmc}</span>
-            </p>
-            <p>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">
-                Type:
-              </span>
-              <span className="text-sm font-medium">{card.type}</span>
-            </p>
-            <ColorIdentityBadges colorIdentity={card.colorIdentity || []} />
+            <InfoDisplay label="ManaValue">{card.cmc}</InfoDisplay>
+            <InfoDisplay label="Type">{card.type}</InfoDisplay>
+            <InfoDisplay label="Color Identity">
+              <ColorIdentityBadges colorIdentity={cardIdentity(card) ?? []} />
+            </InfoDisplay>
+            <InfoDisplay label="Oracle">
+              {card.scryfall?.layout !== "split" && card.scryfall?.layout !== "transform"
+                ? cardOracle(card)
+                : cardOracleFront(card)}
+            </InfoDisplay>
             <div className="flex justify-end">
               <RefetchScryfallButton name={card.name} />
             </div>
           </SectionCard>
+          {card.scryfall?.layout === "split" || card.scryfall?.layout === "transform" ? (
+            <SectionCard title="第2面">
+              <InfoDisplay label="Oracle">{cardOracleBack(card)}</InfoDisplay>
+            </SectionCard>
+          ) : null}
         </div>
       </div>
     </div>

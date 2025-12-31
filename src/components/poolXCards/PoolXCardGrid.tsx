@@ -2,7 +2,7 @@ import { PoolXCard } from "@/domain/entity/poolXCard";
 import TagBadge from "@/components/ui/TagBadge.client";
 import CardImage from "@/components/cards/CardImage.client";
 import Link from "next/link";
-import { newCardId } from "@/domain/entity/card";
+import { cardNameJa, newCardId } from "@/domain/entity/card";
 
 interface Props {
   poolXCards: PoolXCard[];
@@ -33,7 +33,7 @@ const PoolXCardGrid = ({ poolXCards }: Props) => {
 
             <div className="p-3 space-y-2">
               <h3 className="font-medium text-sm text-gray-900 dark:text-white line-clamp-2 leading-tight">
-                {poolXCard.card.name}
+                {cardNameJa(poolXCard.card)}
               </h3>
               {poolXCard.commander && (
                 <span className="bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded">

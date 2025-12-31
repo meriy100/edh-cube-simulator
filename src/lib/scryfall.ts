@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const ImageUrisSchema = z.object({
+const imageUrisSchema = z.object({
   small: z.string(),
   normal: z.string(),
   large: z.string(),
@@ -9,29 +9,38 @@ const ImageUrisSchema = z.object({
   border_crop: z.string(),
 });
 
+const colorSchema = z.union([
+  z.literal("W"),
+  z.literal("U"),
+  z.literal("B"),
+  z.literal("R"),
+  z.literal("G"),
+  z.literal("C"),
+]);
+
 // 分割カードや両面カードの「各面」を表すスキーマ
-const CardFaceSchema = z.object({
+const cardFaceSchema = z.object({
   name: z.string(),
-  printed_name: z.string().optional().nullable(),
-  printed_text: z.string().optional().nullable(),
+  printed_name: z.string().optional(),
+  printed_text: z.string().optional(),
 
   mana_cost: z.string().optional(),
   type_line: z.string().optional(),
   oracle_text: z.string().optional(),
-  colors: z.array(z.string()).optional(),
+  colors: z.array(colorSchema).optional(),
   power: z.string().optional(),
   toughness: z.string().optional(),
   artist: z.string().optional(),
-  image_uris: ImageUrisSchema.optional(), // 両面カードの場合、各面に画像がある
+  image_uris: imageUrisSchema.optional(), // 両面カードの場合、各面に画像がある
 });
 
-const scryfallCardSchema = z.object({
+export const scryfallCardSchema = z.object({
   // 常に存在する基本識別子
   id: z.string(),
   oracle_id: z.string().optional(), // 一部の特殊カードでは無い場合がある
   name: z.string(),
-  printed_name: z.string().optional().nullable(),
-  printed_text: z.string().optional().nullable(),
+  printed_name: z.string().optional(),
+  printed_text: z.string().optional(),
   layout: z.enum([
     "normal",
     "split",
@@ -52,15 +61,15 @@ const scryfallCardSchema = z.object({
   cmc: z.number(),
   type_line: z.string(),
   oracle_text: z.string().optional(),
-  colors: z.array(z.string()).optional(),
-  color_identity: z.array(z.string()),
+  colors: z.array(colorSchema).optional(),
+  color_identity: z.array(colorSchema),
 
   // 画像（単面カードはここ、両面カードは card_faces 側にある）
-  image_uris: ImageUrisSchema.optional(),
+  image_uris: imageUrisSchema.optional(),
 
   // ★重要：変則カード用の配列
   // 分割カード(split)や両面カード(transform, modal_dfc)の場合にデータが入る
-  card_faces: z.array(CardFaceSchema).optional(),
+  card_faces: z.array(cardFaceSchema).optional(),
 
   // セット・販売情報
   set: z.string(),
@@ -73,6 +82,24 @@ export type ScryfallCard = z.infer<typeof scryfallCardSchema>;
 interface CardResponse {
   en: ScryfallCard;
   ja?: ScryfallCard;
+}
+
+function findBestJapaneseCard(cards: ScryfallCard[]): ScryfallCard {
+  // 1. printed_text に日本語（ひらがな・カタカナ）が含まれているものを探す
+  const hasJapaneseText = (text?: string) => /[\u3040-\u309F\u30A0-\u30FF]/.test(text || "");
+
+  // 日本語テキストがあるものを抽出
+  const fullJapaneseCards = cards.filter((card) => hasJapaneseText(card.printed_text));
+
+  if (fullJapaneseCards.length > 0) {
+    // 存在するなら、その中で最新のセット（基本セットやエキスパンション）を優先
+    return fullJapaneseCards[0];
+  }
+
+  // 2. 見つからなければ、仕方ないので printed_name だけでも日本語のもの
+  const hasJapaneseName = cards.find((card) => hasJapaneseText(card.printed_name));
+
+  return hasJapaneseName || cards[0];
 }
 
 /**
@@ -116,7 +143,8 @@ export const fetchScryfall = async (cardName: string): Promise<CardResponse> => 
       const searchResult = await jaRes.json();
       if (searchResult.data && searchResult.data.length > 0) {
         // リストの先頭（最新セットなど）を日本語版データとして採用
-        jaData = scryfallCardSchema.parse(searchResult.data[0]);
+        const jaList = z.array(scryfallCardSchema).parse(searchResult.data);
+        jaData = findBestJapaneseCard(jaList);
       }
     }
   } catch (error) {
