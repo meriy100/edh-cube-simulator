@@ -1,17 +1,28 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { LucideIcon } from "lucide-react";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface BaseButtonProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
   children: React.ReactNode;
   icon?: LucideIcon;
 }
+
+export interface ButtonAsButtonProps extends BaseButtonProps, Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseButtonProps> {
+  href?: never;
+}
+
+export interface ButtonAsLinkProps extends BaseButtonProps, Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof BaseButtonProps> {
+  href: string;
+}
+
+type ButtonProps = ButtonAsButtonProps | ButtonAsLinkProps;
 
 const buttonVariants: Record<ButtonVariant, string> = {
   primary:
@@ -42,32 +53,48 @@ export default function Button({
   variant = "primary",
   size = "md",
   className = "",
-  disabled,
   children,
   icon,
   ...props
 }: ButtonProps) {
   const baseClasses =
-    "rounded font-semibold border cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed";
+    "inline-block rounded font-semibold border cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed text-center no-underline";
 
   const variantClasses = buttonVariants[variant];
   const sizeClasses = buttonSizes[size];
 
-  // For danger variant, remove border and padding adjustments
+  // For danger variant, remove border and padding adjustments but keep link-specific styles
   const isDangerVariant = variant === "danger";
+  const linkSpecificClasses = "inline-block text-center no-underline cursor-pointer";
   const finalClasses = isDangerVariant
-    ? `${variantClasses} ${className}`.trim()
+    ? `${linkSpecificClasses} ${variantClasses} ${className}`.trim()
     : `${baseClasses} ${variantClasses} ${sizeClasses} ${className}`.trim();
 
   const IconComponent = icon;
   const iconSize = iconSizes[size];
 
+  const content = (
+    <div className="flex items-center justify-center gap-2">
+      {IconComponent && <IconComponent size={iconSize} />}
+      {children}
+    </div>
+  );
+
+  // If href is provided, render as Link
+  if ("href" in props && props.href) {
+    const { href, ...linkProps } = props;
+    return (
+      <Link href={href} className={finalClasses} {...linkProps}>
+        {content}
+      </Link>
+    );
+  }
+
+  // Otherwise, render as button
+  const { disabled, ...buttonProps } = props as ButtonAsButtonProps;
   return (
-    <button className={finalClasses} disabled={disabled} {...props}>
-      <div className="flex items-center justify-center gap-2">
-        {IconComponent && <IconComponent size={iconSize} />}
-        {children}
-      </div>
+    <button className={finalClasses} disabled={disabled} {...buttonProps}>
+      {content}
     </button>
   );
 }

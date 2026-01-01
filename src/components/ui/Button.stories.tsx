@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import Button from "./Button.client";
-import { Plus, Download, Edit, Trash2, Search, ArrowRight, ArrowLeft } from "lucide-react";
+import Button, { type ButtonAsButtonProps, type ButtonAsLinkProps } from "./Button.client";
+import { Plus, Download, Edit, Trash2, Search, ArrowRight, ArrowLeft, ExternalLink } from "lucide-react";
 
 const meta: Meta<typeof Button> = {
   title: "UI/Button",
@@ -21,48 +21,53 @@ const meta: Meta<typeof Button> = {
     disabled: {
       control: "boolean",
     },
+    href: {
+      control: "text",
+    },
   },
 };
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type ButtonStory = StoryObj<ButtonAsButtonProps>;
+type LinkStory = StoryObj<ButtonAsLinkProps>;
 
-export const Primary: Story = {
+// Button Stories
+export const Primary: ButtonStory = {
   args: {
     variant: "primary",
     children: "Submit",
   },
 };
 
-export const Secondary: Story = {
+export const Secondary: ButtonStory = {
   args: {
     variant: "secondary",
     children: "Next",
   },
 };
 
-export const Outline: Story = {
+export const Outline: ButtonStory = {
   args: {
     variant: "outline",
     children: "Previous",
   },
 };
 
-export const Ghost: Story = {
+export const Ghost: ButtonStory = {
   args: {
     variant: "ghost",
     children: "Close",
   },
 };
 
-export const Danger: Story = {
+export const Danger: ButtonStory = {
   args: {
     variant: "danger",
     children: "Delete",
   },
 };
 
-export const Small: Story = {
+export const Small: ButtonStory = {
   args: {
     variant: "primary",
     size: "sm",
@@ -70,7 +75,7 @@ export const Small: Story = {
   },
 };
 
-export const Large: Story = {
+export const Large: ButtonStory = {
   args: {
     variant: "primary",
     size: "lg",
@@ -78,7 +83,7 @@ export const Large: Story = {
   },
 };
 
-export const Disabled: Story = {
+export const Disabled: ButtonStory = {
   args: {
     variant: "primary",
     disabled: true,
@@ -86,8 +91,7 @@ export const Disabled: Story = {
   },
 };
 
-
-export const Loading: Story = {
+export const Loading: ButtonStory = {
   args: {
     variant: "primary",
     disabled: true,
@@ -96,7 +100,7 @@ export const Loading: Story = {
 };
 
 // Icon Button Stories
-export const WithIcon: Story = {
+export const WithIcon: ButtonStory = {
   args: {
     variant: "primary",
     icon: Plus,
@@ -104,7 +108,7 @@ export const WithIcon: Story = {
   },
 };
 
-export const IconOnly: Story = {
+export const IconOnly: ButtonStory = {
   args: {
     variant: "outline",
     icon: Search,
@@ -112,7 +116,7 @@ export const IconOnly: Story = {
   },
 };
 
-export const IconSecondary: Story = {
+export const IconSecondary: ButtonStory = {
   args: {
     variant: "secondary",
     icon: Download,
@@ -120,7 +124,7 @@ export const IconSecondary: Story = {
   },
 };
 
-export const IconOutline: Story = {
+export const IconOutline: ButtonStory = {
   args: {
     variant: "outline",
     icon: Edit,
@@ -128,7 +132,7 @@ export const IconOutline: Story = {
   },
 };
 
-export const IconGhost: Story = {
+export const IconGhost: ButtonStory = {
   args: {
     variant: "ghost",
     icon: ArrowRight,
@@ -136,7 +140,7 @@ export const IconGhost: Story = {
   },
 };
 
-export const IconDanger: Story = {
+export const IconDanger: ButtonStory = {
   args: {
     variant: "danger",
     icon: Trash2,
@@ -144,7 +148,7 @@ export const IconDanger: Story = {
   },
 };
 
-export const IconSmall: Story = {
+export const IconSmall: ButtonStory = {
   args: {
     variant: "primary",
     size: "sm",
@@ -153,7 +157,7 @@ export const IconSmall: Story = {
   },
 };
 
-export const IconLarge: Story = {
+export const IconLarge: ButtonStory = {
   args: {
     variant: "primary",
     size: "lg",
@@ -162,11 +166,72 @@ export const IconLarge: Story = {
   },
 };
 
-export const IconDisabled: Story = {
+export const IconDisabled: ButtonStory = {
   args: {
     variant: "primary",
     icon: Download,
     disabled: true,
     children: "Download Disabled",
+  },
+};
+
+// Link Stories
+export const PrimaryLink: LinkStory = {
+  args: {
+    variant: "primary",
+    href: "/example",
+    children: "Go to Page",
+  },
+};
+
+export const SecondaryLink: LinkStory = {
+  args: {
+    variant: "secondary",
+    href: "/docs",
+    children: "View Documentation",
+  },
+};
+
+export const OutlineLink: LinkStory = {
+  args: {
+    variant: "outline",
+    href: "/profile",
+    children: "Edit Profile",
+  },
+};
+
+export const GhostLink: LinkStory = {
+  args: {
+    variant: "ghost",
+    href: "/settings",
+    children: "Settings",
+  },
+};
+
+export const DangerLink: LinkStory = {
+  args: {
+    variant: "danger",
+    href: "/delete-account",
+    children: "Delete Account",
+  },
+};
+
+export const ExternalLinkButton: LinkStory = {
+  args: {
+    variant: "primary",
+    href: "https://example.com",
+    target: "_blank",
+    rel: "noopener noreferrer",
+    icon: ExternalLink,
+    children: "External Site",
+  },
+};
+
+export const LinkWithIcon: LinkStory = {
+  args: {
+    variant: "outline",
+    href: "/dashboard",
+    icon: ArrowRight,
+    children: "Go to Dashboard",
   },
 };
