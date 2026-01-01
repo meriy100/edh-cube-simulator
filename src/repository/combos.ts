@@ -1,10 +1,10 @@
 import { Combo } from "@/domain/entity/combo";
 import z from "zod";
 import adminDb from "@/lib/firebase/admin";
-import { Color } from "@/domain/entity/card";
+import { cardNameJa, Color } from "@/domain/entity/card";
 import { fetchCards } from "@/repository/cards";
-import { ZodParsedType } from "zod/v3";
 import { chunk } from "lodash";
+import { publishMessage } from "@/lib/pubsub";
 
 const featureProducedByVariantSchema = z.object({
   id: z.number(),
@@ -28,6 +28,9 @@ const comboSchema = z.object({
   description: z.string(),
   popularity: z.number(),
   cardNames: z.array(z.string()),
+
+  descriptionJa: z.string().optional(),
+  notablePrerequisitesJa: z.string().optional(),
 });
 
 const collectionPath = "combos";
@@ -85,4 +88,25 @@ const assignRelation = async (combos: z.infer<typeof comboSchema>[]): Promise<Co
       }),
     };
   });
+};
+
+export const translateCombos = async (combos: Combo[]) => {
+  const batches = chunk(combos, 50);
+  await Promise.all(
+    batches.map(async (batch) => {
+      const message = {
+        combos: batch.map((combo) => ({
+          id: combo.id,
+          description: combo.description,
+          notablePrerequisites: combo.notablePrerequisites,
+          nameDictionary: combo.uses.map((use) => ({
+            en: use.card.name,
+            ja: cardNameJa(use.card.relation),
+          })),
+        })),
+      };
+
+      return await publishMessage("worker-topic", message, { eventType: "translateCombos" });
+    }),
+  );
 };

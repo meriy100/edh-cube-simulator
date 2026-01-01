@@ -19,4 +19,16 @@ export interface Combo {
   notablePrerequisites: string;
   description: string;
   popularity: number;
+
+  descriptionJa?: string;
+  notablePrerequisitesJa?: string;
 }
+
+export const comboDescriptionJa = (combo: Combo): string =>
+  combo.descriptionJa ?? combo.description;
+
+export const comboNotablePrerequisitesJa = (combo: Combo): string =>
+  combo.notablePrerequisitesJa ?? combo.notablePrerequisites;
+
+export const comboUnTranslated = (combo: Combo): boolean =>
+  !combo.descriptionJa && !combo.notablePrerequisitesJa;
