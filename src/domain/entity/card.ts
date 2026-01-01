@@ -33,6 +33,40 @@ export const cardNameJa = (card: Card): string => {
   return card.name;
 };
 
+export const cardImageUrl = (card: Card): string | undefined => {
+  if (card.originalImageUrl?.match(/cards.scryfall.io/)) {
+    return card.originalImageUrl;
+  }
+  if (card.scryfallJa?.image_uris?.large) {
+    return card.scryfallJa.image_uris.large;
+  }
+  if (card.scryfallJa?.card_faces?.[0]?.image_uris?.large) {
+    return card.scryfallJa.card_faces[0].image_uris.large;
+  }
+
+  if (card.scryfall?.image_uris?.large) {
+    return card.scryfall.image_uris.large;
+  }
+
+  if (card.scryfall?.card_faces?.[0]?.image_uris?.large) {
+    return card.scryfall.card_faces[0].image_uris.large;
+  }
+};
+
+export const cardImageBackUrl = (card: Card): string | undefined => {
+  if (card.originalImageBackUrl?.match(/cards.scryfall.io/)) {
+    return card.originalImageBackUrl;
+  }
+
+  if (card.scryfallJa?.card_faces?.[1]?.image_uris?.large) {
+    return card.scryfallJa.card_faces[1].image_uris.large;
+  }
+
+  if (card.scryfall?.card_faces?.[1]?.image_uris?.large) {
+    return card.scryfall.card_faces[1].image_uris.large;
+  }
+};
+
 export const cardColorIdentity = (card: Card): Color[] | undefined => {
   if (card.scryfall) {
     return card.scryfall.color_identity;

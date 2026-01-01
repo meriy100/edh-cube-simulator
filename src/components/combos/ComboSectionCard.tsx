@@ -19,15 +19,7 @@ const ComboSectionCard = ({ combo }: Props) => {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
         {combo.uses.map((use) => (
           <Link key={use.card.id} href={`/admin/cards/${newCardId(use.card.name)}`}>
-            <div className="relative bg-gray-200 dark:bg-gray-700" style={{ aspectRatio: "63/88" }}>
-              {use.card.relation.originalImageUrl ? (
-                <CardImage imageUrl={use.card.relation.originalImageUrl} name={use.card.name} />
-              ) : (
-                <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
-                  画像が利用できません
-                </div>
-              )}
-            </div>
+            <CardImage card={use.card.relation} />
           </Link>
         ))}
       </div>

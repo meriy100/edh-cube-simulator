@@ -25,11 +25,7 @@ const PoolXCardGrid = ({ poolXCards }: Props) => {
       {poolXCards.map((poolXCard) => (
         <Link key={poolXCard.name} href={`/admin/cards/${newCardId(poolXCard.name)}`}>
           <div className="flex flex-col space-y-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow">
-            <div className="relative bg-gray-200 dark:bg-gray-700" style={{ aspectRatio: "63/88" }}>
-              {poolXCard.card.originalImageUrl ? (
-                <CardImage imageUrl={poolXCard.card.originalImageUrl} name={poolXCard.card.name} />
-              ) : null}
-            </div>
+            <CardImage card={poolXCard.card} />
 
             <div className="p-3 space-y-2">
               <h3 className="font-medium text-sm text-gray-900 dark:text-white line-clamp-2 leading-tight">
