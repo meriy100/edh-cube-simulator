@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEventHandler, useState } from "react";
+import { useState } from "react";
 import FileInput from "@/components/ui/FileInput.client";
 import SectionCard from "@/components/ui/SectionCard";
 import Button from "@/components/ui/Button.client";
@@ -14,8 +14,8 @@ const NewPoolForm = () => {
   const [error, setError] = useState<string>();
   const router = useRouter();
 
-  const handleInput: FormEventHandler<HTMLInputElement> = (e) => {
-    setFile(e.currentTarget.files?.[0]);
+  const handleFilesSelect = (files: FileList) => {
+    setFile(files[0]);
     setError(undefined);
   };
 
@@ -82,7 +82,7 @@ const NewPoolForm = () => {
       <div className="space-y-4">
         {error && <Alert variant="error">{error}</Alert>}
 
-        <FileInput dragAndDrop fieldSize="lg" accept=".csv" onInput={handleInput} />
+        <FileInput dragAndDrop fieldSize="lg" accept=".csv" onFilesSelect={handleFilesSelect} />
       </div>
     </SectionCard>
   );

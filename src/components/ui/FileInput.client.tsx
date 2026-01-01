@@ -4,14 +4,17 @@ import React, { useRef, useState } from "react";
 
 type FileInputSize = "sm" | "md" | "lg";
 
-interface FileInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'size'> {
+interface FileInputProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "type" | "size"
+> {
   fieldSize?: FileInputSize;
   error?: boolean;
   fullWidth?: boolean;
   dragAndDrop?: boolean;
   multiple?: boolean;
   accept?: string;
-  onFilesSelect?: (files: FileList | null) => void;
+  onFilesSelect?: (files: FileList) => void;
 }
 
 const inputSizes: Record<FileInputSize, string> = {
@@ -95,7 +98,8 @@ export default function FileInput({
 
   if (dragAndDrop) {
     const dragClasses = isDragOver ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "";
-    const baseClasses = "rounded-md border-2 border-dashed cursor-pointer transition-colors flex flex-col items-center justify-center";
+    const baseClasses =
+      "rounded-md border-2 border-dashed cursor-pointer transition-colors flex flex-col items-center justify-center";
 
     return (
       <div
@@ -133,19 +137,16 @@ export default function FileInput({
         <div className="text-center">
           <p className="font-medium">
             {selectedFiles.length > 0
-              ? `${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} selected`
-              : 'Click to upload or drag and drop'
-            }
+              ? `${selectedFiles.length} file${selectedFiles.length > 1 ? "s" : ""} selected`
+              : "Click to upload or drag and drop"}
           </p>
           {selectedFiles.length > 0 && (
             <p className="text-gray-500 dark:text-gray-400 mt-1">
-              {selectedFiles.map(file => file.name).join(', ')}
+              {selectedFiles.map((file) => file.name).join(", ")}
             </p>
           )}
           {accept && (
-            <p className="text-gray-500 dark:text-gray-400 mt-1 text-xs">
-              Accepted: {accept}
-            </p>
+            <p className="text-gray-500 dark:text-gray-400 mt-1 text-xs">Accepted: {accept}</p>
           )}
         </div>
       </div>
@@ -168,7 +169,7 @@ export default function FileInput({
       />
       {selectedFiles.length > 0 && (
         <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Selected: {selectedFiles.map(file => file.name).join(', ')}
+          Selected: {selectedFiles.map((file) => file.name).join(", ")}
         </div>
       )}
     </div>
