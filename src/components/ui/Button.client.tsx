@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { ComponentProps } from "react";
 import Link from "next/link";
 import { LucideIcon } from "lucide-react";
 
@@ -14,11 +14,15 @@ interface BaseButtonProps {
   icon?: LucideIcon;
 }
 
-export interface ButtonAsButtonProps extends BaseButtonProps, Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseButtonProps> {
+export interface ButtonAsButtonProps
+  extends
+    BaseButtonProps,
+    Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseButtonProps> {
   href?: never;
 }
 
-export interface ButtonAsLinkProps extends BaseButtonProps, Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof BaseButtonProps> {
+export interface ButtonAsLinkProps
+  extends BaseButtonProps, Omit<ComponentProps<typeof Link>, keyof BaseButtonProps> {
   href: string;
 }
 

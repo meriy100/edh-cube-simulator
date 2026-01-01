@@ -3,6 +3,8 @@ import z from "zod";
 import adminDb from "@/lib/firebase/admin";
 import { Color } from "@/domain/entity/card";
 import { fetchCards } from "@/repository/cards";
+import { ZodParsedType } from "zod/v3";
+import { chunk } from "lodash";
 
 const featureProducedByVariantSchema = z.object({
   id: z.number(),
@@ -30,7 +32,10 @@ const comboSchema = z.object({
 
 const collectionPath = "combos";
 
-export const fetchCombos = async (query: { cardName?: string }): Promise<Combo[]> => {
+export const fetchCombos = async (query: {
+  ids?: string[];
+  cardName?: string;
+}): Promise<Combo[]> => {
   const combosRef = adminDb().collection(collectionPath);
   let q: typeof combosRef | ReturnType<typeof combosRef.where> = combosRef;
 
@@ -38,11 +43,26 @@ export const fetchCombos = async (query: { cardName?: string }): Promise<Combo[]
     q = q.where("cardNames", "array-contains", query.cardName);
   }
 
-  // 3. 最後に一度だけ実行
+  if (query.ids) {
+    const batches = chunk(query.ids, 30);
+
+    const batchPromises = batches.map(async (idBatch) => {
+      const snapshot = await q.where("id", "in", idBatch).get();
+      return z.array(comboSchema).parse(snapshot.docs.map((doc) => doc.data()));
+    });
+
+    const batchResults = await Promise.all(batchPromises);
+
+    return await assignRelation(batchResults.flat());
+  }
+
   const snapshot = await q.get();
 
   const combos = z.array(comboSchema).parse(snapshot.docs.map((doc) => doc.data()));
+  return assignRelation(combos);
+};
 
+const assignRelation = async (combos: z.infer<typeof comboSchema>[]): Promise<Combo[]> => {
   const cardNames = combos.flatMap((combo) => combo.cardNames);
   const uniqueCardNames = new Set(cardNames);
   const cards = await fetchCards({ names: Array.from(uniqueCardNames) });
