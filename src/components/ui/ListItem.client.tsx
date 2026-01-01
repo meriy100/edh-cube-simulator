@@ -1,12 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { ReactNode } from "react";
 
 interface ListItemProps {
   title: string;
   subtitle?: string;
   metadata?: string;
-  actions?: React.ReactNode;
+  actions?: ReactNode;
   onClick?: () => void;
   className?: string;
 }

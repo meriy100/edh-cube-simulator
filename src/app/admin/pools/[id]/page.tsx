@@ -5,6 +5,7 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner.client";
 import { fetchPoolXCards } from "@/repository/poolXCards";
 import { PoolId } from "@/domain/entity/pool";
 import PoolXCardGrid from "@/components/poolXCards/PoolXCardGrid";
+import Button from "@/components/ui/Button.client";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -15,7 +16,14 @@ const AdminPoolShowPage = async ({ params }: Props) => {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Pool" />
+      <PageHeader
+        title="Pool"
+        actions={
+          <Button href={`/admin/pools/${id}/combos`} variant="secondary">
+            Combos
+          </Button>
+        }
+      />
 
       <SectionCard title="Commander cards">
         <Suspense fallback={<LoadingSpinner size="md" />}>

@@ -12,10 +12,8 @@ import {
   cardOracleBack,
   cardOracleFront,
   isCardMultiFaces,
-  newCardId,
 } from "@/domain/entity/card";
 import { fetchCombos } from "@/repository/combos";
-import Link from "next/link";
 import ComboSectionCard from "@/components/combos/ComboSectionCard";
 
 interface Props {
@@ -34,25 +32,12 @@ const AdminCardShowPage = async ({ params }: Props) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">
           <SectionCard title="カード画像">
-            <div className="relative bg-gray-200 dark:bg-gray-700" style={{ aspectRatio: "63/88" }}>
-              {card.originalImageUrl ? (
-                <CardImage imageUrl={card.originalImageUrl} name={card.name} />
-              ) : (
-                <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
-                  画像が利用できません
-                </div>
-              )}
-            </div>
+            <CardImage card={card} />
           </SectionCard>
 
           {card.originalImageBackUrl && (
             <SectionCard title="裏面画像">
-              <div
-                className="relative bg-gray-200 dark:bg-gray-700"
-                style={{ aspectRatio: "63/88" }}
-              >
-                <CardImage imageUrl={card.originalImageBackUrl} name={`${card.name} (裏面)`} />
-              </div>
+              <CardImage card={card} back />
             </SectionCard>
           )}
         </div>
