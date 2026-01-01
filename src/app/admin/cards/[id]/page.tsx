@@ -6,13 +6,17 @@ import ColorIdentityBadges from "@/components/ui/ColorIdentityBadges.client";
 import RefetchScryfallButton from "@/app/admin/cards/[id]/RefetchScryfallButton.client";
 import InfoDisplay from "@/components/ui/InfoDisplay";
 import {
-  cardIdentity,
+  cardColorIdentity,
   cardNameJa,
   cardOracle,
   cardOracleBack,
   cardOracleFront,
   isCardMultiFaces,
+  newCardId,
 } from "@/domain/entity/card";
+import { fetchCombos } from "@/repository/combos";
+import Link from "next/link";
+import ComboSectionCard from "@/components/combos/ComboSectionCard";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -20,6 +24,8 @@ interface Props {
 const AdminCardShowPage = async ({ params }: Props) => {
   const { id } = await params;
   const card = await fetchCard(id);
+  const combos = await fetchCombos({ cardName: card.name });
+  console.log(combos);
 
   return (
     <div className="space-y-6">
@@ -56,8 +62,8 @@ const AdminCardShowPage = async ({ params }: Props) => {
             <InfoDisplay label="ManaValue">{card.cmc}</InfoDisplay>
             <InfoDisplay label="Type">{card.type}</InfoDisplay>
             <InfoDisplay label="Color Identity">
-              {cardIdentity(card) ? (
-                <ColorIdentityBadges colorIdentity={cardIdentity(card) ?? []} />
+              {cardColorIdentity(card) ? (
+                <ColorIdentityBadges colorIdentity={cardColorIdentity(card) ?? []} />
               ) : null}
             </InfoDisplay>
             <InfoDisplay label="Oracle">
@@ -72,6 +78,9 @@ const AdminCardShowPage = async ({ params }: Props) => {
               <InfoDisplay label="Oracle">{cardOracleBack(card)}</InfoDisplay>
             </SectionCard>
           ) : null}
+          {combos.map((combo) => (
+            <ComboSectionCard key={combo.id} combo={combo} />
+          ))}
         </div>
       </div>
     </div>

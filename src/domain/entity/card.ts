@@ -33,7 +33,7 @@ export const cardNameJa = (card: Card): string => {
   return card.name;
 };
 
-export const cardIdentity = (card: Card): Color[] | undefined => {
+export const cardColorIdentity = (card: Card): Color[] | undefined => {
   if (card.scryfall) {
     return card.scryfall.color_identity;
   }

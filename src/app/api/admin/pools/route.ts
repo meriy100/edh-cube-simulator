@@ -133,9 +133,9 @@ export const POST = async (req: NextRequest) => {
 
         const saveCombosMessage = {
           poolId: pool.id,
-          cards: cards
-            .filter((c) => c.scryfall === undefined)
-            .map((card) => ({ id: newCardId(card.name), name: card.name })),
+          cards: parsedRows.data
+            .map((d) => d.name)
+            .map((name) => ({ id: newCardId(name), name: name })),
         };
 
         await Promise.all([
