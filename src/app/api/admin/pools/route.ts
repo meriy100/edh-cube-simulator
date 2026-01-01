@@ -125,12 +125,23 @@ export const POST = async (req: NextRequest) => {
         await updatePoolStatus(pool.id, "ready");
 
         const cards = await fetchCards({ names: parsedRows.data.map((d) => d.name) });
-        const message = {
+        const attachScryfallMessage = {
           cards: cards
             .filter((c) => c.scryfall === undefined)
             .map((card) => ({ id: newCardId(card.name), name: card.name })),
         };
-        await publishMessage("worker-topic", message, { eventType: "attachScryfall" });
+
+        const saveCombosMessage = {
+          poolId: pool.id,
+          cards: cards
+            .filter((c) => c.scryfall === undefined)
+            .map((card) => ({ id: newCardId(card.name), name: card.name })),
+        };
+
+        await Promise.all([
+          publishMessage("worker-topic", attachScryfallMessage, { eventType: "attachScryfall" }),
+          publishMessage("worker-topic", saveCombosMessage, { eventType: "saveCombos" }),
+        ]);
       } catch (error) {
         console.error("Error in background pool processing:", error);
         await updatePoolStatus(

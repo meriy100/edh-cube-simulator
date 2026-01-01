@@ -56,7 +56,9 @@ const AdminCardShowPage = async ({ params }: Props) => {
             <InfoDisplay label="ManaValue">{card.cmc}</InfoDisplay>
             <InfoDisplay label="Type">{card.type}</InfoDisplay>
             <InfoDisplay label="Color Identity">
-              <ColorIdentityBadges colorIdentity={cardIdentity(card) ?? []} />
+              {cardIdentity(card) ? (
+                <ColorIdentityBadges colorIdentity={cardIdentity(card) ?? []} />
+              ) : null}
             </InfoDisplay>
             <InfoDisplay label="Oracle">
               {isCardMultiFaces(card) ? cardOracleFront(card) : cardOracle(card)}

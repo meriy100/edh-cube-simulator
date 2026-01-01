@@ -42,7 +42,7 @@ const colorConfig: Record<Color, { name: string; bgColor: string; textColor: str
 };
 
 const ColorIdentityBadges = ({ colorIdentity, className = "" }: ColorIdentityBadgesProps) => {
-  if (!colorIdentity || colorIdentity.length === 0) {
+  if (colorIdentity.length === 0) {
     return (
       <div className={className}>
         <TagBadge className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
