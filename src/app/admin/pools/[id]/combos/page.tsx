@@ -4,8 +4,9 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner.client";
 import { fetchPoolXCombos } from "@/repository/poolXCombo";
 import ComboSectionCard from "@/components/combos/ComboSectionCard";
 import { PoolId } from "@/domain/entity/pool";
-import Button from "@/components/ui/Button.client";
 import BackLink from "@/components/ui/BackLink.client";
+import TranslateButton from "@/app/admin/pools/[id]/combos/TranslateButton.client";
+import { comboUnTranslated } from "@/domain/entity/combo";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -14,6 +15,9 @@ interface Props {
 const AdminPoolCombosPage = async ({ params }: Props) => {
   const { id } = await params;
   const poolXCombos = await fetchPoolXCombos(PoolId(id));
+  const unTranslatedCombos = poolXCombos
+    .filter((poolXCombo) => comboUnTranslated(poolXCombo.relation))
+    .map((poolXCombo) => poolXCombo.relation);
 
   return (
     <div className="space-y-6">
@@ -21,10 +25,16 @@ const AdminPoolCombosPage = async ({ params }: Props) => {
         title="Combos"
         subtitle={`${poolXCombos.length} combos`}
         backElement={<BackLink href={`/admin/pools/${id}`} />}
+        actions={<TranslateButton combos={unTranslatedCombos} />}
       />
       <Suspense fallback={<LoadingSpinner size="md" />}>
         {poolXCombos.map((poolXCombo) => (
-          <ComboSectionCard key={poolXCombo.id} combo={poolXCombo.relation} size="sm" />
+          <ComboSectionCard
+            key={poolXCombo.id}
+            combo={poolXCombo.relation}
+            size="sm"
+            footerActions={<TranslateButton combos={[poolXCombo.relation]} />}
+          />
         ))}
       </Suspense>
     </div>

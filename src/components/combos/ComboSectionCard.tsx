@@ -1,4 +1,9 @@
-import { Combo } from "@/domain/entity/combo";
+import {
+  Combo,
+  comboDescriptionJa,
+  comboNotablePrerequisitesJa,
+  comboUnTranslated,
+} from "@/domain/entity/combo";
 import SectionCard from "@/components/ui/SectionCard";
 import Link from "next/link";
 import { cardNameJa, newCardId } from "@/domain/entity/card";
@@ -15,10 +20,11 @@ interface Props {
 
 const ComboSectionCard = ({ combo, size = "md", footerActions }: Props) => {
   const sectionTitle = combo.uses.map((use) => cardNameJa(use.card.relation)).join(" & ");
+  const sectionSubtitle = `${combo.id}${comboUnTranslated(combo) ? " untranslated" : ""}`;
 
   if (size === "sm") {
     return (
-      <SectionCard title={sectionTitle} footerActions={footerActions}>
+      <SectionCard title={sectionTitle} subtitle={sectionSubtitle} footerActions={footerActions}>
         <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-5">
           {combo.uses.map((use) => (
             <Link key={use.card.id} href={`/admin/cards/${newCardId(use.card.name)}`}>
@@ -32,7 +38,7 @@ const ComboSectionCard = ({ combo, size = "md", footerActions }: Props) => {
             <InfoDisplay label="Color Identity">
               <ColorIdentityBadges colorIdentity={combo.identity} />
             </InfoDisplay>
-            <InfoDisplay label="Prerequisites">{combo.notablePrerequisites}</InfoDisplay>
+            <InfoDisplay label="Prerequisites">{comboNotablePrerequisitesJa(combo)}</InfoDisplay>
             <InfoDisplay label="Produces">
               <ul>
                 {combo.produces.map((p) => (
@@ -41,11 +47,13 @@ const ComboSectionCard = ({ combo, size = "md", footerActions }: Props) => {
               </ul>
             </InfoDisplay>
             <ol className="list-decimal list-inside">
-              {combo.description.split("\n").map((line, idx) => (
-                <li key={idx} className="mb-2">
-                  {line}
-                </li>
-              ))}
+              {comboDescriptionJa(combo)
+                .split("\n")
+                .map((line, idx) => (
+                  <li key={idx} className="mb-2">
+                    {line}
+                  </li>
+                ))}
             </ol>
           </div>
         </details>
@@ -54,7 +62,7 @@ const ComboSectionCard = ({ combo, size = "md", footerActions }: Props) => {
   }
 
   return (
-    <SectionCard title={sectionTitle} footerActions={footerActions}>
+    <SectionCard title={sectionTitle} subtitle={sectionSubtitle} footerActions={footerActions}>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
         {combo.uses.map((use) => (
           <Link key={use.card.id} href={`/admin/cards/${newCardId(use.card.name)}`}>
@@ -65,7 +73,7 @@ const ComboSectionCard = ({ combo, size = "md", footerActions }: Props) => {
       <InfoDisplay label="Color Identity">
         <ColorIdentityBadges colorIdentity={combo.identity} />
       </InfoDisplay>
-      <InfoDisplay label="Prerequisites">{combo.notablePrerequisites}</InfoDisplay>
+      <InfoDisplay label="Prerequisites">{comboNotablePrerequisitesJa(combo)}</InfoDisplay>
       <InfoDisplay label="Produces">
         <ul>
           {combo.produces.map((p) => (
@@ -74,11 +82,13 @@ const ComboSectionCard = ({ combo, size = "md", footerActions }: Props) => {
         </ul>
       </InfoDisplay>
       <ol className="list-decimal list-inside">
-        {combo.description.split("\n").map((line, idx) => (
-          <li key={idx} className="mb-2">
-            {line}
-          </li>
-        ))}
+        {comboDescriptionJa(combo)
+          .split("\n")
+          .map((line, idx) => (
+            <li key={idx} className="mb-2">
+              {line}
+            </li>
+          ))}
       </ol>
     </SectionCard>
   );
