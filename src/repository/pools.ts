@@ -3,6 +3,7 @@ import z from "zod";
 import { firestore } from "firebase-admin";
 import Timestamp = firestore.Timestamp;
 import { Pool, PoolId, PoolStatus } from "@/domain/entity/pool";
+import { unstable_cache } from "next/cache";
 
 const collectionPath = "pools";
 
@@ -53,6 +54,14 @@ export const fetchPools = async (query: { published?: boolean } = {}): Promise<P
   const snapshot = await poolsRef.orderBy("id", "desc").limit(10).get();
 
   return z.array(poolDecodeSchema).parse(snapshot.docs.map((doc) => doc.data()));
+};
+
+export const fetchPublishedPool = async (): Promise<Pool | undefined> => {
+  const f = unstable_cache(async () => await fetchPools({ published: true }), ["published-pool"], {
+    tags: ["published-pool"],
+  });
+  const pools = await f();
+  return pools[0];
 };
 
 export const createPool = async (pool: Pool): Promise<void> => {

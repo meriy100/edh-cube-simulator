@@ -31,7 +31,7 @@ const AdminPoolShowPage = async ({ params }: Props) => {
             <Button href={`/admin/pools/${id}/combos`} variant="secondary">
               Combos
             </Button>
-            {pool.published ? null : <PublishButton pool={pool} />}
+            <PublishButton pool={pool} />
           </div>
         }
       />

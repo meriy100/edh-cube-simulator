@@ -1,8 +1,8 @@
 "use client";
 
 import Button from "@/components/ui/Button.client";
-import { startTransition } from "react";
-import { publishPoolAction } from "@/app/admin/pools/[id]/actions";
+import { startTransition, useState } from "react";
+import { publishPoolAction, revalidatePublishedPoolAction } from "@/app/admin/pools/[id]/actions";
 import { Pool } from "@/domain/entity/pool";
 
 interface Props {
@@ -10,12 +10,25 @@ interface Props {
 }
 
 const PublishButton = ({ pool }: Props) => {
+  const [disabled, setDisabled] = useState(false);
+
   const handleClick = async () => {
+    setDisabled(true);
     startTransition(async () => {
-      await publishPoolAction(pool.id);
+      if (pool.published) {
+        await revalidatePublishedPoolAction(pool.id);
+      } else {
+        await publishPoolAction(pool.id);
+      }
+      setDisabled(false);
     });
   };
-  return <Button onClick={handleClick}>Publish</Button>;
+
+  return (
+    <Button disabled={disabled} onClick={handleClick}>
+      {pool.published ? "Revalidate" : "Publish"}
+    </Button>
+  );
 };
 
 export default PublishButton;

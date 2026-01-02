@@ -2,7 +2,8 @@
 
 import { Pool, PoolId } from "@/domain/entity/pool";
 import { fetchPools, updatePool } from "@/repository/pools";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { redirect } from "next/navigation";
 
 export const updatePoolAction = async (id: PoolId, args: Partial<Pool>) => {
   await updatePool(id, args);
@@ -17,5 +18,11 @@ export const publishPoolAction = async (id: PoolId) => {
   }
   await updatePool(id, { published: true });
 
-  revalidatePath(`/admin/pools/${id}`);
+  revalidateTag("published-pool");
+  redirect(`/admin/pools/${id}`);
+};
+
+export const revalidatePublishedPoolAction = async (id: PoolId) => {
+  revalidateTag("published-pool");
+  redirect(`/admin/pools/${id}`);
 };
