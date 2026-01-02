@@ -38,7 +38,7 @@ const buttonVariants: Record<ButtonVariant, string> = {
   ghost:
     "border-black/20 dark:border-white/20 hover:bg-foreground hover:text-background disabled:opacity-60",
   danger:
-    "text-sm underline text-red-600 bg-transparent border-none hover:opacity-80 disabled:opacity-60",
+    "bg-red-600 text-white border-red-700 hover:bg-red-700 disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300",
 };
 
 const buttonSizes: Record<ButtonSize, string> = {
@@ -67,12 +67,7 @@ export default function Button({
   const variantClasses = buttonVariants[variant];
   const sizeClasses = buttonSizes[size];
 
-  // For danger variant, remove border and padding adjustments but keep link-specific styles
-  const isDangerVariant = variant === "danger";
-  const linkSpecificClasses = "inline-block text-center no-underline cursor-pointer";
-  const finalClasses = isDangerVariant
-    ? `${linkSpecificClasses} ${variantClasses} ${className}`.trim()
-    : `${baseClasses} ${variantClasses} ${sizeClasses} ${className}`.trim();
+  const finalClasses = `${baseClasses} ${variantClasses} ${sizeClasses} ${className}`.trim();
 
   const IconComponent = icon;
   const iconSize = iconSizes[size];
