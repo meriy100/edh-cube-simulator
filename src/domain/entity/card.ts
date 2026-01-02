@@ -7,7 +7,7 @@ const NAMESPACE_MTG = "44869818-5a23-4709-906d-669528d229f3";
 
 export type Color = "W" | "U" | "B" | "R" | "G" | "C";
 
-export const FULL_COLORS = ["W", "U", "B", "R", "G"] as const;
+export const FULL_COLORS: Exclude<Color, "C">[] = ["W", "U", "B", "R", "G"];
 
 export const colorSchema = z.preprocess(
   (arg) => {
@@ -44,6 +44,8 @@ export const colorsCompare = (colors: Color[]) => {
 };
 
 export const colorIn = (target: Color[], colors: Color[]) => {
+  if (colors.length === 0) return target.length === 0;
+
   if (target.length > colors.length) {
     return false;
   }

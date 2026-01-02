@@ -5,40 +5,41 @@ import { fetchPoolXCards } from "@/repository/poolXCards";
 import CardImage from "@/components/cards/CardImage.client";
 import { cardColorIdentity, colorIn, colorsCompare, newCardId } from "@/domain/entity/card";
 import CardSearchForm from "@/components/cards/CardSearchForm.client";
-import { cardSearchParamsSchema } from "@/components/cards/cardSearchParams";
+import { cardSearchParamsSchema, colorPathList } from "@/components/cards/cardSearchParams";
 import { unstable_cache } from "next/cache";
+import { PoolId } from "@/domain/entity/pool";
+
+export const generateStaticParams = async () => {
+  return colorPathList().map((c) => ({ c }));
+};
 
 interface Props {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  params: Promise<{ c: string }>;
 }
 
-const CommandersPage = async ({ searchParams }: Props) => {
+const getPoolXCardsCache = unstable_cache(
+  async (id: PoolId) => await fetchPoolXCards(id, { commander: true }),
+  ["published-pool-x-cards-commanders"],
+  {
+    tags: ["published-pool"],
+  },
+);
+
+const CommandersPage = async ({ params }: Props) => {
   const current = await fetchPublishedPool();
 
   if (!current) {
     return <Alert variant="error">No published pools</Alert>;
   }
-  const q = cardSearchParamsSchema.safeParse(await searchParams);
 
-  const f = unstable_cache(
-    async () => await fetchPoolXCards(current.id, { commander: true }),
-    ["published-pool-x-cards"],
-    {
-      tags: ["published-pool"],
-    },
-  );
-  const poolXCards = await f()
+  const q = cardSearchParamsSchema.parse(await params);
+
+  const poolXCards = await getPoolXCardsCache(current.id)
     .then(async (ps) => {
-      if (!q.success) {
-        return ps;
-      }
-      if (q.data.c !== undefined) {
-        return ps.filter((pc) => {
-          const colorIdentity = cardColorIdentity(pc.card) ?? [];
-          return colorIn(colorIdentity, q.data.c!);
-        });
-      }
-      return ps;
+      return ps.filter((pc) => {
+        const colorIdentity = cardColorIdentity(pc.card) ?? [];
+        return colorIn(colorIdentity, q.c);
+      });
     })
     .then((ps) =>
       ps
@@ -53,7 +54,7 @@ const CommandersPage = async ({ searchParams }: Props) => {
   return (
     <div className="space-y-6">
       <PageHeader title={`EDH Cube v${current.version} / 統率者`} />
-      <CardSearchForm q={q.data ?? {}} />
+      <CardSearchForm q={q} />
       <div className="grid grid-cols-4 lg:grid-cols-8 gap-2">
         {poolXCards.map((poolXCard) => (
           <CardImage key={newCardId(poolXCard.card.name)} card={poolXCard.card} />

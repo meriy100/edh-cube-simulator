@@ -23,7 +23,6 @@ const AdminCardShowPage = async ({ params }: Props) => {
   const { id } = await params;
   const card = await fetchCard(id);
   const combos = await fetchCombos({ cardName: card.name });
-  console.log(combos);
 
   return (
     <div className="space-y-6">

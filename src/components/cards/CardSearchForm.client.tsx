@@ -10,7 +10,7 @@ import z from "zod";
 import { cardSearchParamsSchema } from "@/components/cards/cardSearchParams";
 
 interface FormData {
-  c?: Color[];
+  c: Exclude<Color, "C">[];
 }
 
 interface Props {
@@ -23,15 +23,13 @@ const CardSearchForm = ({ q }: Props) => {
   const [formData, setFormData] = useState<FormData>(q);
 
   const handleSubmit = () => {
-    const params = new URLSearchParams();
-    if (formData.c) {
-      params.set("c", formData.c.join(""));
-    }
-    router.push(`${pathname}?${params.toString()}`);
+    const basePath = `/${pathname.split("/").slice(1, -1).join("/")}`;
+    const c = formData.c.join("").toLowerCase();
+    router.push(`${basePath}/${c || "c"}`);
   };
 
   const handleClear = () => {
-    setFormData({});
+    setFormData({ c: FULL_COLORS });
     router.push(pathname);
   };
 
