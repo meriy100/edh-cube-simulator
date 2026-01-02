@@ -84,22 +84,23 @@ interface CardResponse {
   ja?: ScryfallCard;
 }
 
-function findBestJapaneseCard(cards: ScryfallCard[]): ScryfallCard {
+function findBestJapaneseCard(cards: ScryfallCard[]): ScryfallCard | undefined {
   // 1. printed_text に日本語（ひらがな・カタカナ）が含まれているものを探す
   const hasJapaneseText = (text?: string) => /[\u3040-\u309F\u30A0-\u30FF]/.test(text || "");
 
   // 日本語テキストがあるものを抽出
   const fullJapaneseCards = cards.filter((card) => hasJapaneseText(card.printed_text));
 
-  if (fullJapaneseCards.length > 0) {
+  const [head] = fullJapaneseCards;
+  if (head) {
     // 存在するなら、その中で最新のセット（基本セットやエキスパンション）を優先
-    return fullJapaneseCards[0];
+    return head;
   }
 
   // 2. 見つからなければ、仕方ないので printed_name だけでも日本語のもの
   const hasJapaneseName = cards.find((card) => hasJapaneseText(card.printed_name));
 
-  return hasJapaneseName || cards[0];
+  return hasJapaneseName ?? cards[0];
 }
 
 /**
