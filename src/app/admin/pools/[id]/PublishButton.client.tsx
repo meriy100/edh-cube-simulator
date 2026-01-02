@@ -20,7 +20,6 @@ const PublishButton = ({ pool }: Props) => {
       } else {
         await publishPoolAction(pool.id);
       }
-      setDisabled(false);
     });
   };
 

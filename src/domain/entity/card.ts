@@ -7,7 +7,7 @@ const NAMESPACE_MTG = "44869818-5a23-4709-906d-669528d229f3";
 
 export type Color = "W" | "U" | "B" | "R" | "G" | "C";
 
-export const FULL_COLORS = ["W", "U", "B", "R", "G"] as const;
+export const FULL_COLORS: Exclude<Color, "C">[] = ["W", "U", "B", "R", "G"];
 
 export const colorSchema = z.preprocess(
   (arg) => {
@@ -43,11 +43,14 @@ export const colorsCompare = (colors: Color[]) => {
   return reduce(xs, (acc, x) => acc * 10 + x, 0);
 };
 
-export const colorIn = (target: Color[], colors: Color[]) => {
-  if (target.length > colors.length) {
+export const colorIn = (target: Color[], colors: Exclude<Color, "C">[]) => {
+  const withoutColorless = target.filter((t) => t !== "C");
+  if (colors.length === 0) return withoutColorless.length === 0;
+
+  if (withoutColorless.length > colors.length) {
     return false;
   }
-  return target.every((t) => colors.includes(t));
+  return withoutColorless.every((t) => colors.includes(t));
 };
 
 export interface Card {

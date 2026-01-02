@@ -125,5 +125,5 @@ export const updatePool = async (id: PoolId, pool: Partial<Pool>): Promise<void>
 };
 
 export const deletePool = async (poolId: PoolId): Promise<void> => {
-  await adminDb().collection(collectionPath).doc(poolId).delete();
+  await adminDb().recursiveDelete(adminDb().collection(collectionPath).doc(poolId));
 };
