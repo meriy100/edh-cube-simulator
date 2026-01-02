@@ -6,8 +6,6 @@ import { Suspense } from "react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner.client";
 import NewPoolForm from "@/app/admin/pools/NewPoolForm.client";
 
-export const dynamic = "force-dynamic";
-
 const AdminPoolsPage = async () => {
   const pools = await fetchPools();
 

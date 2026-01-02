@@ -1,12 +1,11 @@
 import PageHeader from "@/components/ui/PageHeader";
-import { fetchPools } from "@/repository/pools";
 import Alert from "@/components/ui/Alert.client";
 import ActionCard from "@/components/ui/ActionCard.client";
 import { BookUp2, ChessPawn, Crown } from "lucide-react";
+import { fetchPublishedPool } from "@/repository/pools";
 
 const Home = async () => {
-  const pools = await fetchPools({ published: true });
-  const current = pools[0];
+  const current = await fetchPublishedPool();
 
   if (!current) {
     return <Alert variant="error">No published pools</Alert>;
