@@ -37,6 +37,7 @@ export const colorCompare = (color: Color) => {
 };
 
 export const colorsCompare = (colors: Color[]) => {
+  if (colors.length === 0) return 6;
   const [color1, color2, color3, color4, color5] = colors.sort(colorCompare);
   const xs = compact([color1, color2, color3, color4, color5]).map(colorCompare);
   return reduce(xs, (acc, x) => acc * 10 + x, 0);

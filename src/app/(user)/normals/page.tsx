@@ -1,41 +1,56 @@
 import PageHeader from "@/components/ui/PageHeader";
-import { fetchPools } from "@/repository/pools";
+import { fetchPublishedPool } from "@/repository/pools";
 import Alert from "@/components/ui/Alert.client";
-import ActionCard from "@/components/ui/ActionCard.client";
-import { BookUp2, ChessPawn, Crown } from "lucide-react";
-import Link from "next/link";
+import { fetchPoolXCards } from "@/repository/poolXCards";
+import CardImage from "@/components/cards/CardImage.client";
+import { cardColorIdentity, colorIn, colorsCompare, newCardId } from "@/domain/entity/card";
+import CardSearchForm from "@/components/cards/CardSearchForm.client";
+import { cardSearchParamsSchema } from "@/components/cards/cardSearchParams";
 
-const NormalsPage = async () => {
-  const pools = await fetchPools({ published: true });
-  const current = pools[0];
+interface Props {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+const NormalsPage = async ({ searchParams }: Props) => {
+  const current = await fetchPublishedPool();
 
   if (!current) {
     return <Alert variant="error">No published pools</Alert>;
   }
+  const q = cardSearchParamsSchema.safeParse(await searchParams);
+
+  const poolXCards = await fetchPoolXCards(current.id, { commander: false })
+    .then(async (ps) => {
+      if (!q.success) {
+        return ps;
+      }
+      if (q.data.c !== undefined) {
+        return ps.filter((pc) => {
+          const colorIdentity = cardColorIdentity(pc.card) ?? [];
+          return colorIn(colorIdentity, q.data.c!);
+        });
+      }
+      return ps;
+    })
+    .then((ps) =>
+      ps
+        .toSorted((a, b) => a.card.cmc - b.card.cmc)
+        .toSorted(
+          (a, b) =>
+            colorsCompare(cardColorIdentity(a.card) ?? []) -
+            colorsCompare(cardColorIdentity(b.card) ?? []),
+        ),
+    );
 
   return (
     <div className="space-y-6">
-      <PageHeader title={`EDH Cube v${current.version}`} />
-      <ActionCard
-        title="統率者"
-        description="金シールが貼ってある統率者のプール"
-        icon={<Crown className="text-orange-500" />}
-        href="/commanders"
-      />
-      <Link href="/normals">
-        <ActionCard
-          title="通常カード"
-          description="シールなしのカードプール"
-          icon={<ChessPawn className="text-pink-600" />}
-        />
-      </Link>
-      <Link href="/combos">
-        <ActionCard
-          title="コンボ"
-          description="プールで成立するコンボ集"
-          icon={<BookUp2 className="text-green-600" />}
-        />
-      </Link>
+      <PageHeader title={`EDH Cube v${current.version} / 一般プール`} />
+      <CardSearchForm q={q.data ?? {}} />
+      <div className="grid grid-cols-4 lg:grid-cols-8 gap-2">
+        {poolXCards.map((poolXCard) => (
+          <CardImage key={newCardId(poolXCard.card.name)} card={poolXCard.card} />
+        ))}
+      </div>
     </div>
   );
 };

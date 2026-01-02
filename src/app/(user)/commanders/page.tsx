@@ -1,5 +1,5 @@
 import PageHeader from "@/components/ui/PageHeader";
-import { fetchPools } from "@/repository/pools";
+import { fetchPublishedPool } from "@/repository/pools";
 import Alert from "@/components/ui/Alert.client";
 import { fetchPoolXCards } from "@/repository/poolXCards";
 import CardImage from "@/components/cards/CardImage.client";
@@ -12,8 +12,7 @@ interface Props {
 }
 
 const CommandersPage = async ({ searchParams }: Props) => {
-  const pools = await fetchPools({ published: true });
-  const current = pools[0];
+  const current = await fetchPublishedPool();
 
   if (!current) {
     return <Alert variant="error">No published pools</Alert>;
@@ -34,11 +33,13 @@ const CommandersPage = async ({ searchParams }: Props) => {
       return ps;
     })
     .then((ps) =>
-      ps.toSorted(
-        (a, b) =>
-          colorsCompare(cardColorIdentity(a.card) ?? []) -
-          colorsCompare(cardColorIdentity(b.card) ?? []),
-      ),
+      ps
+        .toSorted((a, b) => a.card.cmc - b.card.cmc)
+        .toSorted(
+          (a, b) =>
+            colorsCompare(cardColorIdentity(a.card) ?? []) -
+            colorsCompare(cardColorIdentity(b.card) ?? []),
+        ),
     );
 
   return (
