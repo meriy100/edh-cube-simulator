@@ -6,6 +6,9 @@ import { fetchPoolXCards } from "@/repository/poolXCards";
 import { PoolId } from "@/domain/entity/pool";
 import PoolXCardGrid from "@/components/poolXCards/PoolXCardGrid";
 import Button from "@/components/ui/Button.client";
+import PoolForm from "@/app/admin/pools/[id]/PoolForm.client";
+import { fetchPool } from "@/repository/pools";
+import Alert from "@/components/ui/Alert.client";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -13,6 +16,10 @@ interface Props {
 
 const AdminPoolShowPage = async ({ params }: Props) => {
   const { id } = await params;
+  const pool = await fetchPool(PoolId(id));
+  if (!pool) {
+    return <Alert variant="error">Pool not found</Alert>;
+  }
 
   return (
     <div className="space-y-6">
@@ -24,6 +31,7 @@ const AdminPoolShowPage = async ({ params }: Props) => {
           </Button>
         }
       />
+      <PoolForm pool={pool} />
 
       <SectionCard title="Commander cards">
         <Suspense fallback={<LoadingSpinner size="md" />}>

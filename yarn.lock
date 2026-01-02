@@ -2847,6 +2847,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/semver@npm:^7":
+  version: 7.7.1
+  resolution: "@types/semver@npm:7.7.1"
+  checksum: 10c0/c938aef3bf79a73f0f3f6037c16e2e759ff40c54122ddf0b2583703393d8d3127130823facb880e694caa324eb6845628186aac1997ee8b31dc2d18fafe26268
+  languageName: node
+  linkType: hard
+
 "@types/send@npm:*":
   version: 1.2.1
   resolution: "@types/send@npm:1.2.1"
@@ -4195,6 +4202,7 @@ __metadata:
     "@types/papaparse": "npm:^5.5.2"
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"
+    "@types/semver": "npm:^7"
     "@vitest/browser-playwright": "npm:^4.0.16"
     "@vitest/coverage-v8": "npm:^4.0.16"
     eslint: "npm:^9"
@@ -4211,6 +4219,7 @@ __metadata:
     prettier: "npm:^3.3.3"
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
+    semver: "npm:^7.7.3"
     storybook: "npm:^10.1.10"
     tailwindcss: "npm:^4"
     typescript: "npm:^5"
