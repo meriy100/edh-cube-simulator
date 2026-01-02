@@ -21,7 +21,7 @@ const PoolForm = ({ pool }: Props) => {
   };
 
   return (
-    <SectionCard title="Version">
+    <SectionCard title="Details">
       <div className="flex flex-row gap-2">
         <Input value={versionData} onChange={(e) => setVersionData(e.target.value)} />
         <Button onClick={handleSubmit}>Submit</Button>

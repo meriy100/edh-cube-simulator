@@ -13,6 +13,7 @@ export interface Pool {
   count: number;
   status: PoolStatus;
   errorMessage?: string;
+  published: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,6 +23,7 @@ export const newPool = ({ count, version }: { count: number; version: string }):
   version,
   count,
   status: "processing",
+  published: false,
   createdAt: new Date(),
   updatedAt: new Date(),
 });

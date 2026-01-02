@@ -57,6 +57,7 @@ const pollForPoolXCards = async (
       throw new Error("Pool not found");
     }
 
+    console.log("pool.status", pool.status, "pool.errorMessage", pool.errorMessage);
     if (pool.status === "ready") {
       return await attemptFetchPoolXCards(poolId, query);
     }

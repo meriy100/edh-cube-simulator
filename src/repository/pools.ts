@@ -12,14 +12,9 @@ interface FirestorePoolData {
   count: number;
   status: PoolStatus;
   errorMessage?: string;
+  published: boolean;
   createdAt: Timestamp;
   updatedAt: Timestamp;
-}
-
-interface FirestorePoolUpdateData {
-  status: PoolStatus;
-  updatedAt: Timestamp;
-  errorMessage?: string;
 }
 
 const timestampDecodeSchema = z.preprocess((arg) => {
@@ -29,21 +24,35 @@ const timestampDecodeSchema = z.preprocess((arg) => {
   return arg;
 }, z.date());
 
-export const fetchPools = async (): Promise<Pool[]> => {
-  const snapshot = await adminDb().collection(collectionPath).orderBy("id", "desc").limit(10).get();
-  const decodeSchema = z.array(
-    z.object({
-      id: z.string().transform(PoolId),
-      version: z.string(),
-      count: z.number(),
-      status: z.enum(["processing", "ready", "error"]).default("ready"),
-      errorMessage: z.string().optional(),
-      createdAt: timestampDecodeSchema,
-      updatedAt: timestampDecodeSchema,
-    }),
-  );
+const poolDecodeSchema = z.object({
+  id: z.string().transform(PoolId),
+  version: z.string(),
+  count: z.number(),
+  status: z.enum(["processing", "ready", "error"]).default("ready"),
+  errorMessage: z.string().optional(),
+  published: z.boolean(),
+  createdAt: timestampDecodeSchema,
+  updatedAt: timestampDecodeSchema,
+});
 
-  return decodeSchema.parse(snapshot.docs.map((doc) => doc.data()));
+interface FirestorePoolStatusUpdateData {
+  status: PoolStatus;
+  updatedAt: Timestamp;
+  errorMessage?: string;
+}
+
+export const fetchPools = async (query: { published?: boolean } = {}): Promise<Pool[]> => {
+  const poolsRef = adminDb().collection(collectionPath);
+
+  if (query.published !== undefined) {
+    const snapshot = await poolsRef.where("published", "==", query.published).get();
+
+    return z.array(poolDecodeSchema).parse(snapshot.docs.map((doc) => doc.data()));
+  }
+
+  const snapshot = await poolsRef.orderBy("id", "desc").limit(10).get();
+
+  return z.array(poolDecodeSchema).parse(snapshot.docs.map((doc) => doc.data()));
 };
 
 export const createPool = async (pool: Pool): Promise<void> => {
@@ -53,13 +62,10 @@ export const createPool = async (pool: Pool): Promise<void> => {
       version: pool.version,
       count: pool.count,
       status: pool.status,
+      published: pool.published,
       createdAt: Timestamp.fromDate(pool.createdAt),
       updatedAt: Timestamp.fromDate(pool.updatedAt),
     };
-
-    if (pool.errorMessage !== undefined) {
-      poolData.errorMessage = pool.errorMessage;
-    }
 
     await adminDb().collection(collectionPath).doc(pool.id).set(poolData);
   } catch (error) {
@@ -74,7 +80,7 @@ export const updatePoolStatus = async (
   errorMessage?: string,
 ): Promise<void> => {
   try {
-    const updateData: Partial<FirestorePoolUpdateData> = {
+    const updateData: Partial<FirestorePoolStatusUpdateData> = {
       status,
       updatedAt: Timestamp.now(),
     };
@@ -98,17 +104,7 @@ export const fetchPool = async (poolId: PoolId): Promise<Pool | null> => {
       return null;
     }
 
-    const singlePoolSchema = z.object({
-      id: z.string().transform(PoolId),
-      version: z.string(),
-      count: z.number(),
-      status: z.enum(["processing", "ready", "error"]).default("ready"),
-      errorMessage: z.string().optional(),
-      createdAt: timestampDecodeSchema,
-      updatedAt: timestampDecodeSchema,
-    });
-
-    return singlePoolSchema.parse(doc.data());
+    return poolDecodeSchema.parse(doc.data());
   } catch (error) {
     console.error("Error fetching pool:", error);
     throw error;

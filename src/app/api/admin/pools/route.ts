@@ -108,10 +108,10 @@ export const POST = async (req: NextRequest) => {
     );
 
     const pool = newPool({ count: parsedRows.data.length, version });
+    await createPool(pool);
+
     after(async () => {
       try {
-        await createPool(pool);
-
         await createPoolXCards(
           pool.id,
           parsedRows.data.map(

@@ -15,6 +15,7 @@ const PoolsList = ({ pools }: Props) => {
           key={p.id}
           title={p.version}
           subtitle={p.createdAt.toLocaleDateString()}
+          metadata={p.published ? "Published" : undefined}
           actions={
             <div className="flex flex-row gap-2">
               <Button href={`/admin/pools/${p.id}`}>Show</Button>

@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button.client";
 import PoolForm from "@/app/admin/pools/[id]/PoolForm.client";
 import { fetchPool } from "@/repository/pools";
 import Alert from "@/components/ui/Alert.client";
+import PublishButton from "@/app/admin/pools/[id]/PublishButton.client";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -26,9 +27,12 @@ const AdminPoolShowPage = async ({ params }: Props) => {
       <PageHeader
         title="Pool"
         actions={
-          <Button href={`/admin/pools/${id}/combos`} variant="secondary">
-            Combos
-          </Button>
+          <div className="flex flex-row gap-2">
+            <Button href={`/admin/pools/${id}/combos`} variant="secondary">
+              Combos
+            </Button>
+            {pool.published ? null : <PublishButton pool={pool} />}
+          </div>
         }
       />
       <PoolForm pool={pool} />
