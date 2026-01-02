@@ -7,8 +7,13 @@ import Button from "@/components/ui/Button.client";
 import Alert from "@/components/ui/Alert.client";
 import LoadingSpinner from "@/components/ui/LoadingSpinner.client";
 import { useRouter } from "next/navigation";
+import semver from "semver/preload";
 
-const NewPoolForm = () => {
+interface Props {
+  latestVersion: string;
+}
+
+const NewPoolForm = ({ latestVersion }: Props) => {
   const [file, setFile] = useState<File>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>();
@@ -28,6 +33,10 @@ const NewPoolForm = () => {
     try {
       const formData = new FormData();
       formData.append("csv", file);
+
+      const version =
+        semver.inc(semver.valid(latestVersion) ?? "0.0.1", "prerelease", "rc") ?? "0.0.1";
+      formData.append("version", version);
 
       const response = await fetch("/api/admin/pools", {
         method: "POST",

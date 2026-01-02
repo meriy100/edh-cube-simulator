@@ -11,11 +11,13 @@ export const dynamic = "force-dynamic";
 const AdminPoolsPage = async () => {
   const pools = await fetchPools();
 
+  const latestVersion = pools[0]?.version ?? "0.0.0";
+
   return (
     <div className="space-y-6">
       <PageHeader title="Pool 管理" />
 
-      <NewPoolForm />
+      <NewPoolForm latestVersion={latestVersion} />
 
       <SectionCard title="Pool 一覧">
         <Suspense fallback={<LoadingSpinner size="md" />}>

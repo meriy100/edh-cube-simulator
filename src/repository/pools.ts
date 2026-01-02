@@ -30,7 +30,7 @@ const timestampDecodeSchema = z.preprocess((arg) => {
 }, z.date());
 
 export const fetchPools = async (): Promise<Pool[]> => {
-  const snapshot = await adminDb().collection(collectionPath).get();
+  const snapshot = await adminDb().collection(collectionPath).orderBy("id", "desc").limit(10).get();
   const decodeSchema = z.array(
     z.object({
       id: z.string().transform(PoolId),

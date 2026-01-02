@@ -5,7 +5,7 @@ export type PoolId = string & { [poolIdCommonality]: never };
 
 export const PoolId = (id: string): PoolId => id as PoolId;
 
-export type PoolStatus = 'processing' | 'ready' | 'error';
+export type PoolStatus = "processing" | "ready" | "error";
 
 export interface Pool {
   id: PoolId;
@@ -17,11 +17,11 @@ export interface Pool {
   updatedAt: Date;
 }
 
-export const newPool = ({ count }: { count: number }): Pool => ({
+export const newPool = ({ count, version }: { count: number; version: string }): Pool => ({
   id: PoolId(ulid()),
-  version: "unknown",
+  version,
   count,
-  status: 'processing',
+  status: "processing",
   createdAt: new Date(),
   updatedAt: new Date(),
 });
