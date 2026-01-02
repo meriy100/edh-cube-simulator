@@ -6,6 +6,7 @@ import CardImage from "@/components/cards/CardImage.client";
 import { cardColorIdentity, colorIn, colorsCompare, newCardId } from "@/domain/entity/card";
 import CardSearchForm from "@/components/cards/CardSearchForm.client";
 import { cardSearchParamsSchema } from "@/components/cards/cardSearchParams";
+import { unstable_cache } from "next/cache";
 
 interface Props {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -19,7 +20,14 @@ const CommandersPage = async ({ searchParams }: Props) => {
   }
   const q = cardSearchParamsSchema.safeParse(await searchParams);
 
-  const poolXCards = await fetchPoolXCards(current.id, { commander: true })
+  const f = unstable_cache(
+    async () => await fetchPoolXCards(current.id, { commander: true }),
+    ["published-pool-x-cards"],
+    {
+      tags: ["published-pool"],
+    },
+  );
+  const poolXCards = await f()
     .then(async (ps) => {
       if (!q.success) {
         return ps;
