@@ -8,6 +8,7 @@ import CardSearchForm from "@/components/cards/CardSearchForm.client";
 import { cardSearchParamsSchema, colorPathList } from "@/components/cards/cardSearchParams";
 import { unstable_cache } from "next/cache";
 import { PoolId } from "@/domain/entity/pool";
+import PageNavigation from "@/app/(user)/PageNavigation";
 
 export const generateStaticParams = async () => {
   return colorPathList().map((c) => ({ c }));
@@ -53,6 +54,7 @@ const NormalsPage = async ({ params }: Props) => {
   return (
     <div className="space-y-6">
       <PageHeader title={`EDH Cube v${current.version} / 一般プール`} />
+      <PageNavigation commander combos />
       <CardSearchForm q={q} />
       <div className="grid grid-cols-4 lg:grid-cols-8 gap-2">
         {poolXCards.map((poolXCard) => (

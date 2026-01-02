@@ -8,6 +8,9 @@ import CardSearchForm from "@/components/cards/CardSearchForm.client";
 import ComboSectionCard from "@/components/combos/ComboSectionCard";
 import { unstable_cache } from "next/cache";
 import { PoolId } from "@/domain/entity/pool";
+import ActionCard from "@/components/ui/ActionCard.client";
+import { ChessPawn, Crown } from "lucide-react";
+import PageNavigation from "@/app/(user)/PageNavigation";
 
 export const generateStaticParams = async () => {
   return colorPathList().map((c) => ({ c }));
@@ -60,7 +63,11 @@ const CombosPage = async ({ params }: Props) => {
     );
   return (
     <div className="space-y-6">
-      <PageHeader title={`EDH Cube v${current.version} / コンボ`} />
+      <PageHeader
+        title={`EDH Cube v${current.version} / コンボ`}
+        subtitle={`${poolXCombos.length} combos`}
+      />
+      <PageNavigation commander normals />
       <CardSearchForm q={q} />
       {poolXCombos.map((pc) => (
         <ComboSectionCard key={pc.id} combo={pc.relation} size="sm" />
