@@ -30,7 +30,7 @@ const timestampDecodeSchema = z.preprocess((arg) => {
 }, z.date());
 
 export const fetchPools = async (): Promise<Pool[]> => {
-  const snapshot = await adminDb().collection(collectionPath).limit(10).get();
+  const snapshot = await adminDb().collection(collectionPath).get();
   const decodeSchema = z.array(
     z.object({
       id: z.string().transform(PoolId),
@@ -113,4 +113,8 @@ export const fetchPool = async (poolId: PoolId): Promise<Pool | null> => {
     console.error("Error fetching pool:", error);
     throw error;
   }
+};
+
+export const deletePool = async (poolId: PoolId): Promise<void> => {
+  await adminDb().collection(collectionPath).doc(poolId).delete();
 };

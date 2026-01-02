@@ -17,7 +17,6 @@ const RefetchScryfallButton = ({ name }: Props) => {
   const handleClick = async () => {
     setIsFetching(true);
     const data = await fetchScryfall(name);
-    console.log(data);
     startTransition(async () => {
       await updateCardAction(newCardId(name), {
         scryfall: data.en,
