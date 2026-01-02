@@ -1,13 +1,13 @@
 "use client";
 
 import SectionCard from "@/components/ui/SectionCard";
-import Button from "@/components/ui/Button.client";
 import ManaSymbol from "@/components/ui/ManaSymbol.client";
 import { useState } from "react";
 import { Color, colorCompare, FULL_COLORS } from "@/domain/entity/card";
 import { usePathname, useRouter } from "next/navigation";
 import z from "zod";
 import { cardSearchParamsSchema } from "@/components/cards/cardSearchParams";
+import Button from "@/components/ui/Button.client";
 
 interface FormData {
   c: Exclude<Color, "C">[];
@@ -22,27 +22,35 @@ const CardSearchForm = ({ q }: Props) => {
   const pathname = usePathname();
   const [formData, setFormData] = useState<FormData>(q);
 
-  const handleSubmit = () => {
-    const basePath = `/${pathname.split("/").slice(1, -1).join("/")}`;
-    const c = formData.c.join("").toLowerCase();
-    router.push(`${basePath}/${c || "c"}`);
-  };
+  const handleColorChange = (color: Exclude<Color, "C">) => {
+    const newColors = formData.c.includes(color)
+      ? formData.c.filter((c) => c !== color)
+      : [...formData.c, color].toSorted((a, b) => colorCompare(a) - colorCompare(b));
 
-  const handleClear = () => {
-    setFormData({ c: FULL_COLORS });
-    router.push(pathname);
+    setFormData({
+      ...FormData,
+      c: newColors,
+    });
+
+    const basePath = `/${pathname.split("/").slice(1, -1).join("/")}`;
+    const c = newColors.join("").toLowerCase();
+    router.push(`${basePath}/${c || "c"}`, {
+      scroll: false,
+    });
   };
 
   return (
     <SectionCard
       title="Search"
-      footerActions={
-        <div className="flex flex-row gap-2">
-          <Button variant="ghost" onClick={handleClear}>
-            Clear
-          </Button>
-          <Button onClick={handleSubmit}>Search</Button>
-        </div>
+      className="sticky top-4 z-10 bg-gray-50 dark:bg-gray-900"
+      actions={
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => window.scroll({ top: 0, behavior: "smooth" })}
+        >
+          Top
+        </Button>
       }
     >
       <div className="flex flex-row gap-4">
@@ -63,18 +71,7 @@ const CardSearchForm = ({ q }: Props) => {
               type="checkbox"
               checked={formData.c?.includes(color) ?? true}
               className="sr-only peer"
-              onChange={() => {
-                setFormData((prev) => {
-                  return {
-                    ...prev,
-                    c: (formData.c ?? []).includes(color)
-                      ? (prev.c ?? []).filter((c) => c !== color)
-                      : [...(prev.c ?? []), color].toSorted(
-                          (a, b) => colorCompare(a) - colorCompare(b),
-                        ),
-                  };
-                });
-              }}
+              onChange={() => handleColorChange(color)}
             />
             <ManaSymbol symbol={color.toLowerCase()} />
           </label>
