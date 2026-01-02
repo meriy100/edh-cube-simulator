@@ -2847,6 +2847,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/semver@npm:^7":
+  version: 7.7.1
+  resolution: "@types/semver@npm:7.7.1"
+  checksum: 10c0/c938aef3bf79a73f0f3f6037c16e2e759ff40c54122ddf0b2583703393d8d3127130823facb880e694caa324eb6845628186aac1997ee8b31dc2d18fafe26268
+  languageName: node
+  linkType: hard
+
 "@types/send@npm:*":
   version: 1.2.1
   resolution: "@types/send@npm:1.2.1"
@@ -4195,6 +4202,7 @@ __metadata:
     "@types/papaparse": "npm:^5.5.2"
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"
+    "@types/semver": "npm:^7"
     "@vitest/browser-playwright": "npm:^4.0.16"
     "@vitest/coverage-v8": "npm:^4.0.16"
     eslint: "npm:^9"
@@ -4204,6 +4212,7 @@ __metadata:
     firebase-admin: "npm:^13.6.0"
     lodash: "npm:^4.17.21"
     lucide-react: "npm:^0.562.0"
+    mana-font: "npm:^1.18.0"
     next: "npm:15.4.10"
     next-auth: "npm:^5.0.0-beta.30"
     papaparse: "npm:^5.5.3"
@@ -4211,6 +4220,7 @@ __metadata:
     prettier: "npm:^3.3.3"
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
+    semver: "npm:^7.7.3"
     storybook: "npm:^10.1.10"
     tailwindcss: "npm:^4"
     typescript: "npm:^5"
@@ -6721,6 +6731,13 @@ __metadata:
     promise-retry: "npm:^2.0.1"
     ssri: "npm:^13.0.0"
   checksum: 10c0/525f74915660be60b616bcbd267c4a5b59481b073ba125e45c9c3a041bb1a47a2bd0ae79d028eb6f5f95bf9851a4158423f5068539c3093621abb64027e8e461
+  languageName: node
+  linkType: hard
+
+"mana-font@npm:^1.18.0":
+  version: 1.18.0
+  resolution: "mana-font@npm:1.18.0"
+  checksum: 10c0/0b1d468f072e3c721ba736ffa9c14cceeeb60523d29574dff022d7d5135ad82cf9b7a70c97951b9d52723c08b86e13177dc9a70a5b8ece870f778a581272f6d0
   languageName: node
   linkType: hard
 

@@ -63,6 +63,7 @@ export const POST = async (req: NextRequest) => {
 
     const formData = await req.formData();
     const csvFile = formData.get("csv") as File;
+    const version = z.string().parse(formData.get("version"));
 
     if (!csvFile) {
       return NextResponse.json({ error: "CSV file is required" }, { status: 400 });
@@ -106,11 +107,11 @@ export const POST = async (req: NextRequest) => {
       })),
     );
 
-    const pool = newPool({ count: parsedRows.data.length });
+    const pool = newPool({ count: parsedRows.data.length, version });
+    await createPool(pool);
+
     after(async () => {
       try {
-        await createPool(pool);
-
         await createPoolXCards(
           pool.id,
           parsedRows.data.map(

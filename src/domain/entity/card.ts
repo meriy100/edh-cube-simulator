@@ -1,9 +1,53 @@
 import { v5 as uuidv5 } from "uuid";
 import { ScryfallCard } from "@/lib/scryfall";
+import { compact, reduce } from "lodash";
+import z from "zod";
 
 const NAMESPACE_MTG = "44869818-5a23-4709-906d-669528d229f3";
 
 export type Color = "W" | "U" | "B" | "R" | "G" | "C";
+
+export const FULL_COLORS = ["W", "U", "B", "R", "G"] as const;
+
+export const colorSchema = z.preprocess(
+  (arg) => {
+    if (typeof arg !== "string") {
+      return undefined;
+    }
+    return arg.toUpperCase();
+  },
+  z.enum(["W", "U", "B", "R", "G", "C"]),
+);
+
+export const colorCompare = (color: Color) => {
+  switch (color) {
+    case "W":
+      return 1;
+    case "U":
+      return 2;
+    case "B":
+      return 3;
+    case "R":
+      return 4;
+    case "G":
+      return 5;
+    case "C":
+      return 6;
+  }
+};
+
+export const colorsCompare = (colors: Color[]) => {
+  const [color1, color2, color3, color4, color5] = colors.sort(colorCompare);
+  const xs = compact([color1, color2, color3, color4, color5]).map(colorCompare);
+  return reduce(xs, (acc, x) => acc * 10 + x, 0);
+};
+
+export const colorIn = (target: Color[], colors: Color[]) => {
+  if (target.length > colors.length) {
+    return false;
+  }
+  return target.every((t) => colors.includes(t));
+};
 
 export interface Card {
   name: string;
