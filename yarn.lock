@@ -4212,6 +4212,7 @@ __metadata:
     firebase-admin: "npm:^13.6.0"
     lodash: "npm:^4.17.21"
     lucide-react: "npm:^0.562.0"
+    mana-font: "npm:^1.18.0"
     next: "npm:15.4.10"
     next-auth: "npm:^5.0.0-beta.30"
     papaparse: "npm:^5.5.3"
@@ -6730,6 +6731,13 @@ __metadata:
     promise-retry: "npm:^2.0.1"
     ssri: "npm:^13.0.0"
   checksum: 10c0/525f74915660be60b616bcbd267c4a5b59481b073ba125e45c9c3a041bb1a47a2bd0ae79d028eb6f5f95bf9851a4158423f5068539c3093621abb64027e8e461
+  languageName: node
+  linkType: hard
+
+"mana-font@npm:^1.18.0":
+  version: 1.18.0
+  resolution: "mana-font@npm:1.18.0"
+  checksum: 10c0/0b1d468f072e3c721ba736ffa9c14cceeeb60523d29574dff022d7d5135ad82cf9b7a70c97951b9d52723c08b86e13177dc9a70a5b8ece870f778a581272f6d0
   languageName: node
   linkType: hard
 
