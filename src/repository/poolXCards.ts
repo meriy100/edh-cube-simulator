@@ -74,7 +74,7 @@ const pollForPoolXCards = async (
 
 export const fetchPoolXCards = async (
   poolId: PoolId,
-  query: { commander?: boolean },
+  query: { commander?: boolean } = {},
 ): Promise<PoolXCard[]> => {
   try {
     const initialCards = await attemptFetchPoolXCards(poolId, query);

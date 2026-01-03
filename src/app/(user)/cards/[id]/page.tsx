@@ -4,7 +4,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import PageNavigation from "@/app/(user)/PageNavigation";
 import { unstable_cache } from "next/cache";
 import { PoolId } from "@/domain/entity/pool";
-import { fetchPoolXCard } from "@/repository/poolXCards";
+import { fetchPoolXCard, fetchPoolXCards } from "@/repository/poolXCards";
 import { fetchPoolXCombos } from "@/repository/poolXCombo";
 import SectionCard from "@/components/ui/SectionCard";
 import InfoDisplay from "@/components/ui/InfoDisplay";
@@ -14,13 +14,20 @@ import {
   cardOracleBack,
   cardOracleFront,
   isCardMultiFaces,
+  newCardId,
 } from "@/domain/entity/card";
 import CardImage from "@/components/cards/CardImage.client";
 import ColorIdentityBadges from "@/components/ui/ColorIdentityBadges.client";
 import ComboSectionCard from "@/components/combos/ComboSectionCard";
 
 export const generateStaticParams = async () => {
-  return [];
+  const pool = await fetchPublishedPool();
+  if (!pool) {
+    return [];
+  }
+  const poolXCards = await fetchPoolXCards(pool.id);
+
+  return poolXCards.map((pc) => ({ id: newCardId(pc.name) }));
 };
 
 const getCardCache = async (poolId: PoolId, id: string) =>
