@@ -15,11 +15,12 @@ import ExpandToggleContainer from "@/components/combos/ExpandToggleContainer.cli
 
 interface Props {
   combo: Combo;
+  cardPathFactory: (id: string) => ComponentProps<typeof Link>["href"];
   size?: "sm" | "md";
   footerActions?: ComponentProps<typeof SectionCard>["footerActions"];
 }
 
-const ComboSectionCard = ({ combo, size = "md", footerActions }: Props) => {
+const ComboSectionCard = ({ combo, cardPathFactory, size = "md", footerActions }: Props) => {
   const sectionTitle = combo.uses.map((use) => cardNameJa(use.card.relation)).join(" & ");
   const sectionSubtitle = `${combo.id}${comboUnTranslated(combo) ? " untranslated" : ""}`;
 
@@ -28,7 +29,7 @@ const ComboSectionCard = ({ combo, size = "md", footerActions }: Props) => {
       <SectionCard title={sectionTitle} subtitle={sectionSubtitle} footerActions={footerActions}>
         <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-5">
           {combo.uses.map((use) => (
-            <Link key={use.card.id} href={`/admin/cards/${newCardId(use.card.name)}`}>
+            <Link key={use.card.id} href={cardPathFactory(newCardId(use.card.relation.name))}>
               <CardImage card={use.card.relation} />
             </Link>
           ))}

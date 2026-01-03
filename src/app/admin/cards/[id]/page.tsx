@@ -63,7 +63,11 @@ const AdminCardShowPage = async ({ params }: Props) => {
             </SectionCard>
           ) : null}
           {combos.map((combo) => (
-            <ComboSectionCard key={combo.id} combo={combo} />
+            <ComboSectionCard
+              key={combo.id}
+              combo={combo}
+              cardPathFactory={(id) => `/admin/cards/${id}`}
+            />
           ))}
         </div>
       </div>
