@@ -66,9 +66,11 @@ const ComboSectionCard = ({ combo, cardPathFactory, size = "md", footerActions }
     <SectionCard title={sectionTitle} subtitle={sectionSubtitle} footerActions={footerActions}>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
         {combo.uses.map((use) => (
-          <Link key={use.card.id} href={`/admin/cards/${newCardId(use.card.name)}`}>
-            <CardImage card={use.card.relation} />
-          </Link>
+          <CardImage
+            key={use.card.id}
+            href={`/admin/cards/${newCardId(use.card.name)}`}
+            card={use.card.relation}
+          />
         ))}
       </div>
       <InfoDisplay label="Color Identity">
