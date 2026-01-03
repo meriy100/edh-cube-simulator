@@ -3,7 +3,7 @@ import { PoolId } from "@/domain/entity/pool";
 import adminDb from "@/lib/firebase/admin";
 import z, { ZodType } from "zod";
 import { fetchPool } from "@/repository/pools";
-import { fetchCards } from "@/repository/cards";
+import { fetchCard, fetchCards } from "@/repository/cards";
 import { newCardId } from "@/domain/entity/card";
 
 const poolXDecodeSchema: ZodType<Omit<PoolXCard, "card">> = z.object({
@@ -74,7 +74,7 @@ const pollForPoolXCards = async (
 
 export const fetchPoolXCards = async (
   poolId: PoolId,
-  query: { commander?: boolean },
+  query: { commander?: boolean } = {},
 ): Promise<PoolXCard[]> => {
   try {
     const initialCards = await attemptFetchPoolXCards(poolId, query);
@@ -100,6 +100,28 @@ export const fetchPoolXCards = async (
     console.error("Error fetching poolXCards:", error);
     throw error;
   }
+};
+
+export const fetchPoolXCard = async (
+  poolId: PoolId,
+  cardName: string,
+): Promise<PoolXCard | null> => {
+  const snapshot = await adminDb()
+    .collection("pools")
+    .doc(poolId)
+    .collection("poolXCards")
+    .doc(cardName)
+    .get();
+
+  if (!snapshot.exists) {
+    return null;
+  }
+
+  const poolXCard = poolXDecodeSchema.parse(snapshot.data());
+
+  const card = await fetchCard(newCardId(poolXCard.name));
+
+  return { ...poolXCard, card };
 };
 
 export const createPoolXCards = async (

@@ -3,15 +3,24 @@ import { PoolId } from "@/domain/entity/pool";
 import adminDb from "@/lib/firebase/admin";
 import { fetchCombos } from "@/repository/combos";
 import { PoolXCombo } from "@/domain/entity/poolXCombo";
-import { getCountFromServer } from "@firebase/firestore";
 
 const poolXComboSchema = z.object({
   id: z.string(),
   cardNames: z.array(z.string()),
 });
 
-export const fetchPoolXCombos = async (poolId: PoolId): Promise<PoolXCombo[]> => {
-  const snapshot = await adminDb().collection("pools").doc(poolId).collection("poolXCombos").get();
+export const fetchPoolXCombos = async (
+  poolId: PoolId,
+  query: { cardName?: string } = {},
+): Promise<PoolXCombo[]> => {
+  const poolXCombosRef = adminDb().collection("pools").doc(poolId).collection("poolXCombos");
+  let q: typeof poolXCombosRef | ReturnType<typeof poolXCombosRef.where> = poolXCombosRef;
+
+  if (query.cardName) {
+    q = q.where("cardNames", "array-contains", query.cardName);
+  }
+
+  const snapshot = await q.get();
   const poolXCombos = z.array(poolXComboSchema).parse(snapshot.docs.map((doc) => doc.data()));
 
   if (poolXCombos.length === 0) {

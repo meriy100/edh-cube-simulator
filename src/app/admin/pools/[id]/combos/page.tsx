@@ -34,6 +34,7 @@ const AdminPoolCombosPage = async ({ params }: Props) => {
             combo={poolXCombo.relation}
             size="sm"
             footerActions={<TranslateButton combos={[poolXCombo.relation]} />}
+            cardPathFactory={(id) => `/admin/cards/${id}`}
           />
         ))}
       </Suspense>

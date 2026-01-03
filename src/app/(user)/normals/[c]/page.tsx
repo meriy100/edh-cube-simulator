@@ -58,7 +58,11 @@ const NormalsPage = async ({ params }: Props) => {
       <CardSearchForm q={q} />
       <div className="grid grid-cols-4 lg:grid-cols-8 gap-2">
         {poolXCards.map((poolXCard) => (
-          <CardImage key={newCardId(poolXCard.card.name)} card={poolXCard.card} />
+          <CardImage
+            key={newCardId(poolXCard.card.name)}
+            card={poolXCard.card}
+            href={`/cards/${newCardId(poolXCard.name)}`}
+          />
         ))}
       </div>
     </div>
