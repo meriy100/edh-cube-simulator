@@ -11,6 +11,7 @@ import InfoDisplay from "@/components/ui/InfoDisplay";
 import ColorIdentityBadges from "@/components/ui/ColorIdentityBadges.client";
 import CardImage from "@/components/cards/CardImage.client";
 import { ComponentProps } from "react";
+import ExpandToggleContainer from "@/components/combos/ExpandToggleContainer.client";
 
 interface Props {
   combo: Combo;
@@ -32,8 +33,7 @@ const ComboSectionCard = ({ combo, size = "md", footerActions }: Props) => {
             </Link>
           ))}
         </div>
-        <details>
-          <summary className="text-sm md:text-md pt-2 pb-2 cursor-pointer">Details</summary>
+        <ExpandToggleContainer>
           <div className="flex flex-col gap-2">
             <InfoDisplay label="Color Identity">
               <ColorIdentityBadges colorIdentity={combo.identity} />
@@ -56,7 +56,7 @@ const ComboSectionCard = ({ combo, size = "md", footerActions }: Props) => {
                 ))}
             </ol>
           </div>
-        </details>
+        </ExpandToggleContainer>
       </SectionCard>
     );
   }
