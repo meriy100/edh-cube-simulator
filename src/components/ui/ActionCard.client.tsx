@@ -5,7 +5,7 @@ import React, { ComponentProps, ReactNode } from "react";
 
 interface ActionCardProps {
   title: string;
-  description: string;
+  description?: string;
   icon?: ReactNode;
   href?: ComponentProps<typeof Link>["href"];
   onClick?: () => void;
@@ -60,13 +60,15 @@ const Children = ({
 }: {
   icon: ReactNode;
   title: string;
-  description: string;
+  description?: string;
 }) => (
   <div className="flex items-start gap-3">
     {icon && <div className="flex-shrink-0 mt-0.5">{icon}</div>}
     <div className="flex-1 min-w-0">
       <h3 className="font-medium text-gray-900 dark:text-white">{title}</h3>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{description}</p>
+      {description ? (
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{description}</p>
+      ) : null}
     </div>
   </div>
 );

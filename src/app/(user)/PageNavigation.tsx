@@ -9,11 +9,10 @@ interface Props {
 
 const PageNavigation = ({ commander, normals, combos }: Props) => {
   return (
-    <div className="flex flex-row gap-2">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {commander ? (
         <ActionCard
           title="統率者"
-          description="金シールが貼ってある統率者のプール"
           icon={<Crown className="text-orange-500" />}
           href="/commanders/wubrg"
         />
@@ -21,7 +20,6 @@ const PageNavigation = ({ commander, normals, combos }: Props) => {
       {normals ? (
         <ActionCard
           title="通常カード"
-          description="シールなしのカードプール"
           icon={<ChessPawn className="text-pink-600" />}
           href="/normals/wubrg"
         />
@@ -29,7 +27,6 @@ const PageNavigation = ({ commander, normals, combos }: Props) => {
       {combos ? (
         <ActionCard
           title="コンボ"
-          description="プールで成立するコンボ集"
           icon={<BookUp2 className="text-green-600" />}
           href="/combos/wubrg"
         />
