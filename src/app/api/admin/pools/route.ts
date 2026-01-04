@@ -95,9 +95,19 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
+    const fixedNames = new Map<string, string>();
+    await Promise.all(
+      parsedRows.data
+        .filter((d) => d.tags.includes("x-edh-cube-discover:fixed-name"))
+        .map(async (d) => {
+          const { en } = await fetchScryfall(d.name, { onlyEn: true });
+          fixedNames.set(d.name, en.name);
+        }),
+    );
+
     await createCards(
       parsedRows.data.map((d) => ({
-        name: d.name,
+        name: fixedNames.get(d.name) ?? d.name,
         cmc: d.cmc,
         type: d.type,
         set: d.set,
@@ -116,7 +126,7 @@ export const POST = async (req: NextRequest) => {
           pool.id,
           parsedRows.data.map(
             (d): Omit<PoolXCard, "card"> => ({
-              name: d.name,
+              name: fixedNames.get(d.name) ?? d.name,
               commander: d.tags.includes("0-commander"),
               tags: d.tags,
             }),
@@ -125,7 +135,9 @@ export const POST = async (req: NextRequest) => {
 
         await updatePoolStatus(pool.id, "ready");
 
-        const cards = await fetchCards({ names: parsedRows.data.map((d) => d.name) });
+        const cards = await fetchCards({
+          names: parsedRows.data.map((d) => fixedNames.get(d.name) ?? d.name),
+        });
         const attachScryfallMessage = {
           cards: cards
             .filter((c) => c.scryfall === undefined)
@@ -135,7 +147,7 @@ export const POST = async (req: NextRequest) => {
         const saveCombosMessage = {
           poolId: pool.id,
           cards: parsedRows.data
-            .map((d) => d.name)
+            .map((d) => fixedNames.get(d.name) ?? d.name)
             .map((name) => ({ id: newCardId(name), name: name })),
         };
 

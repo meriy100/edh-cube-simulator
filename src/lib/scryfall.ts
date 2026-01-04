@@ -111,7 +111,10 @@ const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 /**
  * カード名から英語版と日本語版の情報を取得する (Fetch API 版)
  */
-export const fetchScryfall = async (cardName: string): Promise<CardResponse> => {
+export const fetchScryfall = async (
+  cardName: string,
+  option: { onlyEn?: boolean } | undefined = {},
+): Promise<CardResponse> => {
   const baseUrl = "https://api.scryfall.com";
 
   // 1. 英語版を exact 検索で取得
@@ -126,6 +129,9 @@ export const fetchScryfall = async (cardName: string): Promise<CardResponse> => 
   }
 
   const enData = scryfallCardSchema.parse(await enRes.json());
+  if (option.onlyEn) {
+    return { en: enData };
+  }
 
   // Scryfall API の推奨に従い、次のリクエスト前に少し待機
   await sleep(100);
