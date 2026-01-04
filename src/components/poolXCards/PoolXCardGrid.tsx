@@ -38,6 +38,11 @@ const PoolXCardGrid = ({ poolXCards }: Props) => {
                 統率者
               </span>
             )}
+            {poolXCard.card.name !== poolXCard.card.scryfall?.name ? (
+              <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                名前不一致
+              </span>
+            ) : null}
 
             <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
               <span className="font-medium">CMC: {poolXCard.card.cmc}</span>
