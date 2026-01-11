@@ -15,6 +15,7 @@ export interface Combo {
   manaNeeded: string;
   identity: Color[];
   produces: { feature: { id: number; name: string } }[];
+  requires?: { template: { id: number; name: string }, quantity: number }[];
   easyPrerequisites: string;
   notablePrerequisites: string;
   description: string;

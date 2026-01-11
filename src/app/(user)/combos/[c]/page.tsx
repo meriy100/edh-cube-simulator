@@ -51,7 +51,8 @@ const CombosPage = async ({ params }: Props) => {
     Array.from({ length: pageCount }, (_, i) => getPoolXCombosCache(current.id, i)),
   )
     .then((p) => p.flat())
-    .then(async (ps) => ps.filter((pc) => colorIn(pc.relation.identity, q.c)))
+    .then((ps) => ps.filter((pc) => colorIn(pc.relation.identity, q.c)))
+    .then((ps) => ps.filter((pc) => !pc.unlisted))
     .then((ps) =>
       ps
         .toSorted((a, b) => a.relation.popularity - b.relation.popularity)

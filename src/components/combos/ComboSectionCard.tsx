@@ -33,6 +33,18 @@ const ComboSectionCard = ({ combo, cardPathFactory, size = "md", footerActions }
               <CardImage card={use.card.relation} />
             </Link>
           ))}
+          {combo.requires?.map((req) => (
+            <div
+              key={req.template.id}
+              className="relative bg-gray-200 dark:bg-gray-700 flex flex-col items-center justify-center p-2 text-center text-xs"
+              style={{ aspectRatio: "63/88" }}
+            >
+              <div className="font-bold text-gray-700 dark:text-gray-200">
+                {req.template.name}
+              </div>
+              <div className="text-gray-500 dark:text-gray-400">x{req.quantity}</div>
+            </div>
+          ))}
         </div>
         <ExpandToggleContainer>
           <div className="flex flex-col gap-2">
@@ -71,6 +83,16 @@ const ComboSectionCard = ({ combo, cardPathFactory, size = "md", footerActions }
             href={`/admin/cards/${newCardId(use.card.name)}`}
             card={use.card.relation}
           />
+        ))}
+        {combo.requires?.map((req) => (
+          <div
+            key={req.template.id}
+            className="relative bg-gray-200 dark:bg-gray-700 flex flex-col items-center justify-center p-2 text-center text-xs"
+            style={{ aspectRatio: "63/88" }}
+          >
+            <div className="font-bold text-gray-700 dark:text-gray-200">{req.template.name}</div>
+            <div className="text-gray-500 dark:text-gray-400">x{req.quantity}</div>
+          </div>
         ))}
       </div>
       <InfoDisplay label="Color Identity">

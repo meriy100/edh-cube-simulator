@@ -7,6 +7,7 @@ import { PoolXCombo } from "@/domain/entity/poolXCombo";
 const poolXComboSchema = z.object({
   id: z.string(),
   cardNames: z.array(z.string()),
+  unlisted: z.boolean().optional().default(false),
 });
 
 export const fetchPoolXCombos = async (
@@ -81,6 +82,23 @@ export const fetchPoolXCombosByPage = async (id: PoolId, limit: number, page: nu
     return {
       ...poolXCombo,
       relation: combo,
+      unlisted: poolXCombo.unlisted ?? false,
     };
   });
+};
+export const updatePoolXCombo = async (poolId: PoolId, poolXCombo: Partial<PoolXCombo>) => {
+  if (!poolXCombo.id) {
+    throw new Error("PoolXCombo ID is required");
+  }
+  const updates: Partial<PoolXCombo> = {
+    ...poolXCombo,
+  };
+  delete updates.relation; // Don't save the relation object to DB
+
+  await adminDb()
+    .collection("pools")
+    .doc(poolId)
+    .collection("poolXCombos")
+    .doc(poolXCombo.id)
+    .update(updates);
 };

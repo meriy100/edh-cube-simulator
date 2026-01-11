@@ -7,6 +7,7 @@ import { PoolId } from "@/domain/entity/pool";
 import BackLink from "@/components/ui/BackLink.client";
 import TranslateButton from "@/app/admin/pools/[id]/combos/TranslateButton.client";
 import { comboUnTranslated } from "@/domain/entity/combo";
+import UnlistedToggleButton from "@/app/admin/pools/[id]/combos/UnlistedToggleButton.client";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -33,7 +34,16 @@ const AdminPoolCombosPage = async ({ params }: Props) => {
             key={poolXCombo.id}
             combo={poolXCombo.relation}
             size="sm"
-            footerActions={<TranslateButton combos={[poolXCombo.relation]} />}
+            footerActions={
+              <div className="flex gap-2">
+                <TranslateButton combos={[poolXCombo.relation]} />
+                <UnlistedToggleButton
+                  poolId={id}
+                  poolXComboId={poolXCombo.id}
+                  unlisted={poolXCombo.unlisted}
+                />
+              </div>
+            }
             cardPathFactory={(id) => `/admin/cards/${id}`}
           />
         ))}
