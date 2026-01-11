@@ -4,4 +4,5 @@ export interface PoolXCombo {
   id: string;
   cardNames: string[];
   relation: Combo;
+  unlisted: boolean;
 }
