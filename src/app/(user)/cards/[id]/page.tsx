@@ -109,14 +109,16 @@ const CardPage = async ({ params }: Props) => {
               <InfoDisplay label="Oracle">{cardOracleBack(poolXCard.card)}</InfoDisplay>
             </SectionCard>
           ) : null}
-          {poolXCombos.map((poolXCombo) => (
-            <ComboSectionCard
-              key={poolXCombo.id}
-              combo={poolXCombo.relation}
-              size="sm"
-              cardPathFactory={(id) => `/cards/${id}`}
-            />
-          ))}
+          {poolXCombos
+            .filter((pc) => !pc.unlisted)
+            .map((poolXCombo) => (
+              <ComboSectionCard
+                key={poolXCombo.id}
+                combo={poolXCombo.relation}
+                size="sm"
+                cardPathFactory={(id) => `/cards/${id}`}
+              />
+            ))}
         </div>
       </div>
     </div>

@@ -15,7 +15,7 @@ const UnlistedToggleButton = ({ poolId, poolXComboId, unlisted }: Props) => {
 
     const handleClick = () => {
         startTransition(async () => {
-            await toggleUnlistedAction(poolId, poolXComboId, !unlisted);
+            await toggleUnlistedAction(poolId, poolXComboId, unlisted);
         });
     };
 
