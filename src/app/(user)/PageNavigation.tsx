@@ -14,21 +14,21 @@ const PageNavigation = ({ commander, normals, combos }: Props) => {
         <ActionCard
           title="統率者"
           icon={<Crown className="text-orange-500" />}
-          href="/commanders/wubrg"
+          href="/commanders/wubrgc"
         />
       ) : null}
       {normals ? (
         <ActionCard
           title="通常カード"
           icon={<ChessPawn className="text-pink-600" />}
-          href="/normals/wubrg"
+          href="/normals/wubrgc"
         />
       ) : null}
       {combos ? (
         <ActionCard
           title="コンボ"
           icon={<BookUp2 className="text-green-600" />}
-          href="/combos/wubrg"
+          href="/combos/wubrgc"
         />
       ) : null}
     </div>

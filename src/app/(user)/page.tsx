@@ -18,19 +18,19 @@ const Home = async () => {
         title="統率者"
         description="金シールが貼ってある統率者のプール"
         icon={<Crown className="text-orange-500" />}
-        href="/commanders/wubrg"
+        href="/commanders/wubrgc"
       />
       <ActionCard
         title="通常カード"
         description="シールなしのカードプール"
         icon={<ChessPawn className="text-pink-600" />}
-        href="/normals/wubrg"
+        href="/normals/wubrgc"
       />
       <ActionCard
         title="コンボ"
         description="プールで成立するコンボ集"
         icon={<BookUp2 className="text-green-600" />}
-        href="/combos/wubrg"
+        href="/combos/wubrgc"
       />
     </div>
   );
