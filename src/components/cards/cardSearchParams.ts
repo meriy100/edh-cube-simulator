@@ -4,8 +4,7 @@ import { reduce, uniq } from "lodash";
 
 export const cardSearchParamsSchema = z.object({
   c: z
-    .preprocess((v) => (typeof v !== "string" ? undefined : v.split("")), z.array(colorSchema))
-    .transform((vs) => vs.filter((v) => v !== "C")),
+    .preprocess((v) => (typeof v !== "string" ? undefined : v.split("")), z.array(colorSchema)),
 });
 
 const powerSet = <T>(xs: T[]): T[][] => {

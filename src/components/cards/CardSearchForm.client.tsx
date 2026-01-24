@@ -10,7 +10,7 @@ import { cardSearchParamsSchema } from "@/components/cards/cardSearchParams";
 import Button from "@/components/ui/Button.client";
 
 interface FormData {
-  c: Exclude<Color, "C">[];
+  c: Color[];
 }
 
 interface Props {
@@ -22,7 +22,7 @@ const CardSearchForm = ({ q }: Props) => {
   const pathname = usePathname();
   const [formData, setFormData] = useState<FormData>(q);
 
-  const handleColorChange = (color: Exclude<Color, "C">) => {
+  const handleColorChange = (color: Color) => {
     const newColors = formData.c.includes(color)
       ? formData.c.filter((c) => c !== color)
       : [...formData.c, color].toSorted((a, b) => colorCompare(a) - colorCompare(b));
@@ -54,7 +54,7 @@ const CardSearchForm = ({ q }: Props) => {
       }
     >
       <div className="flex flex-row gap-4">
-        {FULL_COLORS.map((color) => (
+        {[...FULL_COLORS, "C" as Color].map((color) => (
           <label
             key={color}
             htmlFor={color}

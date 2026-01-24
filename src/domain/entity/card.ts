@@ -43,14 +43,19 @@ export const colorsCompare = (colors: Color[]) => {
   return reduce(xs, (acc, x) => acc * 10 + x, 0);
 };
 
-export const colorIn = (target: Color[], colors: Exclude<Color, "C">[]) => {
+export const colorIn = (target: Color[], colors: Color[]) => {
   const withoutColorless = target.filter((t) => t !== "C");
-  if (colors.length === 0) return withoutColorless.length === 0;
+  if (withoutColorless.length === 0) return colors.includes("C");
 
-  if (withoutColorless.length > colors.length) {
+
+  const filterColors = colors.filter((c) => c !== "C");
+
+  if (filterColors.length === 0) return false;
+
+  if (withoutColorless.length > filterColors.length) {
     return false;
   }
-  return withoutColorless.every((t) => colors.includes(t));
+  return withoutColorless.every((t) => filterColors.includes(t));
 };
 
 export interface Card {
