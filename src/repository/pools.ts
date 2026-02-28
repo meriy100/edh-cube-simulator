@@ -56,6 +56,12 @@ export const fetchPools = async (query: { published?: boolean } = {}): Promise<P
   return z.array(poolDecodeSchema).parse(snapshot.docs.map((doc) => doc.data()));
 };
 
+export const fetchAllPools = async (): Promise<Pool[]> => {
+  const poolsRef = adminDb().collection(collectionPath);
+  const snapshot = await poolsRef.orderBy("version", "desc").get();
+  return z.array(poolDecodeSchema).parse(snapshot.docs.map((doc) => doc.data()));
+};
+
 export const fetchPublishedPool = async (): Promise<Pool | undefined> => {
   const f = unstable_cache(async () => await fetchPools({ published: true }), ["published-pool"], {
     tags: ["published-pool"],
