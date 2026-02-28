@@ -39,12 +39,17 @@ const AdminPoolShowPage = async ({ params }: Props) => {
 
       <SectionCard title="Commander cards">
         <Suspense fallback={<LoadingSpinner size="md" />}>
-          <PoolXCardGridContainer poolId={PoolId(id)} commander={true} />
+          <PoolXCardGridContainer poolId={PoolId(id)} commander={true} outside={false} />
         </Suspense>
       </SectionCard>
       <SectionCard title="Normal cards">
         <Suspense fallback={<LoadingSpinner size="md" />}>
-          <PoolXCardGridContainer poolId={PoolId(id)} commander={false} />
+          <PoolXCardGridContainer poolId={PoolId(id)} commander={false} outside={false} />
+        </Suspense>
+      </SectionCard>
+      <SectionCard title="その他カード">
+        <Suspense fallback={<LoadingSpinner size="md" />}>
+          <PoolXCardGridContainer poolId={PoolId(id)} outside={true} />
         </Suspense>
       </SectionCard>
     </div>
@@ -56,11 +61,13 @@ export default AdminPoolShowPage;
 const PoolXCardGridContainer = async ({
   poolId,
   commander,
+  outside,
 }: {
   poolId: PoolId;
-  commander: boolean;
+  commander?: boolean;
+  outside?: boolean;
 }) => {
-  const poolXCards = await fetchPoolXCards(poolId, { commander });
+  const poolXCards = await fetchPoolXCards(poolId, { commander, outside });
 
   return <PoolXCardGrid poolXCards={poolXCards} />;
 };

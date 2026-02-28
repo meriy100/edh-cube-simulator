@@ -19,7 +19,7 @@ interface Props {
 }
 
 const getPoolXCardsCache = unstable_cache(
-  async (id: PoolId) => await fetchPoolXCards(id, { commander: false }),
+  async (id: PoolId) => await fetchPoolXCards(id, { commander: false, outside: false }),
   ["published-pool-x-cards-normals"],
   {
     tags: ["published-pool"],
@@ -54,7 +54,7 @@ const NormalsPage = async ({ params }: Props) => {
   return (
     <div className="space-y-6">
       <PageHeader title={`EDH Cube v${current.version} / 一般プール`} />
-      <PageNavigation commander combos />
+      <PageNavigation commander combos outside />
       <CardSearchForm q={q} />
       <div className="grid grid-cols-4 lg:grid-cols-8 gap-2">
         {poolXCards.map((poolXCard) => (

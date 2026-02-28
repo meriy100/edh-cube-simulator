@@ -9,12 +9,13 @@ import { newCardId } from "@/domain/entity/card";
 const poolXDecodeSchema: ZodType<Omit<PoolXCard, "card">> = z.object({
   name: z.string(),
   commander: z.boolean(),
+  outside: z.boolean().catch(false),
   tags: z.array(z.string()),
 });
 
 const attemptFetchPoolXCards = async (
   poolId: PoolId,
-  query: { commander?: boolean },
+  query: { commander?: boolean; outside?: boolean },
 ): Promise<PoolXCard[]> => {
   const db = adminDb();
   const collectionRef = db.collection("pools").doc(poolId).collection("poolXCards");
@@ -23,9 +24,13 @@ const attemptFetchPoolXCards = async (
   if (query.commander !== undefined) {
     queryRef = queryRef.where("commander", "==", query.commander);
   }
+  if (query.outside !== undefined) {
+    queryRef = queryRef.where("outside", "==", query.outside);
+  }
 
   const snapshot = await queryRef.get();
   const result = z.array(poolXDecodeSchema).safeParse(snapshot.docs.map((doc) => doc.data()));
+  console.log(snapshot)
   if (!result.success) {
     throw new Error(
       `Error parsing poolXCards ${result.error.issues.map((issue) => issue.message).join(", ")}`,
@@ -45,7 +50,7 @@ const attemptFetchPoolXCards = async (
 
 const pollForPoolXCards = async (
   poolId: PoolId,
-  query: { commander?: boolean },
+  query: { commander?: boolean; outside?: boolean },
   timeoutMs: number = 60000,
   intervalMs: number = 1500,
 ): Promise<PoolXCard[]> => {
@@ -74,7 +79,7 @@ const pollForPoolXCards = async (
 
 export const fetchPoolXCards = async (
   poolId: PoolId,
-  query: { commander?: boolean } = {},
+  query: { commander?: boolean; outside?: boolean } = {},
 ): Promise<PoolXCard[]> => {
   try {
     const initialCards = await attemptFetchPoolXCards(poolId, query);

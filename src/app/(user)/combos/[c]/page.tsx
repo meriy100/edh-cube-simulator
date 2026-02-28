@@ -66,7 +66,7 @@ const CombosPage = async ({ params }: Props) => {
         title={`EDH Cube v${current.version} / コンボ`}
         subtitle={`${poolXCombos.length} combos`}
       />
-      <PageNavigation commander normals />
+      <PageNavigation commander normals outside />
       <CardSearchForm q={q} />
       {poolXCombos.map((pc) => (
         <ComboSectionCard
