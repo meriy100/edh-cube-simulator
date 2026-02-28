@@ -1,7 +1,7 @@
 import PageHeader from "@/components/ui/PageHeader";
 import Alert from "@/components/ui/Alert.client";
 import ActionCard from "@/components/ui/ActionCard.client";
-import { BookUp2, ChessPawn, Crown } from "lucide-react";
+import { BookUp2, ChessPawn, Crown, Package } from "lucide-react";
 import { fetchPublishedPool } from "@/repository/pools";
 
 const Home = async () => {
@@ -31,6 +31,12 @@ const Home = async () => {
         description="プールで成立するコンボ集"
         icon={<BookUp2 className="text-green-600" />}
         href="/combos/wubrgc"
+      />
+      <ActionCard
+        title="その他カード"
+        description="その他、ゲーム外のカードプール"
+        icon={<Package className="text-purple-500" />}
+        href="/outside/wubrgc"
       />
     </div>
   );

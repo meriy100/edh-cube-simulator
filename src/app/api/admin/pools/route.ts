@@ -128,6 +128,7 @@ export const POST = async (req: NextRequest) => {
             (d): Omit<PoolXCard, "card"> => ({
               name: fixedNames.get(d.name) ?? d.name,
               commander: d.tags.includes("0-commander"),
+              outside: d.tags.some((tag) => tag.startsWith("9-")),
               tags: d.tags,
             }),
           ),

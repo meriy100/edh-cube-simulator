@@ -1,12 +1,28 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 import StatCard from "@/components/ui/StatCard.client";
 import ActionCard from "@/components/ui/ActionCard.client";
 import PageHeader from "@/components/ui/PageHeader";
+import { migratePoolXCardsOutsideField } from "./actions";
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  const handleMigration = () => {
+    if (confirm("全てのPool内のカードに outside フィールドを追加しますか？（未設定のカードに outside: false を付与します）")) {
+      startTransition(async () => {
+        const result = await migratePoolXCardsOutsideField();
+        if (result.success) {
+          alert(`マイグレーション成功: ${result.count}件を更新しました`);
+        } else {
+          alert(`マイグレーション失敗: ${result.error}`);
+        }
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -74,6 +90,12 @@ export default function AdminDashboard() {
             title="統計更新"
             description="最新の統計情報を取得"
             onClick={() => window.location.reload()}
+          />
+          <ActionCard
+            title="Migration"
+            description={isPending ? "マイグレーション実行中..." : "不足している outside フィールドの補完"}
+            onClick={handleMigration}
+            disabled={isPending}
           />
         </div>
       </div>

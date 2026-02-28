@@ -74,7 +74,7 @@ const CardPage = async ({ params }: Props) => {
   return (
     <div className="space-y-6">
       <PageHeader title={`EDH Cube v${current.version} / ${poolXCard.name}`} />
-      <PageNavigation commander normals combos />
+      <PageNavigation commander normals combos outside />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">
