@@ -7,9 +7,10 @@ import { PoolId } from "@/domain/entity/pool";
 import PoolXCardGrid from "@/components/poolXCards/PoolXCardGrid";
 import Button from "@/components/ui/Button.client";
 import PoolForm from "@/app/admin/pools/[id]/PoolForm.client";
-import { fetchPool } from "@/repository/pools";
+import { fetchAllPools, fetchPool } from "@/repository/pools";
 import Alert from "@/components/ui/Alert.client";
 import PublishButton from "@/app/admin/pools/[id]/PublishButton.client";
+import CompareButton from "@/app/admin/pools/[id]/CompareButton.client";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -21,6 +22,7 @@ const AdminPoolShowPage = async ({ params }: Props) => {
   if (!pool) {
     return <Alert variant="error">Pool not found</Alert>;
   }
+  const allPools = await fetchAllPools();
 
   return (
     <div className="space-y-6">
@@ -28,6 +30,7 @@ const AdminPoolShowPage = async ({ params }: Props) => {
         title="Pool"
         actions={
           <div className="flex flex-row gap-2">
+            <CompareButton currentPoolId={id} pools={allPools} />
             <Button href={`/admin/pools/${id}/combos`} variant="secondary">
               Combos
             </Button>
