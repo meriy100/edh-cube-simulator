@@ -123,6 +123,7 @@ export const POST = async (req: NextRequest) => {
         .filter((d) => d.tags.includes("x-edh-cube-discover:fixed-name"))
         .map(async (d) => {
           const { en } = await fetchScryfall(d.name, { onlyEn: true });
+          await new Promise((resolve) => setTimeout(resolve, 100));
           fixedNames.set(d.name, en.name);
         }),
     );
@@ -170,6 +171,7 @@ export const POST = async (req: NextRequest) => {
         const saveCombosMessage = {
           poolId: pool.id,
           cards: parsedRows.data
+            .filter((d) => !d.tags.includes("x-edh-cube-discover:exclude-combos"))
             .map((d) => fixedNames.get(d.name) ?? d.name)
             .map((name) => ({ id: newCardId(name), name: name })),
         };
