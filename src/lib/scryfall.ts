@@ -41,20 +41,7 @@ export const scryfallCardSchema = z.object({
   name: z.string(),
   printed_name: z.string().optional(),
   printed_text: z.string().optional(),
-  layout: z.enum([
-    "normal",
-    "split",
-    "flip",
-    "transform",
-    "modal_dfc",
-    "meld",
-    "leveler",
-    "class",
-    "saga",
-    "adventure",
-    "host",
-    "augment",
-  ]),
+  layout: z.string(),
 
   // 基本特性（単面カードの場合はここにある）
   mana_cost: z.string().optional(),

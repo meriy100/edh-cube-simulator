@@ -5,7 +5,7 @@ import z from "zod";
 import { createPool, updatePoolStatus } from "@/repository/pools";
 import { newPool } from "@/domain/entity/pool";
 import Papa from "papaparse";
-import { createCards, fetchCards, updateCard } from "@/repository/cards";
+import { createCards, fetchCards } from "@/repository/cards";
 import { createPoolXCards } from "@/repository/poolXCards";
 import { PoolXCard } from "@/domain/entity/poolXCard";
 import { fetchScryfall } from "@/lib/scryfall";
@@ -36,21 +36,43 @@ const csvRowParser = z.preprocess((data) => {
     type: data[2],
     set: data[4],
     collectorNumber: data[5],
-    originalImageUrl: data[11],
-    originalImageBackUrl: data[12],
-    tags: data[13],
+    originalImageUrl: data[12],
+    originalImageBackUrl: data[13],
+    tags: data[14],
   };
 }, rowSchema);
 
 const csvSchema = z.preprocess((rawCsv) => {
   if (typeof rawCsv !== "string") return rawCsv;
 
-  const csvParseResults = Papa.parse<string[]>(rawCsv, {
-    header: false,
+  const csvParseResults = Papa.parse<Record<string, string>>(rawCsv, {
+    header: true,
     skipEmptyLines: true,
   });
 
-  return csvParseResults.data.filter((row) => row[10] === "false");
+  return csvParseResults.data
+    .filter((row) => row["maybeboard"] === "false")
+    .map((row) => [
+      row["name"],
+      row["CMC"],
+      row["Type"],
+      row["Color"],
+      row["Set"],
+      row["Collector Number"],
+      row["Rarity"],
+      row["Color Category"],
+      row["status"],
+      row["Finish"],
+      row["board"],
+      row["maybeboard"],
+      row["image URL"],
+      row["image Back URL"],
+      row["tags"],
+      row["Notes"],
+      row["MTGO ID"],
+      row["Custom"],
+      row["Voucher"],
+    ]);
 }, z.array(csvRowParser));
 
 export const POST = async (req: NextRequest) => {
