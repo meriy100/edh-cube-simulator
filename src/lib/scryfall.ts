@@ -106,12 +106,18 @@ export const fetchScryfall = async (
 
   // 1. 英語版を exact 検索で取得
   const enUrl = `${baseUrl}/cards/named?exact=${encodeURIComponent(cardName)}`;
-  const enRes = await fetch(enUrl);
+  const headers = {
+    "User-Agent": "EDHCubeSimulator/1.0 (contact: meriy100)",
+    Accept: "application/json",
+  };
+  const enRes = await fetch(enUrl, { headers });
 
   if (!enRes.ok) {
     if (enRes.status === 404) {
       throw new Error(`Card not found: ${cardName}`);
     }
+    const body = await enRes.json();
+    console.error(body);
     throw new Error(`Scryfall API error: ${enRes.status}`);
   }
 
@@ -131,7 +137,7 @@ export const fetchScryfall = async (
   const jaSearchUrl = `${baseUrl}/cards/search?q=${encodeURIComponent(jaQuery)}&unique=prints`;
 
   try {
-    const jaRes = await fetch(jaSearchUrl);
+    const jaRes = await fetch(jaSearchUrl, { headers });
 
     if (jaRes.ok) {
       const { data: jaList } = z
