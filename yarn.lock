@@ -2494,6 +2494,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@techstark/opencv-js@npm:4.12.0-release.1":
+  version: 4.12.0-release.1
+  resolution: "@techstark/opencv-js@npm:4.12.0-release.1"
+  checksum: 10c0/3e0976f489c775135904a5181c7f28c44b966d33f2b5334af0bb7f282c3a07863ce1ce72eaed46cda6991ea53e3c0a60a70876396dcc60637d0aeb4bbf2a9409
+  languageName: node
+  linkType: hard
+
 "@testing-library/jest-dom@npm:^6.6.3":
   version: 6.9.1
   resolution: "@testing-library/jest-dom@npm:6.9.1"
@@ -4197,6 +4204,7 @@ __metadata:
     "@storybook/addon-vitest": "npm:^10.1.10"
     "@storybook/nextjs-vite": "npm:^10.1.10"
     "@tailwindcss/postcss": "npm:^4"
+    "@techstark/opencv-js": "npm:4.12.0-release.1"
     "@types/lodash": "npm:^4"
     "@types/node": "npm:^20"
     "@types/papaparse": "npm:^5.5.2"

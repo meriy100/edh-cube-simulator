@@ -47,3 +47,6 @@ tmp/
 storybook-static
 
 edh-cube-discover-localdev-324fb4d2e282.json
+
+# OpenCV.js copied from node_modules by scripts/copy-opencv.mjs
+/public/vendor/
