@@ -1,233 +1,165 @@
-# EDH キューブ ドラフト シミュレーター - Claude Code ガイドライン
+# EDH キューブ シミュレーター - Claude Code ガイドライン
 
-これはNext.jsで構築されたMagic: The Gathering EDH（Elder Dragon Highlander）キューブドラフトシミュレーターです。このアプリケーションではカードプールの管理とキューブドラフトのシミュレーションが可能です。
+Magic: The Gathering の EDH（統率者戦）キューブのカードプールを公開・閲覧するための Next.js アプリです。管理者が CubeCobra の CSV からプールを取り込み、1 つのバージョンを公開します。閲覧者は統率者・通常カード・コンボ・ゲーム外カードを固有色で絞り込んで見られます。カード名やテキストは日本語で表示します。
 
-## プロジェクト構成
+> repo 名に反して、現在のコードにドラフト機能はありません。
 
-- **フレームワーク**: Next.js 15.4.10 with App Router
-- **フロントエンド**: React 19.1.0、TypeScript、Tailwind CSS 4
-- **データベース**: Google Cloud Firestore
-- **認証**: NextAuth with Google OAuth
+## 技術スタック
+
+- **フレームワーク**: Next.js 15.4.10（App Router、開発時は Turbopack）
+- **フロントエンド**: React 19.1.0、TypeScript、Tailwind CSS 4、lucide-react、mana-font
+- **データベース**: Google Cloud Firestore（Firebase Admin SDK でサーバー側からのみアクセス）
+- **非同期処理**: Google Cloud Pub/Sub → `edh-cube-discover-worker`（別 repo）
+- **認証**: NextAuth v5（beta）+ Google OAuth、管理者の許可リスト
+- **バリデーション**: zod 4
+- **UI 開発**: Storybook 10（`@storybook/nextjs-vite`）+ Vitest のブラウザテスト
 - **パッケージマネージャー**: yarn 4.6.0
-- **Nodeバージョン**: 22.18.0（Voltaで管理）
+- **Node バージョン**: 22.18.0（Volta で管理）
 
-## 開発環境のセットアップ
+## コマンド
 
-### パッケージマネージャー
-
-**このプロジェクトでは必ずyarnを使用してください。** プロジェクトはyarn 4.6.0で構成されています：
+**必ず yarn を使ってください。**
 
 ```bash
-# 依存関係のインストール
-yarn install
-
-# Turbopackで開発サーバー起動
-yarn dev
-
-# プロジェクトのビルド
-yarn build
-
-# Firebase操作（追加のコマンドは不要）
-# Firebase設定は設定ファイルを通じて処理されます
-
-# コードフォーマット
-yarn format
-
-# リントと型チェック
-yarn check
+yarn install          # 依存関係のインストール
+yarn dev              # 開発サーバー（Turbopack）
+yarn build            # 本番ビルド
+yarn typecheck        # tsc --noEmit
+yarn lint             # next lint
+yarn format           # prettier --write .
+yarn format:check     # prettier --check .
+yarn check            # format:check + lint + typecheck
+yarn storybook        # Storybook を :6006 で起動（/mcp で Storybook MCP も提供）
 ```
 
-### 環境設定
-
-1. Firebase環境変数を設定（Firebase設定セクションを参照）
-2. NextAuth用のGoogle OAuthクレデンシャルを設定
-3. Firestoreが有効なFirebaseプロジェクトを設定
-4. 開発用のサービスアカウントまたは本番用のWorkload Identityを設定
-
-## アーキテクチャ
-
-### ディレクトリ構成
+## ディレクトリ構成
 
 ```
 src/
-├── app/                    # Next.js App Router ページ
-│   ├── api/               # APIルート
-│   │   ├── auth/          # NextAuth設定
-│   │   ├── cards/         # カード管理API
-│   │   ├── drafts/        # ドラフトセッションAPI
-│   │   └── pools/         # プール管理API
-│   ├── admin/             # 管理画面
-│   ├── drafts/            # ドラフトページ
-│   ├── pools/             # プール管理ページ
-│   ├── layout.tsx         # ルートレイアウト
-│   └── page.tsx           # ホームページ
-├── components/            # Reactコンポーネント
-│   ├── ui/               # UIコンポーネントライブラリ（ここに作成）
-│   ├── CardGridWithPreview.tsx
-│   ├── CombosMermaidGraph.tsx
-│   ├── DraftPickClient.tsx
-│   ├── ExportPickedList.tsx
-│   └── PickedBoard.tsx
-├── lib/                  # ユーティリティライブラリ
-│   ├── auth.ts           # 認証ユーティリティ
-│   └── firebase/         # Firebase設定とユーティリティ
-│       ├── config.ts     # Firebaseクライアント設定
-│       ├── admin.ts      # Firebase管理SDK
-│       └── types.ts      # Firestore型定義
-└── middleware.ts         # Next.jsミドルウェア
+├── app/
+│   ├── (user)/                     # 公開ページ（公開中のプールのみ）
+│   │   ├── page.tsx                # トップ：4 つのセクションへのリンク
+│   │   ├── commanders/[c]/         # 統率者カード（固有色で絞り込み）
+│   │   ├── normals/[c]/            # 通常カード
+│   │   ├── combos/[c]/             # プール内で成立するコンボ
+│   │   ├── outside/[c]/            # ゲーム外カード（"9-" で始まるタグ）
+│   │   └── cards/[id]/             # カード詳細
+│   ├── admin/                      # 管理画面（middleware で保護）
+│   │   ├── login/
+│   │   ├── cards/[id]/             # カード詳細 + Scryfall から再取得
+│   │   └── pools/                  # プール一覧・作成・削除
+│   │       └── [id]/               # 編集、公開、コンボ（unlisted・翻訳）、compare/[targetId]
+│   └── api/
+│       ├── admin/pools/route.ts    # POST: CubeCobra CSV の取り込み
+│       ├── pools/route.ts          # GET: プール一覧
+│       └── auth/[...nextauth]/
+├── components/
+│   ├── ui/                         # 再利用 UI コンポーネント + stories
+│   ├── cards/                      # CardImage, CardSearchForm, cardSearchParams
+│   ├── combos/
+│   ├── poolXCards/
+│   └── pools/
+├── domain/entity/                  # Card, Combo, Pool, PoolXCard, PoolXCombo とヘルパー
+├── repository/                     # Firestore アクセス（コレクションごとに 1 ファイル）
+├── lib/
+│   ├── auth.ts                     # NextAuth 設定（管理者の許可リスト）
+│   ├── firebase/admin.ts           # Firebase Admin SDK の初期化
+│   ├── pubsub.ts                   # Pub/Sub 送信ヘルパー
+│   └── scryfall.ts                 # Scryfall API クライアント + スキーマ
+└── middleware.ts                   # /admin/* を保護
 ```
 
-### 主要機能
+`src/lib/firebase/config.ts`（クライアント SDK）、`src/lib/auth-minimal.ts`、`src/lib/auth-utils.ts` はどこからも import されていません。
 
-- **プール管理**: Moxfield形式またはCubeCobra CSVからカードプールをインポート
-- **ドラフトシミュレーション**: マルチプレイヤーキューブドラフトシミュレーション
-- **カードデータベース**: タグとメタデータ付きでパースされたカード情報を保存
-- **管理画面**: Google OAuth保護された管理機能
-- **コンボ分析**: カードの組み合わせのMermaidグラフ可視化
+## ドメインモデル（Firestore）
+
+| コレクション               | エンティティ | 備考                                                                                                   |
+| -------------------------- | ------------ | ------------------------------------------------------------------------------------------------------ |
+| `cards/{id}`               | `Card`       | プール間で共有。`id = uuidv5(小文字化した名前)`（`newCardId`）。`scryfall`（英）と `scryfallJa` を持つ |
+| `pools/{id}`               | `Pool`       | `id` は ULID。`status`: `processing` / `ready` / `error`。`published` は常に 1 つだけ                  |
+| `pools/{id}/poolXCards/*`  | `PoolXCard`  | プール内のカード：`commander`、`outside`、`tags`                                                       |
+| `combos/{id}`              | `Combo`      | Commander Spellbook から取得。翻訳後に `descriptionJa` / `notablePrerequisitesJa`                      |
+| `pools/{id}/poolXCombos/*` | `PoolXCombo` | プール内のコンボ。`unlisted` なら公開ページに出さない                                                  |
+
+日本語表示では `scryfallJa` を優先します（`domain/entity/card.ts` の `cardNameJa`、`cardOracle`、`cardImageUrl`）。
+
+## プール取り込みの流れ
+
+1. 管理者が **CubeCobra の CSV** とバージョン文字列をアップロードします（`POST /api/admin/pools`）。`maybeboard` が `"false"` 以外の行は読み飛ばします。Moxfield 形式には対応していません。
+2. タグ（`;` 区切り）で分類します。
+   - `0-commander` → `commander: true`
+   - `9-` で始まるタグがある → `outside: true`
+   - `x-edh-cube-discover:fixed-name` → 名前を Scryfall の英語名に置き換える
+   - `x-edh-cube-discover:exclude-combos` → コンボ検索に送らない
+3. `cards` を upsert して `pool` を作成し、`after()` の中で `poolXCards` を書き込み、status を `ready` にしてから Pub/Sub にメッセージを送ります。
+4. プールを公開すると（`publishPoolAction`）他のプールの公開を外し、`revalidateTag("published-pool")` を呼びます。公開ページは `published-pool` タグ付きの `unstable_cache` でキャッシュしています。
+
+## Worker（`../edh-cube-discover-worker`）
+
+Pub/Sub トピック `worker-topic` をトリガーに動く Google Cloud Function です。メッセージ属性 `eventType` で処理を選びます。
+
+| eventType         | 送信元                                    | 処理内容                                                                         |
+| ----------------- | ----------------------------------------- | -------------------------------------------------------------------------------- |
+| `attachScryfall`  | CSV 取り込み（Scryfall 未取得のカード）   | Scryfall から英語版・日本語版を取得 → `cards/{id}.scryfall` / `scryfallJa`       |
+| `saveCombos`      | CSV 取り込み                              | Commander Spellbook で検索（3 色以下）→ `combos/*` と `pools/{id}/poolXCombos/*` |
+| `translateCombos` | 管理画面のコンボページ（TranslateButton） | Vertex AI（Gemini）で翻訳 → `combos/{id}.descriptionJa` など                     |
+
+メッセージの形と `Combo` の形は両 repo で手作業で合わせています（worker 側は zod スキーマ）。**変更するときは両方の repo を直してください。** worker は処理の完了を Firestore に書き戻しません。
+
+## 色のルート
+
+`[c]` セグメントは `wubrgc`、`ub`、`c`（無色）などの色の組み合わせです。`generateStaticParams` が `components/cards/cardSearchParams.ts` の `colorPathList()` から全組み合わせを生成し、`colorIn` がカードの固有色が条件に合うかを判定します。
+
+## 環境変数
+
+| 名前                                        | 用途                                                             |
+| ------------------------------------------- | ---------------------------------------------------------------- |
+| `GOOGLE_APPLICATION_CREDENTIALS`            | 開発環境：サービスアカウント JSON のパス（Firestore と Pub/Sub） |
+| `GCP_SERVICE_ACCOUNT_KEY_BASE64`            | 本番環境：Base64 エンコードしたサービスアカウント JSON           |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID`           | 開発環境での Pub/Sub のプロジェクト ID                           |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | NextAuth 用の Google OAuth                                       |
+| `ADMIN_EMAILS`                              | 管理者ログインを許可するメールアドレス（カンマ区切り）           |
 
 ## 開発ガイドライン
 
-### UIコンポーネント
+### UI コンポーネント
 
-**再利用可能なUIコンポーネントは必ず `src/components/ui/` に作成してください。**
+**再利用する UI コンポーネントは必ず `src/components/ui/` に作り、`ui/{ComponentName}.stories.tsx` にストーリーを用意してください。**
 
-**各UIコンポーネントには、命名規則 `ui/{ComponentName}.stories.tsx` に従ってStorybookストーリーファイルを作成してください。**
+ストーリーには props、見た目の状態やバリエーション、操作できる例を載せます。
 
-**重要: UIコンポーネントを実装する際は、必ずStorybook MCPを活用してコンポーネントURLとプレビュー機能を開発とテストに利用してください。**
+**UI コンポーネントを実装するときは Storybook MCP を使ってください**（`.mcp.json` → `http://localhost:6006/mcp`、`yarn storybook` の起動中に使えます）。ストーリーの URL を取得して、バリエーション、レスポンシブ、操作時の状態、アクセシビリティをコンポーネント単体で確認します。
 
-このディレクトリに作成するコンポーネントの例：
+### コーディング規約
 
-- ボタンのバリエーション
-- フォームコントロール（Input、Select、Textarea）
-- レイアウトコンポーネント（Card、Container）
-- ローディング状態とスケルトン
-- モーダルとダイアログコンポーネント
-- トースト通知
-
-#### StorybookストーリーとMCP統合
-
-UIコンポーネントを作成する際は、必ずStorybookストーリーを含めて以下を文書化してください：
-
-- コンポーネントのAPIとprops
-- 視覚的な状態とバリエーション
-- インタラクティブな例
-- 使用ガイドライン
-
-**Storybook MCPサーバーを使用して、実装中のビジュアルテストと検証のためのコンポーネントURLを取得してください：**
-
-- コンポーネントプレビュー用のストーリーURLを生成
-- 分離された環境でコンポーネントのバリエーションをテスト
-- レスポンシブな動作とスタイリングを検証
-- インタラクティブな状態とアクセシビリティを検証
-
-構造例：
-
-```
-src/components/ui/
-├── Button.tsx
-├── Button.stories.tsx
-├── Input.tsx
-├── Input.stories.tsx
-└── ...
-```
-
-### コード規約
-
-- すべての新しいファイルでTypeScriptを使用
-- **関数定義にはアロー関数構文を使用する** - `function ComponentName() {}` ではなく `const ComponentName = () => {}` を使用する
-- **クライアントコンポーネントの命名規約** - `'use client'` ディレクティブが必要なコンポーネントには `.client.tsx` 拡張子を使用してサーバーコンポーネントと区別する（例：`Button.client.tsx`、`Modal.client.tsx`）
-- スタイリングには既存のダーク/ライトモードクラスでTailwind CSSを使用
-- **クリック可能なUI要素には必ず `cursor: pointer` を追加する** - インタラクティブな要素（ボタン、クリック可能な領域など）には `cursor-pointer` クラスを使用し、無効状態には `cursor-not-allowed` を使用する
-- ユーザーフレンドリーなメッセージで適切なエラーハンドリングを実装
-- 適切な場所でReact Server Componentsを使用（App Routerでのデフォルト）
-- **重要: TypeScript の型が正しいことを確認するため、必ず `yarn typecheck` を実行する**
-- **実装後は必ず `yarn lint` を実行し、エラーなしで通ることを確認する**
-- 実装完了と見なす前に、すべてのリントエラーと型エラーを修正する
-
-### データベース
-
-- データベース操作にはFirebase Firestoreを使用
-- クライアントサイド操作にはFirebaseクライアントSDKを活用
-- サーバーサイド操作にはFirebase管理SDKを使用
-- `src/lib/firebase/types.ts`で定義されたTypeScriptインターフェースに従う
-- 適切なFirestoreセキュリティルールを実装
+- 新しいファイルはすべて TypeScript で書く
+- **関数はアロー関数で定義する** - `function ComponentName() {}` ではなく `const ComponentName = () => {}`
+- **クライアントコンポーネントの命名** - `'use client'` を使うコンポーネントは `.client.tsx` 拡張子にする（例：`Button.client.tsx`）
+- スタイルは Tailwind CSS で、既存のダーク / ライトモードのクラスに合わせる
+- **クリックできる要素には必ず `cursor-pointer`**、無効状態には `cursor-not-allowed` を付ける
+- 基本は React Server Components。データの変更は Server Actions（ページ横の `actions.ts`）で行う
+- 外部入力と Firestore のデータは zod で検証する
+- Firestore へのアクセスは `src/repository/`、ドメインの型とヘルパーは `src/domain/entity/` に置く
+- ユーザーにわかりやすいメッセージでエラーを処理する
 
 ### 認証
 
-- NextAuthによるGoogle OAuthが設定済み
-- 管理ルートはミドルウェアで保護
-- `src/lib/auth.ts`の認証ユーティリティを使用
+- NextAuth の Google OAuth を使い、`ADMIN_EMAILS` にないメールアドレスのサインインは拒否する
+- `middleware.ts` が未認証の `/admin/*` へのアクセスを `/admin/login` にリダイレクトする
+- `api/admin` 配下の API ルートは自分で `auth()` を確認する
 
-### API設計
+## 品質チェック
 
-- APIルートにはREST規約に従う
-- 適切なエラーハンドリングとHTTPステータスコードを含める
-- リクエスト/レスポンスタイプにはTypeScriptインターフェースを使用
-- 適切な場合はJSONとFormDataの両方をサポート
+**実装を終える前に、次の順で実行してください。**
 
-## テストと品質管理
+1. `yarn typecheck` - **エラー 0 で通ること（必須）**
+2. `yarn lint` - **エラー 0 で通ること（必須）**
+3. `yarn format:check` - Prettier の整形チェック（直すときは `yarn format`）
 
-**実装を完了する前に、必ず以下の品質チェックを実行してください：**
+`yarn check` で 3 つをまとめて実行できます。
 
-```bash
-# 型チェック
-yarn typecheck
+## デプロイ
 
-# リント（エラーなしで通る必要あり）
-yarn lint
-
-# フォーマットチェック
-yarn format:check
-
-# すべてのチェックを一括実行
-yarn check
-```
-
-### 品質要件
-
-- **重要: すべてのTypeScript型エラーを修正する必要があります** - `yarn typecheck` がエラーなしで通ること
-- **すべてのリントエラーを修正する必要があります** - `yarn lint` がゼロエラーで通ること
-- TypeScriptエラーなしで型チェックが通ること
-- Prettierスタンダードでコードフォーマットされていること
-- `yarn check` ですべての品質チェックが一度に通ることを確認
-
-**必須チェック順序：**
-1. `yarn typecheck` - 進める前に必ず通すこと
-2. `yarn lint` - 完了前に必ず通すこと
-3. `yarn format:check` - フォーマット準拠の確認
-
-## デプロイメント
-
-アプリケーションはVercel上でのデプロイ用に設計されています：
-
-- mainブランチからの自動デプロイ
-- Vercelダッシュボードで設定された環境変数
-- Google Cloud Firestoreでホストされたデータベース
-- セキュアなGCP認証のためのWorkload Identity統合
-
-## カードデータ形式
-
-アプリケーションは2つの入力形式をサポートしています：
-
-### Moxfield形式
-
-```
-1 Abrade (TDC) 203 #2-targeted-disruption #9-1-R
-1 Abrupt Decay (MB2) 78 #2-targeted-disruption #9-2-BG
-```
-
-### CubeCobra CSV
-
-CubeCobraプラットフォームからの標準CSVエクスポート。
-
-## コントリビューション
-
-1. すべてのパッケージ操作にはyarnを使用
-2. UIコンポーネントは`src/components/ui/`に作成
-3. 既存のTypeScriptパターンに従う
-4. 両方の入力形式で徹底的にテスト
-5. ユーザーインタラクションに適切なエラーハンドリングを確保
-6. Tailwind CSSでレスポンシブデザインを維持
-7. **必須: `yarn typecheck` を実行し、エラーなしで通ることを確認する**
-8. **実装完了前に `yarn lint` を実行し、必ず通ることを確認する**
-9. `yarn check` ですべての品質チェックが通ることを検証する
+- Vercel、`main` から自動デプロイ
+- 環境変数は Vercel のダッシュボードで設定
+- worker は自分の repo の GitHub Actions で別にデプロイ

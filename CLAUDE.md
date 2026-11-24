@@ -1,233 +1,165 @@
-# EDH Cube Draft Simulator - Claude Code Guidelines
+# EDH Cube Simulator - Claude Code Guidelines
 
-This is a Magic: The Gathering EDH (Elder Dragon Highlander) Cube Draft Simulator built with Next.js. This application allows users to manage card pools and simulate cube drafts.
+A Next.js app for publishing and browsing the card pool of a Magic: The Gathering EDH (Commander) cube. Admins import a pool from a CubeCobra CSV and publish one version; visitors browse commanders, normal cards, combos and out-of-game cards by color identity, with Japanese card names and texts.
 
-## Project Structure
+> Despite the repo name, there is no draft feature in the current code.
 
-- **Framework**: Next.js 15.4.10 with App Router
-- **Frontend**: React 19.1.0, TypeScript, Tailwind CSS 4
-- **Database**: Google Cloud Firestore
-- **Authentication**: NextAuth with Google OAuth
+## Tech Stack
+
+- **Framework**: Next.js 15.4.10 (App Router, Turbopack in dev)
+- **Frontend**: React 19.1.0, TypeScript, Tailwind CSS 4, lucide-react, mana-font
+- **Database**: Google Cloud Firestore via Firebase Admin SDK (server side only)
+- **Async jobs**: Google Cloud Pub/Sub → `edh-cube-discover-worker` (separate repo)
+- **Auth**: NextAuth v5 (beta) with Google OAuth, admin allowlist
+- **Validation**: zod 4
+- **UI dev**: Storybook 10 (`@storybook/nextjs-vite`) + Vitest browser tests
 - **Package Manager**: yarn 4.6.0
 - **Node Version**: 22.18.0 (managed by Volta)
 
-## Development Setup
+## Commands
 
-### Package Manager
-
-**Always use yarn for this project.** The project is configured to use yarn 4.6.0:
+**Always use yarn.**
 
 ```bash
-# Install dependencies
-yarn install
-
-# Start development server with Turbopack
-yarn dev
-
-# Build project
-yarn build
-
-# Firebase operations (no additional commands needed)
-# Firebase setup is handled through configuration files
-
-# Code formatting
-yarn format
-
-# Lint and type check
-yarn check
+yarn install          # Install dependencies
+yarn dev              # Dev server (Turbopack)
+yarn build            # Production build
+yarn typecheck        # tsc --noEmit
+yarn lint             # next lint
+yarn format           # prettier --write .
+yarn format:check     # prettier --check .
+yarn check            # format:check + lint + typecheck
+yarn storybook        # Storybook on :6006 (also serves the Storybook MCP at /mcp)
 ```
 
-### Environment Setup
-
-1. Configure Firebase environment variables (see Firebase configuration section)
-2. Set up Google OAuth credentials for NextAuth
-3. Ensure Firebase project is set up with Firestore enabled
-4. Configure service account for development or Workload Identity for production
-
-## Architecture
-
-### Directory Structure
+## Directory Structure
 
 ```
 src/
-├── app/                    # Next.js App Router pages
-│   ├── api/               # API routes
-│   │   ├── auth/          # NextAuth configuration
-│   │   ├── cards/         # Card management API
-│   │   ├── drafts/        # Draft session API
-│   │   └── pools/         # Pool management API
-│   ├── admin/             # Admin interface
-│   ├── drafts/            # Draft pages
-│   ├── pools/             # Pool management pages
-│   ├── layout.tsx         # Root layout
-│   └── page.tsx           # Home page
-├── components/            # React components
-│   ├── ui/               # UI component library (create here)
-│   ├── CardGridWithPreview.tsx
-│   ├── CombosMermaidGraph.tsx
-│   ├── DraftPickClient.tsx
-│   ├── ExportPickedList.tsx
-│   └── PickedBoard.tsx
-├── lib/                  # Utility libraries
-│   ├── auth.ts           # Authentication utilities
-│   └── firebase/         # Firebase configuration and utilities
-│       ├── config.ts     # Firebase client configuration
-│       ├── admin.ts      # Firebase admin SDK
-│       └── types.ts      # Firestore type definitions
-└── middleware.ts         # Next.js middleware
+├── app/
+│   ├── (user)/                     # Public pages (published pool only)
+│   │   ├── page.tsx                # Home: links to the four sections
+│   │   ├── commanders/[c]/         # Commander cards, filtered by color identity
+│   │   ├── normals/[c]/            # Normal cards
+│   │   ├── combos/[c]/             # Combos that work within the pool
+│   │   ├── outside/[c]/            # Out-of-game cards (tags starting with "9-")
+│   │   └── cards/[id]/             # Card detail
+│   ├── admin/                      # Admin UI (protected by middleware)
+│   │   ├── login/
+│   │   ├── cards/[id]/             # Card detail + refetch from Scryfall
+│   │   └── pools/                  # Pool list / create / delete
+│   │       └── [id]/               # Edit, publish, combos (unlisted, translate), compare/[targetId]
+│   └── api/
+│       ├── admin/pools/route.ts    # POST: CubeCobra CSV import
+│       ├── pools/route.ts          # GET: pool list
+│       └── auth/[...nextauth]/
+├── components/
+│   ├── ui/                         # Reusable UI components + stories
+│   ├── cards/                      # CardImage, CardSearchForm, cardSearchParams
+│   ├── combos/
+│   ├── poolXCards/
+│   └── pools/
+├── domain/entity/                  # Card, Combo, Pool, PoolXCard, PoolXCombo + helpers
+├── repository/                     # Firestore access (one file per collection)
+├── lib/
+│   ├── auth.ts                     # NextAuth config (admin allowlist)
+│   ├── firebase/admin.ts           # Firebase Admin SDK init
+│   ├── pubsub.ts                   # Pub/Sub publish helpers
+│   └── scryfall.ts                 # Scryfall API client + schemas
+└── middleware.ts                   # Guards /admin/*
 ```
 
-### Key Features
+`src/lib/firebase/config.ts` (client SDK), `src/lib/auth-minimal.ts` and `src/lib/auth-utils.ts` are not imported anywhere.
 
-- **Pool Management**: Import card pools from Moxfield format or CubeCobra CSV
-- **Draft Simulation**: Multi-player cube draft simulation
-- **Card Database**: Stores parsed card information with tags and metadata
-- **Admin Interface**: Google OAuth protected admin features
-- **Combo Analysis**: Mermaid graph visualization of card combinations
+## Domain Model (Firestore)
+
+| Collection                 | Entity       | Notes                                                                                                     |
+| -------------------------- | ------------ | --------------------------------------------------------------------------------------------------------- |
+| `cards/{id}`               | `Card`       | Shared across pools. `id = uuidv5(lowercased name)` (`newCardId`). Holds `scryfall` (en) and `scryfallJa` |
+| `pools/{id}`               | `Pool`       | `id` is a ULID. `status`: `processing` / `ready` / `error`. Only one pool is `published`                  |
+| `pools/{id}/poolXCards/*`  | `PoolXCard`  | Card in a pool: `commander`, `outside`, `tags`                                                            |
+| `combos/{id}`              | `Combo`      | From Commander Spellbook. `descriptionJa` / `notablePrerequisitesJa` after translation                    |
+| `pools/{id}/poolXCombos/*` | `PoolXCombo` | Combo in a pool. `unlisted` hides it from public pages                                                    |
+
+Japanese display prefers `scryfallJa` (see `cardNameJa`, `cardOracle`, `cardImageUrl` in `domain/entity/card.ts`).
+
+## Pool Import Flow
+
+1. Admin uploads a **CubeCobra CSV** and a version string (`POST /api/admin/pools`). Rows with `maybeboard` other than `"false"` are skipped. Moxfield format is not supported.
+2. Tags (`;`-separated) control classification:
+   - `0-commander` → `commander: true`
+   - any tag starting with `9-` → `outside: true`
+   - `x-edh-cube-discover:fixed-name` → name is replaced with Scryfall's English name
+   - `x-edh-cube-discover:exclude-combos` → card is not sent to combo search
+3. `cards` are upserted, the `pool` is created, then in `after()`: `poolXCards` are written, status becomes `ready`, and messages are published to Pub/Sub.
+4. Publishing a pool (`publishPoolAction`) unpublishes the others and calls `revalidateTag("published-pool")`. Public pages cache with `unstable_cache` tagged `published-pool`.
+
+## Worker (`../edh-cube-discover-worker`)
+
+A Google Cloud Function triggered by Pub/Sub topic `worker-topic`. The message attribute `eventType` selects the job:
+
+| eventType         | Sent from                                | What it does                                                                        |
+| ----------------- | ---------------------------------------- | ----------------------------------------------------------------------------------- |
+| `attachScryfall`  | CSV import (cards without Scryfall data) | Fetches en/ja data from Scryfall → `cards/{id}.scryfall` / `scryfallJa`             |
+| `saveCombos`      | CSV import                               | Queries Commander Spellbook (≤3 colors) → `combos/*` and `pools/{id}/poolXCombos/*` |
+| `translateCombos` | Admin combos page (TranslateButton)      | Translates with Vertex AI (Gemini) → `combos/{id}.descriptionJa` etc.               |
+
+Message shapes and the `Combo` shape are duplicated by hand in both repos (zod schemas on the worker side). **When changing them, update both repos.** The worker does not report completion back to Firestore.
+
+## Color Routes
+
+The `[c]` segment is a color set such as `wubrgc`, `ub`, or `c` (colorless). `generateStaticParams` builds every subset from `colorPathList()` in `components/cards/cardSearchParams.ts`; `colorIn` decides whether a card's color identity matches.
+
+## Environment Variables
+
+| Name                                        | Purpose                                                     |
+| ------------------------------------------- | ----------------------------------------------------------- |
+| `GOOGLE_APPLICATION_CREDENTIALS`            | Dev: path to a service account JSON (Firestore and Pub/Sub) |
+| `GCP_SERVICE_ACCOUNT_KEY_BASE64`            | Production: Base64-encoded service account JSON             |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID`           | Project ID for Pub/Sub in dev                               |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth for NextAuth                                   |
+| `ADMIN_EMAILS`                              | Comma-separated allowlist for admin login                   |
 
 ## Development Guidelines
 
 ### UI Components
 
-**Always create reusable UI components in `src/components/ui/`.**
+**Always create reusable UI components in `src/components/ui/`, each with a story at `ui/{ComponentName}.stories.tsx`.**
 
-**For each UI component, create a corresponding Storybook story file following the naming convention: `ui/{ComponentName}.stories.tsx`.**
+Stories document the component's props, visual states and variations, and interactive examples.
 
-**IMPORTANT: When implementing UI components, always use the Storybook MCP to leverage component URLs and preview functionality for development and testing.**
-
-Examples of components to create in this directory:
-
-- Button variants
-- Form controls (Input, Select, Textarea)
-- Layout components (Card, Container)
-- Loading states and skeletons
-- Modal and dialog components
-- Toast notifications
-
-#### Storybook Stories and MCP Integration
-
-When creating UI components, always include a Storybook story to document:
-
-- Component API and props
-- Visual states and variations
-- Interactive examples
-- Usage guidelines
-
-**Use the Storybook MCP server to get component URLs for visual testing and verification during implementation:**
-
-- Generate story URLs for component previews
-- Test component variations in isolation
-- Verify responsive behavior and styling
-- Validate interactive states and accessibility
-
-Example structure:
-
-```
-src/components/ui/
-├── Button.tsx
-├── Button.stories.tsx
-├── Input.tsx
-├── Input.stories.tsx
-└── ...
-```
+**When implementing UI components, use the Storybook MCP** (`.mcp.json` → `http://localhost:6006/mcp`, available while `yarn storybook` is running) to get story URLs and check components in isolation: variations, responsive behavior, interactive states and accessibility.
 
 ### Code Standards
 
 - Use TypeScript for all new files
-- **Define functions using arrow function syntax** - Use `const ComponentName = () => {}` instead of `function ComponentName() {}`
-- **Client Component Naming Convention** - Use `.client.tsx` extension for components that require `'use client'` directive to distinguish them from Server Components (e.g., `Button.client.tsx`, `Modal.client.tsx`)
-- Use Tailwind CSS for styling with the existing dark/light mode classes
-- **Always add `cursor: pointer` to clickable UI elements** - Use `cursor-pointer` class for interactive elements (buttons, clickable areas, etc.) and `cursor-not-allowed` for disabled states
+- **Define functions using arrow function syntax** - `const ComponentName = () => {}` instead of `function ComponentName() {}`
+- **Client Component naming** - use the `.client.tsx` extension for components with the `'use client'` directive (e.g. `Button.client.tsx`)
+- Use Tailwind CSS with the existing dark/light mode classes
+- **Always add `cursor-pointer` to clickable elements** and `cursor-not-allowed` for disabled states
+- Use React Server Components by default; mutations go through Server Actions (`actions.ts` next to the page)
+- Validate external input and Firestore data with zod
+- Keep Firestore access inside `src/repository/`, and domain types and helpers in `src/domain/entity/`
 - Implement proper error handling with user-friendly messages
-- Use React Server Components where appropriate (default in App Router)
-- **CRITICAL: Always run `yarn typecheck` to verify TypeScript types are correct**
-- **Always run `yarn lint` after implementation and ensure it passes without errors**
-- Fix all linting and type errors before considering the implementation complete
-
-### Database
-
-- Use Firebase Firestore for database operations
-- Utilize Firebase client SDK for client-side operations
-- Use Firebase Admin SDK for server-side operations
-- Follow TypeScript interfaces defined in `src/lib/firebase/types.ts`
-- Implement proper Firestore security rules
 
 ### Authentication
 
-- Google OAuth is configured through NextAuth
-- Admin routes are protected with middleware
-- Use the auth utilities in `src/lib/auth.ts`
+- Google OAuth through NextAuth; sign-in is rejected unless the email is in `ADMIN_EMAILS`
+- `middleware.ts` redirects unauthenticated access to `/admin/*` to `/admin/login`
+- API routes under `api/admin` check `auth()` themselves
 
-### API Design
+## Quality Checks
 
-- Follow REST conventions for API routes
-- Include proper error handling and HTTP status codes
-- Use TypeScript interfaces for request/response types
-- Support both JSON and FormData where appropriate
+**Before completing any implementation, run in this order:**
 
-## Testing & Quality
+1. `yarn typecheck` - **MUST pass with zero errors**
+2. `yarn lint` - **MUST pass with zero errors**
+3. `yarn format:check` - Prettier compliance (`yarn format` to fix)
 
-**Before completing any implementation, always run these quality checks:**
-
-```bash
-# Type checking
-yarn typecheck
-
-# Linting (MUST pass without errors)
-yarn lint
-
-# Formatting check
-yarn format:check
-
-# All checks combined
-yarn check
-```
-
-### Quality Requirements
-
-- **CRITICAL: All TypeScript type errors must be fixed** - `yarn typecheck` must pass without errors
-- **All lint errors must be fixed** - `yarn lint` must pass with zero errors
-- Type checking must pass without TypeScript errors
-- Code formatting should follow Prettier standards
-- Run `yarn check` to verify all quality checks pass at once
-
-**MANDATORY CHECK SEQUENCE:**
-1. `yarn typecheck` - MUST pass before proceeding
-2. `yarn lint` - MUST pass before completion
-3. `yarn format:check` - Verify formatting compliance
+`yarn check` runs all three at once.
 
 ## Deployment
 
-The application is designed to deploy on Vercel:
-
-- Automatic deployments from main branch
-- Environment variables configured in Vercel dashboard
-- Database hosted on Google Cloud Firestore
-- Workload Identity integration for secure GCP authentication
-
-## Card Data Format
-
-The application supports two input formats:
-
-### Moxfield Format
-
-```
-1 Abrade (TDC) 203 #2-targeted-disruption #9-1-R
-1 Abrupt Decay (MB2) 78 #2-targeted-disruption #9-2-BG
-```
-
-### CubeCobra CSV
-
-Standard CSV export from CubeCobra platform.
-
-## Contributing
-
-1. Use yarn for all package operations
-2. Create UI components in `src/components/ui/`
-3. Follow existing TypeScript patterns
-4. Test thoroughly with both input formats
-5. Ensure proper error handling for user interactions
-6. Maintain responsive design with Tailwind CSS
-7. **MANDATORY: Run `yarn typecheck` and ensure it passes without errors**
-8. **Run `yarn lint` and ensure it passes before completing any implementation**
-9. Verify all quality checks pass with `yarn check`
+- Vercel, automatic deployment from `main`
+- Environment variables are set in the Vercel dashboard
+- The worker deploys separately via GitHub Actions in its own repo
