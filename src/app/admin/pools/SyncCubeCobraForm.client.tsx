@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 import SectionCard from "@/components/ui/SectionCard";
 import Button from "@/components/ui/Button.client";
@@ -18,12 +19,19 @@ const SyncCubeCobraForm = ({ cubeUrl, nextVersion }: Props) => {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
 
+  const router = useRouter();
+
   const handleClick = () => {
     setError(undefined);
     startTransition(async () => {
-      // Redirects to the new pool on success; returns only on failure.
       const result = await syncCubeCobraAction();
-      setError(result.error);
+      if (result.error !== undefined) {
+        setError(result.error);
+        return;
+      }
+      // Navigate only after the action's response has finished, so the pool's
+      // background processing (after()) can run while the page loads.
+      router.push(`/admin/pools/${result.poolId}`);
     });
   };
 
