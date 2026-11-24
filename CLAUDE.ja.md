@@ -63,6 +63,8 @@ src/
 ├── repository/                     # Firestore アクセス（コレクションごとに 1 ファイル）
 ├── lib/
 │   ├── auth.ts                     # NextAuth 設定（管理者の許可リスト）
+│   ├── cubecobra.ts                # CubeCobra cubeJSON クライアント + キューブ ID
+│   ├── poolImport.ts               # importPool()：API 同期と CSV 取り込みで共通
 │   ├── firebase/admin.ts           # Firebase Admin SDK の初期化
 │   ├── pubsub.ts                   # Pub/Sub 送信ヘルパー
 │   └── scryfall.ts                 # Scryfall API クライアント + スキーマ
@@ -85,7 +87,12 @@ src/
 
 ## プール取り込みの流れ
 
-1. 管理者が **CubeCobra の CSV** とバージョン文字列をアップロードします（`POST /api/admin/pools`）。`maybeboard` が `"false"` 以外の行は読み飛ばします。Moxfield 形式には対応していません。
+1. プールの作り方は 2 通りです。どちらも元データを `PoolImportRow[]` に変換し、`nextPoolVersion()` で決めた次のバージョンで `lib/poolImport.ts` の `importPool()` を呼びます。
+   - **CubeCobra から同期**（推奨）：`/admin/pools` の「同期」ボタンが `syncCubeCobraAction` を呼び、`https://cubecobra.com/cube/api/cubeJSON/{CUBECOBRA_CUBE_ID}` から mainboard を読み込みます（`lib/cubecobra.ts`）。
+   - **CubeCobra の CSV をアップロード**（`POST /api/admin/pools`）：`maybeboard` が `"false"` 以外の行は読み飛ばします。
+
+   Moxfield 形式には対応していません。
+
 2. タグ（`;` 区切り）で分類します。
    - `0-commander` → `commander: true`
    - `9-` で始まるタグがある → `outside: true`

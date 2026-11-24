@@ -7,7 +7,7 @@ import Button from "@/components/ui/Button.client";
 import Alert from "@/components/ui/Alert.client";
 import LoadingSpinner from "@/components/ui/LoadingSpinner.client";
 import { useRouter } from "next/navigation";
-import semver from "semver/preload";
+import { nextPoolVersion } from "@/domain/entity/pool";
 
 interface Props {
   latestVersion: string;
@@ -34,9 +34,7 @@ const NewPoolForm = ({ latestVersion }: Props) => {
       const formData = new FormData();
       formData.append("csv", file);
 
-      const version =
-        semver.inc(semver.valid(latestVersion) ?? "0.0.1", "prerelease", "rc") ?? "0.0.1";
-      formData.append("version", version);
+      formData.append("version", nextPoolVersion(latestVersion));
 
       const response = await fetch("/api/admin/pools", {
         method: "POST",
@@ -69,7 +67,7 @@ const NewPoolForm = ({ latestVersion }: Props) => {
 
   return (
     <SectionCard
-      title="Pool 登録"
+      title="CSV から登録"
       subtitle="Cube cobra の CSV から Pool を登録"
       footerActions={
         <Button

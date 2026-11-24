@@ -1,4 +1,5 @@
 import { ulid } from "ulid";
+import semver from "semver/preload";
 
 declare const poolIdCommonality: unique symbol;
 export type PoolId = string & { [poolIdCommonality]: never };
@@ -17,6 +18,10 @@ export interface Pool {
   createdAt: Date;
   updatedAt: Date;
 }
+
+/** Next version after the latest pool, e.g. "1.2.0" → "1.2.1-rc.0", "1.2.1-rc.0" → "1.2.1-rc.1". */
+export const nextPoolVersion = (latestVersion: string | undefined): string =>
+  semver.inc(semver.valid(latestVersion) ?? "0.0.1", "prerelease", "rc") ?? "0.0.1";
 
 export const newPool = ({ count, version }: { count: number; version: string }): Pool => ({
   id: PoolId(ulid()),

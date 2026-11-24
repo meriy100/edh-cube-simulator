@@ -63,6 +63,8 @@ src/
 ├── repository/                     # Firestore access (one file per collection)
 ├── lib/
 │   ├── auth.ts                     # NextAuth config (admin allowlist)
+│   ├── cubecobra.ts                # CubeCobra cubeJSON client + cube ID
+│   ├── poolImport.ts               # importPool(): shared by API sync and CSV upload
 │   ├── firebase/admin.ts           # Firebase Admin SDK init
 │   ├── pubsub.ts                   # Pub/Sub publish helpers
 │   └── scryfall.ts                 # Scryfall API client + schemas
@@ -85,7 +87,12 @@ Japanese display prefers `scryfallJa` (see `cardNameJa`, `cardOracle`, `cardImag
 
 ## Pool Import Flow
 
-1. Admin uploads a **CubeCobra CSV** and a version string (`POST /api/admin/pools`). Rows with `maybeboard` other than `"false"` are skipped. Moxfield format is not supported.
+1. A pool is created in one of two ways. Both turn the source into `PoolImportRow[]` and call `importPool()` in `lib/poolImport.ts`, with the next version from `nextPoolVersion()`:
+   - **Sync from CubeCobra** (recommended): the "同期" button on `/admin/pools` calls `syncCubeCobraAction`, which reads the mainboard from `https://cubecobra.com/cube/api/cubeJSON/{CUBECOBRA_CUBE_ID}` (`lib/cubecobra.ts`).
+   - **CubeCobra CSV upload** (`POST /api/admin/pools`): rows with `maybeboard` other than `"false"` are skipped.
+
+   Moxfield format is not supported.
+
 2. Tags (`;`-separated) control classification:
    - `0-commander` → `commander: true`
    - any tag starting with `9-` → `outside: true`

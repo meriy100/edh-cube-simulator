@@ -5,6 +5,9 @@ import PoolList from "@/components/pools/PoolList";
 import { Suspense } from "react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner.client";
 import NewPoolForm from "@/app/admin/pools/NewPoolForm.client";
+import SyncCubeCobraForm from "@/app/admin/pools/SyncCubeCobraForm.client";
+import { nextPoolVersion } from "@/domain/entity/pool";
+import { cubeCobraCubeUrl } from "@/lib/cubecobra";
 
 const AdminPoolsPage = async () => {
   const pools = await fetchPools();
@@ -14,6 +17,11 @@ const AdminPoolsPage = async () => {
   return (
     <div className="space-y-6">
       <PageHeader title="Pool 管理" />
+
+      <SyncCubeCobraForm
+        cubeUrl={cubeCobraCubeUrl()}
+        nextVersion={nextPoolVersion(latestVersion)}
+      />
 
       <NewPoolForm latestVersion={latestVersion} />
 
