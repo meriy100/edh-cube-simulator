@@ -95,6 +95,23 @@ function findBestJapaneseCard(cards: ScryfallCard[]): ScryfallCard | undefined {
  */
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
+const MAX_RATE_LIMIT_RETRIES = 3;
+
+/**
+ * fetch that waits and retries when Scryfall answers 429 (rate limited).
+ * Uses the Retry-After header when present, otherwise backs off 1s, 2s, 4s.
+ */
+const fetchWithRateLimitRetry = async (url: string, init: RequestInit): Promise<Response> => {
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(url, init);
+    if (res.status !== 429 || attempt >= MAX_RATE_LIMIT_RETRIES) {
+      return res;
+    }
+    const retryAfter = Number(res.headers.get("Retry-After"));
+    await sleep(retryAfter > 0 ? retryAfter * 1000 : 1000 * 2 ** attempt);
+  }
+};
+
 /**
  * カード名から英語版と日本語版の情報を取得する (Fetch API 版)
  */
@@ -110,7 +127,7 @@ export const fetchScryfall = async (
     "User-Agent": "EDHCubeSimulator/1.0 (contact: meriy100)",
     Accept: "application/json",
   };
-  const enRes = await fetch(enUrl, { headers });
+  const enRes = await fetchWithRateLimitRetry(enUrl, { headers });
 
   if (!enRes.ok) {
     if (enRes.status === 404) {
@@ -137,7 +154,7 @@ export const fetchScryfall = async (
   const jaSearchUrl = `${baseUrl}/cards/search?q=${encodeURIComponent(jaQuery)}&unique=prints`;
 
   try {
-    const jaRes = await fetch(jaSearchUrl, { headers });
+    const jaRes = await fetchWithRateLimitRetry(jaSearchUrl, { headers });
 
     if (jaRes.ok) {
       const { data: jaList } = z

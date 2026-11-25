@@ -98,7 +98,7 @@ src/
    - `9-` で始まるタグがある → `outside: true`
    - `x-edh-cube-discover:fixed-name` → 名前を Scryfall の英語名に置き換える
    - `x-edh-cube-discover:exclude-combos` → コンボ検索に送らない
-3. `cards` を upsert して `pool` を作成し、`after()` の中で `poolXCards` を書き込み、status を `ready` にしてから Pub/Sub にメッセージを送ります。
+3. `cards` を upsert して `pool` を作成し、`poolXCards` を書き込んで status を `ready` にするまでを返却前に行います。Pub/Sub へのメッセージ送信だけを `after()` で行います。`fixed-name` の Scryfall 問い合わせは 1 件ずつ行います（429 はリトライ）。
 4. プールを公開すると（`publishPoolAction`）他のプールの公開を外し、`revalidateTag("published-pool")` を呼びます。公開ページは `published-pool` タグ付きの `unstable_cache` でキャッシュしています。
 
 ## Worker（`../edh-cube-discover-worker`）

@@ -30,20 +30,17 @@ export type PoolImportRow = z.infer<typeof poolImportRowSchema>;
 
 /**
  * Creates a new pool from card rows.
- * Cards and the pool are saved before returning; poolXCards and the worker jobs
- * (Scryfall data, combos) run after the response via `after()`.
+ * Cards, the pool and its poolXCards are saved (status `ready`) before returning;
+ * the worker jobs (Scryfall data, combos) are published after the response via `after()`.
  */
 export const importPool = async (rows: PoolImportRow[], version: string): Promise<PoolId> => {
+  // One request at a time: Scryfall rate-limits bursts with 429.
   const fixedNames = new Map<string, string>();
-  await Promise.all(
-    rows
-      .filter((d) => d.tags.includes("x-edh-cube-discover:fixed-name"))
-      .map(async (d) => {
-        const { en } = await fetchScryfall(d.name, { onlyEn: true });
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        fixedNames.set(d.name, en.name);
-      }),
-  );
+  for (const d of rows.filter((d) => d.tags.includes("x-edh-cube-discover:fixed-name"))) {
+    const { en } = await fetchScryfall(d.name, { onlyEn: true });
+    fixedNames.set(d.name, en.name);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
   const nameOf = (d: PoolImportRow) => fixedNames.get(d.name) ?? d.name;
 
   await createCards(
@@ -61,22 +58,32 @@ export const importPool = async (rows: PoolImportRow[], version: string): Promis
   const pool = newPool({ count: rows.length, version });
   await createPool(pool);
 
+  // poolXCards are written before returning so the pool is ready by the time the
+  // admin opens it; only the worker messages are sent after the response.
+  try {
+    await createPoolXCards(
+      pool.id,
+      rows.map(
+        (d): Omit<PoolXCard, "card"> => ({
+          name: nameOf(d),
+          commander: d.tags.includes("0-commander"),
+          outside: d.tags.some((tag) => tag.startsWith("9-")),
+          tags: d.tags,
+        }),
+      ),
+    );
+    await updatePoolStatus(pool.id, "ready");
+  } catch (error) {
+    await updatePoolStatus(
+      pool.id,
+      "error",
+      error instanceof Error ? error.message : "Unknown error occurred",
+    );
+    throw error;
+  }
+
   after(async () => {
     try {
-      await createPoolXCards(
-        pool.id,
-        rows.map(
-          (d): Omit<PoolXCard, "card"> => ({
-            name: nameOf(d),
-            commander: d.tags.includes("0-commander"),
-            outside: d.tags.some((tag) => tag.startsWith("9-")),
-            tags: d.tags,
-          }),
-        ),
-      );
-
-      await updatePoolStatus(pool.id, "ready");
-
       const cards = await fetchCards({ names: rows.map(nameOf) });
       const attachScryfallMessage = {
         cards: cards
@@ -97,12 +104,7 @@ export const importPool = async (rows: PoolImportRow[], version: string): Promis
         publishMessage("worker-topic", saveCombosMessage, { eventType: "saveCombos" }),
       ]);
     } catch (error) {
-      console.error("Error in background pool processing:", error);
-      await updatePoolStatus(
-        pool.id,
-        "error",
-        error instanceof Error ? error.message : "Unknown error occurred",
-      );
+      console.error("Error publishing worker messages:", error);
     }
   });
 

@@ -98,7 +98,7 @@ Japanese display prefers `scryfallJa` (see `cardNameJa`, `cardOracle`, `cardImag
    - any tag starting with `9-` → `outside: true`
    - `x-edh-cube-discover:fixed-name` → name is replaced with Scryfall's English name
    - `x-edh-cube-discover:exclude-combos` → card is not sent to combo search
-3. `cards` are upserted, the `pool` is created, then in `after()`: `poolXCards` are written, status becomes `ready`, and messages are published to Pub/Sub.
+3. `cards` are upserted, the `pool` is created, `poolXCards` are written and status becomes `ready` before returning; only the Pub/Sub messages are published in `after()`. `fixed-name` lookups hit Scryfall one at a time (429 is retried).
 4. Publishing a pool (`publishPoolAction`) unpublishes the others and calls `revalidateTag("published-pool")`. Public pages cache with `unstable_cache` tagged `published-pool`.
 
 ## Worker (`../edh-cube-discover-worker`)

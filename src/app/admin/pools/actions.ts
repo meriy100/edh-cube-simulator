@@ -17,10 +17,8 @@ export const deletePoolAction = async (id: PoolId) => {
 /**
  * Fetches the cube from CubeCobra and creates a new pool version from it.
  *
- * Returns the pool ID instead of calling `redirect()`: a redirect would render
- * `/admin/pools/[id]` inside this same request, and that page waits for the pool
- * to become ready, which only happens in `importPool`'s `after()` once this
- * response has finished. The client navigates after the action returns.
+ * Returns the pool ID instead of calling `redirect()` so that errors can be shown
+ * on the form; the client navigates after the action returns.
  */
 export const syncCubeCobraAction = async (): Promise<
   { poolId: PoolId; error?: undefined } | { poolId?: undefined; error: string }
