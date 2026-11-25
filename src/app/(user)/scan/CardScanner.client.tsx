@@ -10,12 +10,10 @@ import { loadOpenCv } from "@/lib/cardScan/opencv";
 import {
   CV,
   describe,
-  describeBothWays,
-  detectCards,
-  matchCard,
   MatchCandidate,
   normalizeCardSize,
   Quad,
+  recognizeCards,
   ReferenceCard,
   warpCard,
 } from "@/lib/cardScan/pipeline";
@@ -204,11 +202,10 @@ const CardScanner = ({ cards }: Props) => {
         Math.round(img.naturalHeight * scale),
       );
       try {
-        const quads = detectCards(cv, photo);
-        const detections = quads.map((quad): Detection => {
+        const recognized = recognizeCards(cv, photo, refsRef.current, { k: 3 });
+        const detections = recognized.map(({ quad, candidates }): Detection => {
           const warped = warpCard(cv, photo, quad);
           try {
-            const candidates = matchCard(describeBothWays(cv, warped), refsRef.current, 3);
             const [first, second] = candidates;
             const margin = first && second ? first.score - second.score : 1;
             return {
@@ -223,7 +220,11 @@ const CardScanner = ({ cards }: Props) => {
           }
         });
         setResult({
-          overlayUrl: drawOverlay(img, quads, scale),
+          overlayUrl: drawOverlay(
+            img,
+            detections.map((d) => d.quad),
+            scale,
+          ),
           detections,
           elapsedMs: Math.round(performance.now() - started),
         });
@@ -266,7 +267,7 @@ const CardScanner = ({ cards }: Props) => {
     <div className="space-y-6">
       <SectionCard
         title="写真を撮る"
-        subtitle="カードが重ならないように、無地の机に離して並べて真上から撮影してください"
+        subtitle="カードが重ならないように少し離して並べ、写真の端で切れないように真上から撮影してください"
       >
         <div className="space-y-4">
           {status.kind === "loading" && (
