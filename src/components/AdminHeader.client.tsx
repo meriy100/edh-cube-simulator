@@ -37,6 +37,9 @@ const AdminHeader = () => {
             <Link variant="nav" href="/admin/pools">
               Pool管理
             </Link>
+            <Link variant="nav" href="/admin/scan">
+              カード認識
+            </Link>
             <Link variant="nav" href="/">
               メインサイト
             </Link>
@@ -75,6 +78,9 @@ const AdminHeader = () => {
             </Link>
             <Link variant="nav" href="/admin/pools">
               Pool管理
+            </Link>
+            <Link variant="nav" href="/admin/scan">
+              カード認識
             </Link>
             <Link variant="nav" href="/">
               メインサイト

@@ -82,6 +82,11 @@ export default function AdminDashboard() {
             onClick={() => router.push("/admin/pools")}
           />
           <ActionCard
+            title="カード認識（試験中）"
+            description="写真に写ったカードを認識してピック内容をリストにする"
+            onClick={() => router.push("/admin/scan")}
+          />
+          <ActionCard
             title="メインサイト"
             description="ユーザー向けメインページに移動"
             onClick={() => router.push("/")}

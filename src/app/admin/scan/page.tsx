@@ -5,8 +5,7 @@ import { fetchPoolXCards } from "@/repository/poolXCards";
 import { unstable_cache } from "next/cache";
 import { PoolId } from "@/domain/entity/pool";
 import { cardImageUrl, cardNameJa, newCardId } from "@/domain/entity/card";
-import PageNavigation from "@/app/(user)/PageNavigation";
-import CardScanner, { ScanPoolCard } from "@/app/(user)/scan/CardScanner.client";
+import CardScanner, { ScanPoolCard } from "@/app/admin/scan/CardScanner.client";
 
 const getPoolXCardsCache = unstable_cache(
   async (id: PoolId) => await fetchPoolXCards(id),
@@ -43,7 +42,6 @@ const ScanPage = async () => {
         title={`EDH Cube v${current.version} / カード認識（試験中）`}
         subtitle="写真に写ったカードを端末内で認識します。画像は外部に送信されません。"
       />
-      <PageNavigation commander normals combos outside />
       <CardScanner cards={cards} />
     </div>
   );

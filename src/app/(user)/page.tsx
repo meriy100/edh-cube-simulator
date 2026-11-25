@@ -1,7 +1,7 @@
 import PageHeader from "@/components/ui/PageHeader";
 import Alert from "@/components/ui/Alert.client";
 import ActionCard from "@/components/ui/ActionCard.client";
-import { BookUp2, Camera, ChessPawn, Crown, Package } from "lucide-react";
+import { BookUp2, ChessPawn, Crown, Package } from "lucide-react";
 import { fetchPublishedPool } from "@/repository/pools";
 
 const Home = async () => {
@@ -37,12 +37,6 @@ const Home = async () => {
         description="その他、ゲーム外のカードプール"
         icon={<Package className="text-purple-500" />}
         href="/outside/wubrgc"
-      />
-      <ActionCard
-        title="カード認識（試験中）"
-        description="写真に写ったカードを認識してピック内容をリストにする"
-        icon={<Camera className="text-sky-600" />}
-        href="/scan"
       />
     </div>
   );
